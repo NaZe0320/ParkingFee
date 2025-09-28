@@ -35,9 +35,7 @@ class HomeViewModel @Inject constructor(
     private val _effect = MutableSharedFlow<HomeContract.HomeEffect>()
     val effect: SharedFlow<HomeContract.HomeEffect> = _effect.asSharedFlow()
 
-    init {
-        loadInitialData()
-    }
+    // init 블록 제거 - 화면 진입 시마다 LaunchedEffect로 새로고침
 
     /**
      * Intent를 처리하는 메서드

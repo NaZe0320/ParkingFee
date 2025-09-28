@@ -33,6 +33,9 @@ interface ParkingDao {
     @Delete
     suspend fun deleteParkingZone(parkingZone: ParkingZoneEntity)
     
+    @Query("DELETE FROM parking_zones WHERE id = :zoneId")
+    suspend fun deleteParkingZoneById(zoneId: String)
+    
     // ParkingSession 관련 쿼리
     @Query("SELECT * FROM parking_sessions WHERE isActive = 1 ORDER BY startTime DESC")
     suspend fun getAllParkingSessions(): List<ParkingSessionEntity>

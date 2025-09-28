@@ -2,14 +2,14 @@ package com.naze.parkingfee.presentation.ui.screens.addparkinglot
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.naze.parkingfee.domain.model.ParkingLot
+import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.domain.model.FeeStructure
 import com.naze.parkingfee.domain.model.BasicFeeRule
 import com.naze.parkingfee.domain.model.AdditionalFeeRule
 import com.naze.parkingfee.domain.model.DailyMaxFeeRule
 import com.naze.parkingfee.domain.model.CustomFeeRule
-import com.naze.parkingfee.domain.usecase.AddParkingLotUseCase
-import com.naze.parkingfee.domain.usecase.GetParkingLotsUseCase
+import com.naze.parkingfee.domain.usecase.AddParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,8 +25,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AddParkingLotViewModel @Inject constructor(
-    private val addParkingLotUseCase: AddParkingLotUseCase,
-    private val getParkingLotsUseCase: GetParkingLotsUseCase
+    private val addParkingZoneUseCase: AddParkingZoneUseCase,
+    private val getParkingZonesUseCase: GetParkingZonesUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddParkingLotContract.AddParkingLotState())
@@ -177,7 +177,7 @@ class AddParkingLotViewModel @Inject constructor(
     }
 
     /**
-     * 주차장 저장
+     * 주차 구역 저장
      */
     private fun saveParkingLot() {
         val currentState = _state.value
@@ -193,19 +193,22 @@ class AddParkingLotViewModel @Inject constructor(
             try {
                 _state.update { it.copy(isSaving = true, validationErrors = emptyMap()) }
 
-                // 다음 주차장 번호 계산
-                val existingLots = getParkingLotsUseCase.execute()
-                val nextSequenceNumber = existingLots.size + 1
+                // 다음 주차 구역 번호 계산
+                val existingZones = getParkingZonesUseCase.execute()
+                val nextSequenceNumber = existingZones.size + 1
 
-                // 주차장 생성
-                val parkingLot = ParkingLot(
+                // 주차 구역 생성
+                val parkingZone = ParkingZone(
                     id = UUID.randomUUID().toString(),
-                    name = if (currentState.useDefaultName) null else currentState.parkingLotName,
+                    name = if (currentState.useDefaultName) "주차장$nextSequenceNumber" else currentState.parkingLotName,
+                    hourlyRate = calculateHourlyRate(currentState), // 기본 시간당 요금 계산
+                    maxCapacity = 100, // 기본값
+                    currentOccupancy = 0, // 기본값
                     feeStructure = createFeeStructure(currentState)
                 )
 
-                // 주차장 저장
-                addParkingLotUseCase.execute(parkingLot)
+                // 주차 구역 저장
+                addParkingZoneUseCase.execute(parkingZone)
 
                 _state.update { 
                     it.copy(
@@ -305,6 +308,22 @@ class AddParkingLotViewModel @Inject constructor(
      */
     private fun navigateBack() {
         _effect.value = AddParkingLotContract.AddParkingLotEffect.NavigateBack
+    }
+
+    /**
+     * 기본 시간당 요금 계산 (복잡한 요금 체계의 대략적인 시간당 요금)
+     */
+    private fun calculateHourlyRate(state: AddParkingLotContract.AddParkingLotState): Double {
+        val basicFee = state.basicFeeAmount
+        val basicDuration = state.basicFeeDuration
+        val additionalFee = state.additionalFeeAmount
+        val additionalInterval = state.additionalFeeInterval
+        
+        // 기본 요금 + 추가 요금을 고려한 대략적인 시간당 요금 계산
+        val basicHourlyRate = (basicFee.toDouble() / basicDuration) * 60
+        val additionalHourlyRate = (additionalFee.toDouble() / additionalInterval) * 60
+        
+        return basicHourlyRate + additionalHourlyRate
     }
 
     /**

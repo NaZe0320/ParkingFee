@@ -29,6 +29,11 @@ fun HomeScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
 
+    // 화면 진입 시마다 주차장 목록 새로고침
+    LaunchedEffect(Unit) {
+        viewModel.processIntent(HomeContract.HomeIntent.RefreshParkingInfo)
+    }
+
     // Effect 처리
     LaunchedEffect(effect) {
         effect?.let { currentEffect ->

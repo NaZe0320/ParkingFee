@@ -2,7 +2,6 @@ package com.naze.parkingfee.di
 
 import android.content.Context
 import com.naze.parkingfee.data.datasource.local.dao.ParkingDao
-import com.naze.parkingfee.data.datasource.local.dao.ParkingLotDao
 import com.naze.parkingfee.data.datasource.local.database.ParkingDatabase
 import dagger.Module
 import dagger.Provides
@@ -27,10 +26,5 @@ object DatabaseModule {
     @Provides
     fun provideParkingDao(database: ParkingDatabase): ParkingDao {
         return database.parkingDao()
-    }
-
-    @Provides
-    fun provideParkingLotDao(database: ParkingDatabase): ParkingLotDao {
-        return database.parkingLotDao()
     }
 }

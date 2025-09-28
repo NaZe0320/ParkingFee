@@ -5,10 +5,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import android.content.Context
 import com.naze.parkingfee.data.datasource.local.dao.ParkingDao
-import com.naze.parkingfee.data.datasource.local.dao.ParkingLotDao
 import com.naze.parkingfee.data.datasource.local.entity.ParkingZoneEntity
 import com.naze.parkingfee.data.datasource.local.entity.ParkingSessionEntity
-import com.naze.parkingfee.data.datasource.local.entity.ParkingLotEntity
 
 /**
  * 주차 관련 Room 데이터베이스
@@ -16,16 +14,14 @@ import com.naze.parkingfee.data.datasource.local.entity.ParkingLotEntity
 @Database(
     entities = [
         ParkingZoneEntity::class,
-        ParkingSessionEntity::class,
-        ParkingLotEntity::class
+        ParkingSessionEntity::class
     ],
-    version = 1,
+    version = 2, // 버전 업데이트 (ParkingLotEntity 제거)
     exportSchema = false
 )
 abstract class ParkingDatabase : RoomDatabase() {
     
     abstract fun parkingDao(): ParkingDao
-    abstract fun parkingLotDao(): ParkingLotDao
     
     companion object {
         @Volatile
@@ -37,7 +33,8 @@ abstract class ParkingDatabase : RoomDatabase() {
                     context.applicationContext,
                     ParkingDatabase::class.java,
                     "parking_database"
-                ).build()
+                ).fallbackToDestructiveMigration() // 스키마 변경으로 인한 마이그레이션
+                .build()
                 INSTANCE = instance
                 instance
             }

@@ -95,7 +95,7 @@ private fun ZoneCard(
             )
             
             Text(
-                text = "${zone.hourlyRate}원/시간",
+                text = zone.getDisplayFeeInfo(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (isSelected) {
                     MaterialTheme.colorScheme.onPrimary

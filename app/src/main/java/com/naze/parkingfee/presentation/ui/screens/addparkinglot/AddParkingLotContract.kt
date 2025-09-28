@@ -1,6 +1,6 @@
 package com.naze.parkingfee.presentation.ui.screens.addparkinglot
 
-import com.naze.parkingfee.domain.model.ParkingLot
+import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.domain.model.FeeStructure
 import com.naze.parkingfee.domain.model.BasicFeeRule
 import com.naze.parkingfee.domain.model.AdditionalFeeRule

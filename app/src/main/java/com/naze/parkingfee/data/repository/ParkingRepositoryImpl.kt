@@ -39,6 +39,27 @@ class ParkingRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun addParkingZone(parkingZone: ParkingZone): ParkingZone {
+        val entity = parkingZoneMapper.mapToEntity(parkingZone)
+        parkingDao.insertParkingZone(entity)
+        return parkingZone
+    }
+
+    override suspend fun updateParkingZone(parkingZone: ParkingZone): ParkingZone {
+        val entity = parkingZoneMapper.mapToEntity(parkingZone)
+        parkingDao.updateParkingZone(entity)
+        return parkingZone
+    }
+
+    override suspend fun deleteParkingZone(zoneId: String): Boolean {
+        return try {
+            parkingDao.deleteParkingZoneById(zoneId)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     override suspend fun startParkingSession(zoneId: String): ParkingSession {
         val sessionId = generateSessionId()
         val startTime = System.currentTimeMillis()

@@ -1,9 +1,7 @@
 package com.naze.parkingfee.di
 
 import com.naze.parkingfee.domain.repository.ParkingRepository
-import com.naze.parkingfee.domain.repository.ParkingLotRepository
 import com.naze.parkingfee.data.repository.ParkingRepositoryImpl
-import com.naze.parkingfee.data.repository.ParkingLotRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -22,10 +20,4 @@ abstract class RepositoryModule {
     abstract fun bindParkingRepository(
         parkingRepositoryImpl: ParkingRepositoryImpl
     ): ParkingRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindParkingLotRepository(
-        parkingLotRepositoryImpl: ParkingLotRepositoryImpl
-    ): ParkingLotRepository
 }
