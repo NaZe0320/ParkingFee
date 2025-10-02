@@ -60,6 +60,9 @@ dependencies {
     
     // Lifecycle Service
     implementation("androidx.lifecycle:lifecycle-service:2.7.0")
+    
+    // Media Session
+    implementation("androidx.media:media:1.7.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

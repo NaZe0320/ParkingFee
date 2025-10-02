@@ -4,6 +4,7 @@ import android.app.Notification
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.support.v4.media.session.MediaSessionCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.naze.parkingfee.domain.usecase.GetActiveParkingSessionUseCase
@@ -11,6 +12,7 @@ import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
 import com.naze.parkingfee.domain.usecase.StopParkingUseCase
 import com.naze.parkingfee.infrastructure.notification.ParkingNotificationManager
 import com.naze.parkingfee.utils.FeeCalculator
+import com.naze.parkingfee.utils.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -37,6 +39,7 @@ class ParkingService : LifecycleService() {
     }
 
     private var monitoringJob: kotlinx.coroutines.Job? = null
+    private var mediaSession: MediaSessionCompat? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -62,6 +65,18 @@ class ParkingService : LifecycleService() {
                     val zone = zones.firstOrNull { it.id == activeSession.zoneId }
                     
                     if (zone != null) {
+                        // MediaSession 생성 (재생바 숨기기 위해 최소한의 설정)
+                        mediaSession = MediaSessionCompat(this@ParkingService, "ParkingService")
+                        mediaSession?.isActive = true
+                        
+                        // 재생바를 숨기기 위한 메타데이터 설정
+                        val metadata = android.support.v4.media.MediaMetadataCompat.Builder()
+                            .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, "주차 진행 중 • ${zone.name}")
+                            .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, "⏰ 경과: ${TimeUtils.formatDuration(System.currentTimeMillis() - activeSession.startTime)}  💰 요금: ${String.format("%.0f", FeeCalculator.calculateFeeForZone(activeSession.startTime, System.currentTimeMillis(), zone))}원")
+                            .putLong(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION, -1) // 재생바 숨기기
+                            .build()
+                        mediaSession?.setMetadata(metadata)
+                        
                         // 포그라운드 서비스 시작
                         val notification = ParkingNotificationManager.createParkingNotification(
                             this@ParkingService,
@@ -71,7 +86,8 @@ class ParkingService : LifecycleService() {
                                 activeSession.startTime,
                                 System.currentTimeMillis(),
                                 zone
-                            )
+                            ),
+                            mediaSession
                         ).build()
                         
                         startForeground(ParkingNotificationManager.NOTIFICATION_ID, notification)
@@ -94,11 +110,20 @@ class ParkingService : LifecycleService() {
                     val currentTime = System.currentTimeMillis()
                     val currentFee = FeeCalculator.calculateFeeForZone(session.startTime, currentTime, zone)
                     
+                    // MediaSession 메타데이터 업데이트
+                    val metadata = android.support.v4.media.MediaMetadataCompat.Builder()
+                        .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_TITLE, "주차 진행 중 • ${zone.name}")
+                        .putString(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ARTIST, "⏰ 경과: ${TimeUtils.formatDuration(currentTime - session.startTime)}  💰 요금: ${String.format("%.0f", currentFee)}원")
+                        .putLong(android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION, -1) // 재생바 숨기기
+                        .build()
+                    mediaSession?.setMetadata(metadata)
+                    
                     ParkingNotificationManager.updateNotification(
                         this@ParkingService,
                         zone.name,
                         session.startTime,
-                        currentFee
+                        currentFee,
+                        mediaSession
                     )
                     
                     delay(60000) // 1분마다 업데이트
@@ -122,6 +147,8 @@ class ParkingService : LifecycleService() {
             } finally {
                 // 알림 제거 및 서비스 종료
                 ParkingNotificationManager.cancelNotification(this@ParkingService)
+                mediaSession?.isActive = false
+                mediaSession?.release()
                 monitoringJob?.cancel()
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
@@ -137,5 +164,7 @@ class ParkingService : LifecycleService() {
     override fun onDestroy() {
         super.onDestroy()
         monitoringJob?.cancel()
+        mediaSession?.isActive = false
+        mediaSession?.release()
     }
 }
