@@ -58,6 +58,12 @@ class MainActivity : ComponentActivity() {
         }
     }
     
+    override fun onStart() {
+        super.onStart()
+        // 앱 복귀 시 활성 세션과 알림 동기화
+        syncNotificationWithActiveSession()
+    }
+    
     private fun startParkingService() {
         val intent = Intent(this, ParkingService::class.java).apply {
             action = ParkingService.ACTION_START_PARKING
@@ -68,6 +74,13 @@ class MainActivity : ComponentActivity() {
     private fun stopParkingService() {
         val intent = Intent(this, ParkingService::class.java).apply {
             action = ParkingService.ACTION_STOP_PARKING
+        }
+        startService(intent)
+    }
+    
+    private fun syncNotificationWithActiveSession() {
+        val intent = Intent(this, ParkingService::class.java).apply {
+            action = ParkingService.ACTION_SYNC_NOTIFICATION
         }
         startService(intent)
     }

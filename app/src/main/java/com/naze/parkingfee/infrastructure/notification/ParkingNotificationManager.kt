@@ -13,6 +13,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.media.app.NotificationCompat as MediaNotificationCompat
 import com.naze.parkingfee.MainActivity
 import com.naze.parkingfee.R
+import com.naze.parkingfee.infrastructure.service.ParkingService
 import com.naze.parkingfee.utils.TimeUtils
 
 /**
@@ -64,6 +65,15 @@ object ParkingNotificationManager {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         
+        // 알림 삭제 인텐트
+        val deleteIntent = Intent(context, ParkingService::class.java).apply {
+            action = ParkingService.ACTION_NOTIFICATION_DISMISSED
+        }
+        val deletePendingIntent = PendingIntent.getService(
+            context, 1, deleteIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        
         val elapsedTime = TimeUtils.formatDuration(System.currentTimeMillis() - startTime)
         val formattedFee = String.format("%.0f", currentFee)
         
@@ -76,6 +86,7 @@ object ParkingNotificationManager {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOnlyAlertOnce(true)
             .setContentIntent(appPendingIntent)
+            .setDeleteIntent(deletePendingIntent)
             .setStyle(
                 NotificationCompat.BigTextStyle()
                     .bigText("🚗 주차 중 • $zoneName\n\n⏰ 경과: $elapsedTime\n💰 요금: ${formattedFee}원\n\n주차 진행 중입니다.")
