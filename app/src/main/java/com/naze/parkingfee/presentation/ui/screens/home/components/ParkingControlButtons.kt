@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.naze.parkingfee.domain.model.ParkingZone
+import com.naze.parkingfee.domain.model.ParkingSession
 
 /**
  * 주차 시작/종료 버튼 컴포넌트
@@ -15,6 +16,7 @@ import com.naze.parkingfee.domain.model.ParkingZone
 fun ParkingControlButtons(
     isParkingActive: Boolean,
     selectedZone: ParkingZone?,
+    activeSession: ParkingSession?,
     onStartParking: (String) -> Unit,
     onStopParking: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -41,9 +43,11 @@ fun ParkingControlButtons(
         } else {
             Button(
                 onClick = { 
-                    // 활성 세션의 ID를 전달해야 함
-                    onStopParking("session_id")
+                    activeSession?.let { session ->
+                        onStopParking(session.id)
+                    }
                 },
+                enabled = activeSession != null,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error
                 ),

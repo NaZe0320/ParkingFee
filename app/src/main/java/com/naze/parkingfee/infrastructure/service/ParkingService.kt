@@ -1,5 +1,7 @@
 package com.naze.parkingfee.infrastructure.service
 
+// TODO: ViewModel 상태와 동기화하여 백그라운드에서도 주차 요금/시간 갱신 연계
+
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder

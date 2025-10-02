@@ -109,17 +109,13 @@ fun HomeScreen(
             ParkingControlButtons(
                 isParkingActive = state.isParkingActive,
                 selectedZone = state.currentZone,
+                activeSession = state.activeParkingSession,
                 onStartParking = { zoneId ->
                     viewModel.processIntent(HomeContract.HomeIntent.StartParking(zoneId))
                 },
                 onStopParking = { sessionId ->
                     viewModel.processIntent(HomeContract.HomeIntent.StopParking(sessionId))
                 }
-            )
-
-            ParkingFeeCard(
-                fee = state.parkingFee,
-                duration = state.parkingDuration
             )
 
             if (state.errorMessage != null) {

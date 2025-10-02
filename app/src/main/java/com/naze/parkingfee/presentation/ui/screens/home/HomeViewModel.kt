@@ -6,6 +6,8 @@ import com.naze.parkingfee.domain.usecase.StartParkingUseCase
 import com.naze.parkingfee.domain.usecase.StopParkingUseCase
 import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
 import com.naze.parkingfee.domain.usecase.GetActiveParkingSessionUseCase
+import com.naze.parkingfee.utils.TimeUtils
+import com.naze.parkingfee.utils.FeeCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +17,9 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import javax.inject.Inject
 
 /**
@@ -34,6 +39,9 @@ class HomeViewModel @Inject constructor(
 
     private val _effect = MutableSharedFlow<HomeContract.HomeEffect>()
     val effect: SharedFlow<HomeContract.HomeEffect> = _effect.asSharedFlow()
+
+    // 실시간 갱신을 위한 틱커
+    private var tickerJob: Job? = null
 
     // init 블록 제거 - 화면 진입 시마다 LaunchedEffect로 새로고침
 
@@ -77,6 +85,13 @@ class HomeViewModel @Inject constructor(
                         isParkingActive = activeSession != null // 실행 중인 세션이 있으면 true
                     )
                 }
+                
+                // 활성 세션이 있으면 틱커 시작
+                if (activeSession != null) {
+                    startTicker()
+                } else {
+                    stopTicker()
+                }
             } catch (e: Exception) {
                 _state.update {
                     it.copy(
@@ -99,6 +114,7 @@ class HomeViewModel @Inject constructor(
                         errorMessage = null
                     )
                 }
+                startTicker()
                 _effect.emit(HomeContract.HomeEffect.ShowToast("주차가 시작되었습니다."))
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = e.message) }
@@ -110,6 +126,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 stopParkingUseCase.execute(sessionId)
+                stopTicker()
                 _state.update { 
                     it.copy(
                         activeParkingSession = null,
@@ -149,5 +166,57 @@ class HomeViewModel @Inject constructor(
 
     private fun selectZone(zone: com.naze.parkingfee.domain.model.ParkingZone) {
         _state.update { it.copy(currentZone = zone) }
+    }
+    
+    /**
+     * 실시간 갱신을 위한 틱커 시작
+     */
+    private fun startTicker() {
+        if (tickerJob?.isActive == true) return
+        
+        tickerJob = viewModelScope.launch {
+            while (coroutineContext.isActive) {
+                val session = _state.value.activeParkingSession
+                if (_state.value.isParkingActive && session != null) {
+                    val now = TimeUtils.getCurrentTimestamp()
+                    val duration = TimeUtils.formatDuration(now - session.startTime)
+                    val zone = resolveZone(session.zoneId)
+                    val fee = if (zone != null) {
+                        FeeCalculator.calculateFeeForZone(session.startTime, now, zone)
+                    } else {
+                        0.0
+                    }
+                    
+                    _state.update { 
+                        it.copy(
+                            parkingDuration = duration,
+                            parkingFee = fee
+                        )
+                    }
+                }
+                delay(60000) // 60초(1분)마다 갱신
+            }
+        }
+    }
+    
+    /**
+     * 틱커 정지
+     */
+    private fun stopTicker() {
+        tickerJob?.cancel()
+        tickerJob = null
+    }
+    
+    /**
+     * 주차 구역 ID로 주차 구역 조회
+     */
+    private fun resolveZone(zoneId: String): com.naze.parkingfee.domain.model.ParkingZone? {
+        return _state.value.currentZone?.takeIf { it.id == zoneId }
+            ?: _state.value.availableZones.firstOrNull { it.id == zoneId }
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        stopTicker()
     }
 }

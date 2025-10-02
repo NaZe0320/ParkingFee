@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.naze.parkingfee.domain.model.ParkingSession
+import com.naze.parkingfee.utils.TimeUtils
 
 /**
  * 주차 상태 카드 컴포넌트
@@ -85,6 +86,5 @@ fun ParkingStatusCard(
 }
 
 private fun formatTime(timestamp: Long): String {
-    // 타임스탬프를 시간 형식으로 변환하는 로직
-    return "12:34" // 임시 구현
+    return TimeUtils.formatTime(timestamp)
 }
