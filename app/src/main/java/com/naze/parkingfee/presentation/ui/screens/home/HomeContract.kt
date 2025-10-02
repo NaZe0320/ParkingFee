@@ -43,5 +43,7 @@ object HomeContract {
         data class ShowToast(val message: String) : HomeEffect()
         data class NavigateTo(val route: String) : HomeEffect()
         data class ShowDialog(val title: String, val message: String) : HomeEffect()
+        object RequestStartParkingService : HomeEffect()
+        object RequestStopParkingService : HomeEffect()
     }
 }

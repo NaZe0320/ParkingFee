@@ -116,6 +116,7 @@ class HomeViewModel @Inject constructor(
                 }
                 startTicker()
                 _effect.emit(HomeContract.HomeEffect.ShowToast("주차가 시작되었습니다."))
+                _effect.emit(HomeContract.HomeEffect.RequestStartParkingService)
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = e.message) }
             }
@@ -136,6 +137,7 @@ class HomeViewModel @Inject constructor(
                     )
                 }
                 _effect.emit(HomeContract.HomeEffect.ShowToast("주차가 종료되었습니다."))
+                _effect.emit(HomeContract.HomeEffect.RequestStopParkingService)
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = e.message) }
             }

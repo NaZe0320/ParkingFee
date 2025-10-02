@@ -14,7 +14,9 @@ import com.naze.parkingfee.presentation.ui.screens.addparkinglot.AddParkingLotSc
  */
 @Composable
 fun NavigationHost(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    onStartParkingService: () -> Unit = {},
+    onStopParkingService: () -> Unit = {}
 ) {
     NavHost(
         navController = navController,
@@ -30,7 +32,9 @@ fun NavigationHost(
                 },
                 onNavigateToAddParkingLot = {
                     navController.navigate("add_parking_lot")
-                }
+                },
+                onStartParkingService = onStartParkingService,
+                onStopParkingService = onStopParkingService
             )
         }
         

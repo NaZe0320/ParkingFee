@@ -24,7 +24,9 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onNavigateToSettings: () -> Unit = {},
     onNavigateToHistory: () -> Unit = {},
-    onNavigateToAddParkingLot: () -> Unit = {}
+    onNavigateToAddParkingLot: () -> Unit = {},
+    onStartParkingService: () -> Unit = {},
+    onStopParkingService: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
@@ -50,6 +52,12 @@ fun HomeScreen(
                 }
                 is HomeContract.HomeEffect.ShowDialog -> {
                     // Dialog 표시 로직
+                }
+                is HomeContract.HomeEffect.RequestStartParkingService -> {
+                    onStartParkingService()
+                }
+                is HomeContract.HomeEffect.RequestStopParkingService -> {
+                    onStopParkingService()
                 }
             }
         }
