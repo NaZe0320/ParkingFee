@@ -53,6 +53,7 @@ fun ParkingZoneSelector(
             Spacer(modifier = Modifier.height(12.dp))
             
             LazyColumn(
+                modifier = Modifier.heightIn(max = 300.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(zones) { zone ->
