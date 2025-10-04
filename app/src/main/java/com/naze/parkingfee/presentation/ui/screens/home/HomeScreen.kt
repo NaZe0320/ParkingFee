@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.naze.parkingfee.presentation.ui.screens.home.components.*
+import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
 
 /**
  * 홈 화면
@@ -35,6 +36,11 @@ fun HomeScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+
+    // 삭제 확인 다이얼로그 상태
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var pendingDeleteZoneId by remember { mutableStateOf<String?>(null) }
+    var pendingDeleteZoneName by remember { mutableStateOf<String?>(null) }
 
     // 화면 진입 시마다 주차장 목록 새로고침
     LaunchedEffect(Unit) {
@@ -65,7 +71,9 @@ fun HomeScreen(
                     // Dialog 표시 로직
                 }
                 is HomeContract.HomeEffect.ShowDeleteConfirmDialog -> {
-                    // 삭제 확인 다이얼로그 표시 로직
+                    pendingDeleteZoneId = currentEffect.zoneId
+                    pendingDeleteZoneName = currentEffect.zoneName
+                    showDeleteDialog = true
                 }
                 is HomeContract.HomeEffect.RequestStartParkingService -> {
                     onStartParkingService()
@@ -161,4 +169,20 @@ fun HomeScreen(
             }
         }
     }
+
+    // 삭제 확인 다이얼로그
+    DeleteConfirmDialog(
+        visible = showDeleteDialog,
+        message = "정말로 ${pendingDeleteZoneName ?: "이"} 구역을 삭제하시겠습니까?",
+        onConfirm = {
+            val id = pendingDeleteZoneId
+            showDeleteDialog = false
+            pendingDeleteZoneId = null
+            pendingDeleteZoneName = null
+            if (id != null) {
+                viewModel.processIntent(HomeContract.HomeIntent.DeleteZone(id))
+            }
+        },
+        onDismiss = { showDeleteDialog = false }
+    )
 }

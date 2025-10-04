@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
 
 /**
  * 주차 구역 상세 화면
@@ -200,28 +201,15 @@ fun ZoneDetailScreen(
     }
 
     // 삭제 확인 다이얼로그
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("구역 삭제") },
-            text = { Text("정말로 이 구역을 삭제하시겠습니까?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        viewModel.confirmDeleteZone(zoneId)
-                    }
-                ) {
-                    Text("삭제")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("취소")
-                }
-            }
-        )
-    }
+    DeleteConfirmDialog(
+        visible = showDeleteDialog,
+        message = "정말로 이 구역을 삭제하시겠습니까?",
+        onConfirm = {
+            showDeleteDialog = false
+            viewModel.confirmDeleteZone(zoneId)
+        },
+        onDismiss = { showDeleteDialog = false }
+    )
 }
 
 @Composable
