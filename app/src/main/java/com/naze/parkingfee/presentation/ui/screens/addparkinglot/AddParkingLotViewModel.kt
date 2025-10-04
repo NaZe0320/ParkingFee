@@ -196,6 +196,11 @@ class AddParkingLotViewModel @Inject constructor(
     private fun saveParkingLot() {
         val currentState = _state.value
         
+        // 재진입 방지 가드
+        if (currentState.isSaving) {
+            return
+        }
+        
         // 유효성 검사
         val validationErrors = validateForm(currentState)
         if (validationErrors.isNotEmpty()) {
@@ -203,9 +208,11 @@ class AddParkingLotViewModel @Inject constructor(
             return
         }
 
+        // 저장 시작 즉시 버튼 비활성화
+        _state.update { it.copy(isSaving = true, validationErrors = emptyMap()) }
+
         viewModelScope.launch {
             try {
-                _state.update { it.copy(isSaving = true, validationErrors = emptyMap()) }
 
                 if (currentState.isEditMode && currentState.editingZoneId != null) {
                     // 편집 모드: 기존 구역 업데이트
