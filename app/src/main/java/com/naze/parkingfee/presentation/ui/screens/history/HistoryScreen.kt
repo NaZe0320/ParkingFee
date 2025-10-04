@@ -226,12 +226,41 @@ private fun HistoryItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 
-                Text(
-                    text = "요금: ${history.feePaid.toInt()}원",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                // 차량 정보 표시
+                if (!history.vehicleNameSnapshot.isNullOrBlank()) {
+                    val vehicleDisplay = if (!history.vehiclePlateSnapshot.isNullOrBlank()) {
+                        "${history.vehicleNameSnapshot}(${history.vehiclePlateSnapshot})"
+                    } else {
+                        history.vehicleNameSnapshot
+                    }
+                    Text(
+                        text = "차량: $vehicleDisplay",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                // 요금 표시 (할인 정보 포함)
+                if (history.hasDiscount && history.originalFee != null) {
+                    Text(
+                        text = "요금: ${history.originalFee!!.toInt()}원 → ${history.feePaid.toInt()}원",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "50% 할인 적용",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                } else {
+                    Text(
+                        text = "요금: ${history.feePaid.toInt()}원",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
             
             IconButton(onClick = onDelete) {

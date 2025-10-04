@@ -3,14 +3,17 @@ package com.naze.parkingfee.presentation.ui.screens.settings.vehicles.list
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -148,6 +151,10 @@ fun VehicleListScreen(
                         items(state.vehicles) { vehicle ->
                             VehicleItem(
                                 vehicle = vehicle,
+                                isSelected = state.selectedVehicleId == vehicle.id,
+                                onSelectClick = { 
+                                    viewModel.processIntent(VehicleListContract.VehicleListIntent.SelectVehicle(vehicle.id))
+                                },
                                 onEditClick = { 
                                     viewModel.processIntent(VehicleListContract.VehicleListIntent.NavigateToEditVehicle(vehicle.id))
                                 },
@@ -217,61 +224,143 @@ fun VehicleListScreen(
 }
 
 /**
- * 차량 아이템 컴포넌트
+ * 차량 아이템 컴포넌트 (선택 가능한 카드 스타일)
  */
 @Composable
 private fun VehicleItem(
     vehicle: com.naze.parkingfee.domain.model.vehicle.Vehicle,
+    isSelected: Boolean,
+    onSelectClick: () -> Unit,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+    
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onSelectClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
+        ),
+        border = if (isSelected) {
+            androidx.compose.foundation.BorderStroke(
+                2.dp,
+                MaterialTheme.colorScheme.primary
+            )
+        } else null,
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 라디오 버튼
+            RadioButton(
+                selected = isSelected,
+                onClick = onSelectClick,
+                colors = RadioButtonDefaults.colors(
+                    selectedColor = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    }
+                )
+            )
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            // 차량 정보
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = vehicle.displayName,
                     style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                
                 Text(
                     text = vehicle.displayPlateNumber,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
                 )
+                
                 if (vehicle.hasDiscount) {
                     Row {
                         Text(
                             text = "할인 적용: ",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = if (isSelected) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            }
                         )
                         Text(
                             text = vehicle.discountEligibilities.activeEligibilities.joinToString(" / ") { it.typeName },
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = if (isSelected) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            }
                         )
                     }
                 }
             }
             
-            Row {
-                IconButton(onClick = onEditClick) {
-                    Icon(Icons.Default.Edit, contentDescription = "편집")
+            // 더보기 메뉴 버튼
+            Box {
+                IconButton(
+                    onClick = { showMenu = true }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "더보기",
+                        tint = if (isSelected) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
                 }
-                IconButton(onClick = onDeleteClick) {
-                    Icon(Icons.Default.Delete, contentDescription = "삭제")
+                
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("편집") },
+                        onClick = {
+                            showMenu = false
+                            onEditClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("삭제") },
+                        onClick = {
+                            showMenu = false
+                            onDeleteClick()
+                        }
+                    )
                 }
             }
         }

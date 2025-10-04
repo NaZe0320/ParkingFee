@@ -2,6 +2,8 @@ package com.naze.parkingfee.di
 
 import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.domain.repository.ParkingHistoryRepository
+import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
+import com.naze.parkingfee.domain.repository.VehicleRepository
 import com.naze.parkingfee.domain.usecase.AddParkingZoneUseCase
 import com.naze.parkingfee.domain.usecase.DeleteParkingZoneUseCase
 import com.naze.parkingfee.domain.usecase.GetActiveParkingSessionUseCase
@@ -72,9 +74,11 @@ object UseCaseModule {
     @Singleton
     fun provideStopParkingUseCase(
         repository: ParkingRepository,
-        parkingHistoryRepository: ParkingHistoryRepository
+        parkingHistoryRepository: ParkingHistoryRepository,
+        selectedVehicleRepository: SelectedVehicleRepository,
+        vehicleRepository: VehicleRepository
     ): StopParkingUseCase {
-        return StopParkingUseCase(repository, parkingHistoryRepository)
+        return StopParkingUseCase(repository, parkingHistoryRepository, selectedVehicleRepository, vehicleRepository)
     }
 
     @Provides

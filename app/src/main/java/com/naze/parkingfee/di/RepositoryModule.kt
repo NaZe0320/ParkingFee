@@ -2,8 +2,10 @@ package com.naze.parkingfee.di
 
 import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.domain.repository.ParkingHistoryRepository
+import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
 import com.naze.parkingfee.data.repository.ParkingRepositoryImpl
 import com.naze.parkingfee.data.repository.ParkingHistoryRepositoryImpl
+import com.naze.parkingfee.data.repository.SelectedVehicleRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -28,4 +30,10 @@ abstract class RepositoryModule {
     abstract fun bindParkingHistoryRepository(
         parkingHistoryRepositoryImpl: ParkingHistoryRepositoryImpl
     ): ParkingHistoryRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindSelectedVehicleRepository(
+        selectedVehicleRepositoryImpl: SelectedVehicleRepositoryImpl
+    ): SelectedVehicleRepository
 }

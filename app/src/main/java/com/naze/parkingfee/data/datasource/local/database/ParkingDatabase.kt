@@ -3,6 +3,8 @@ package com.naze.parkingfee.data.datasource.local.database
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import android.content.Context
 import com.naze.parkingfee.data.datasource.local.dao.ParkingDao
 import com.naze.parkingfee.data.datasource.local.dao.ParkingHistoryDao
@@ -22,7 +24,7 @@ import com.naze.parkingfee.data.datasource.local.entity.VehicleEntity
         ParkingHistoryEntity::class,
         VehicleEntity::class
     ],
-    version = 4, // 버전 업데이트 (VehicleEntity 추가)
+    version = 1, // 초기화: 마이그레이션 없음
     exportSchema = false
 )
 abstract class ParkingDatabase : RoomDatabase() {
@@ -41,7 +43,7 @@ abstract class ParkingDatabase : RoomDatabase() {
                     context.applicationContext,
                     ParkingDatabase::class.java,
                     "parking_database"
-                ).fallbackToDestructiveMigration() // 스키마 변경으로 인한 마이그레이션
+                ).fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance
                 instance

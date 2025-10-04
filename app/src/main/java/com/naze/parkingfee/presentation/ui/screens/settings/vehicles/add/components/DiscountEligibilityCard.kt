@@ -54,7 +54,7 @@ fun DiscountEligibilityCard(
                 )
             }
             
-            Divider()
+            HorizontalDivider()
             
             // 국가유공자 할인 (향후 확장)
             Row(
@@ -80,7 +80,7 @@ fun DiscountEligibilityCard(
                 )
             }
             
-            Divider()
+            HorizontalDivider()
             
             // 장애인 할인 (향후 확장)
             Row(

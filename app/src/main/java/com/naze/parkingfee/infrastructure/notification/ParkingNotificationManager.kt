@@ -51,6 +51,7 @@ object ParkingNotificationManager {
         zoneName: String,
         startTime: Long,
         currentFee: Double,
+        hasDiscount: Boolean = false,
         stopIntent: PendingIntent
     ): Notification {
         // 앱 열기 인텐트
@@ -64,11 +65,23 @@ object ParkingNotificationManager {
 
         val elapsedTime = TimeUtils.formatDuration(System.currentTimeMillis() - startTime)
         val formattedFee = String.format("%.0f", currentFee)
+        
+        val feeText = if (hasDiscount) {
+            "💰 요금: ${formattedFee}원 (할인 적용)"
+        } else {
+            "💰 요금: ${formattedFee}원"
+        }
+        
+        val bigText = if (hasDiscount) {
+            "🚗 주차 중 • $zoneName\n\n⏰ 경과: $elapsedTime\n💰 요금: ${formattedFee}원 (할인 적용)\n\n주차 진행 중입니다."
+        } else {
+            "🚗 주차 중 • $zoneName\n\n⏰ 경과: $elapsedTime\n💰 요금: ${formattedFee}원\n\n주차 진행 중입니다."
+        }
 
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info) // ic_stat_parking 리소스가 없으므로 임시 아이콘으로 대체
             .setContentTitle("🚗 주차 중 • $zoneName")
-            .setContentText("⏰ 경과: $elapsedTime  💰 요금: ${formattedFee}원")
+            .setContentText("⏰ 경과: $elapsedTime  $feeText")
             .setSubText("주차 진행 중")
             .setWhen(startTime)
             .setUsesChronometer(true)
@@ -81,7 +94,7 @@ object ParkingNotificationManager {
             .addAction(android.R.drawable.ic_media_pause, "정지", stopIntent)
             .setStyle(
                 NotificationCompat.BigTextStyle()
-                    .bigText("🚗 주차 중 • $zoneName\n\n⏰ 경과: $elapsedTime\n💰 요금: ${formattedFee}원\n\n주차 진행 중입니다.")
+                    .bigText(bigText)
             )
             .build()
     }
@@ -94,7 +107,8 @@ object ParkingNotificationManager {
         context: Context,
         zoneName: String,
         startTime: Long,
-        currentFee: Double
+        currentFee: Double,
+        hasDiscount: Boolean = false
     ) {
         // 정지 액션 인텐트 생성
         val stopIntent = Intent(context, ParkingService::class.java).apply {
@@ -110,6 +124,7 @@ object ParkingNotificationManager {
             zoneName = zoneName,
             startTime = startTime,
             currentFee = currentFee,
+            hasDiscount = hasDiscount,
             stopIntent = stopPendingIntent
         )
 

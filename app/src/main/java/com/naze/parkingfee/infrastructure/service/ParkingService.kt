@@ -11,12 +11,15 @@ import androidx.lifecycle.lifecycleScope
 import com.naze.parkingfee.domain.usecase.GetActiveParkingSessionUseCase
 import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
 import com.naze.parkingfee.domain.usecase.StopParkingUseCase
+import com.naze.parkingfee.domain.usecase.GetSelectedVehicleIdUseCase
+import com.naze.parkingfee.domain.repository.VehicleRepository
 import com.naze.parkingfee.infrastructure.notification.ParkingNotificationManager
 import com.naze.parkingfee.utils.FeeCalculator
 import com.naze.parkingfee.utils.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 /**
@@ -33,6 +36,12 @@ class ParkingService : LifecycleService() {
     
     @Inject
     lateinit var stopParkingUseCase: StopParkingUseCase
+    
+    @Inject
+    lateinit var getSelectedVehicleIdUseCase: GetSelectedVehicleIdUseCase
+    
+    @Inject
+    lateinit var vehicleRepository: VehicleRepository
 
     companion object {
         const val ACTION_START_PARKING = "com.naze.parkingfee.START_PARKING"
@@ -79,16 +88,25 @@ class ParkingService : LifecycleService() {
                             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                         )
 
+                        // 선택된 차량 정보 조회
+                        val selectedVehicleId = getSelectedVehicleIdUseCase.execute().first()
+                        val selectedVehicle = selectedVehicleId?.let { vehicleRepository.getVehicleById(it) }
+                        
+                        // 할인 적용된 요금 계산
+                        val feeResult = FeeCalculator.calculateFeeForZoneResult(
+                            activeSession.startTime,
+                            System.currentTimeMillis(),
+                            zone,
+                            selectedVehicle
+                        )
+
                         // 포그라운드 서비스 시작 (Ongoing 알림)
                         val notification = ParkingNotificationManager.createParkingNotification(
                             this@ParkingService,
                             zone.name,
                             activeSession.startTime,
-                            FeeCalculator.calculateFeeForZone(
-                                activeSession.startTime,
-                                System.currentTimeMillis(),
-                                zone
-                            ),
+                            feeResult.discounted,
+                            feeResult.hasDiscount,
                             stopPendingIntent
                         )
 
@@ -111,13 +129,25 @@ class ParkingService : LifecycleService() {
             while (true) {
                 try {
                     val currentTime = System.currentTimeMillis()
-                    val currentFee = FeeCalculator.calculateFeeForZone(session.startTime, currentTime, zone)
+                    
+                    // 선택된 차량 정보 조회
+                    val selectedVehicleId = getSelectedVehicleIdUseCase.execute().first()
+                    val selectedVehicle = selectedVehicleId?.let { vehicleRepository.getVehicleById(it) }
+                    
+                    // 할인 적용된 요금 계산
+                    val feeResult = FeeCalculator.calculateFeeForZoneResult(
+                        session.startTime,
+                        currentTime,
+                        zone,
+                        selectedVehicle
+                    )
 
                     ParkingNotificationManager.updateNotification(
                         this@ParkingService,
                         zone.name,
                         session.startTime,
-                        currentFee
+                        feeResult.discounted,
+                        feeResult.hasDiscount
                     )
 
                     delay(60000) // 1분마다 업데이트
@@ -175,16 +205,25 @@ class ParkingService : LifecycleService() {
                             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                         )
 
+                        // 선택된 차량 정보 조회
+                        val selectedVehicleId = getSelectedVehicleIdUseCase.execute().first()
+                        val selectedVehicle = selectedVehicleId?.let { vehicleRepository.getVehicleById(it) }
+                        
+                        // 할인 적용된 요금 계산
+                        val feeResult = FeeCalculator.calculateFeeForZoneResult(
+                            activeSession.startTime,
+                            System.currentTimeMillis(),
+                            zone,
+                            selectedVehicle
+                        )
+
                         // 포그라운드 서비스 시작 (Ongoing 알림)
                         val notification = ParkingNotificationManager.createParkingNotification(
                             this@ParkingService,
                             zone.name,
                             activeSession.startTime,
-                            FeeCalculator.calculateFeeForZone(
-                                activeSession.startTime,
-                                System.currentTimeMillis(),
-                                zone
-                            ),
+                            feeResult.discounted,
+                            feeResult.hasDiscount,
                             stopPendingIntent
                         )
 

@@ -33,6 +33,7 @@ object HomeContract {
         val currentZone: ParkingZone? = null,
         val availableZones: List<ParkingZone> = emptyList(),
         val activeParkingSession: ParkingSession? = null,
+        val selectedVehicle: com.naze.parkingfee.domain.model.vehicle.Vehicle? = null,
         val parkingFee: Double = 0.0,
         val parkingDuration: String = "00:00",
         val errorMessage: String? = null,
@@ -49,6 +50,14 @@ object HomeContract {
         data class NavigateToEditZone(val zoneId: String) : HomeEffect()
         data class ShowDialog(val title: String, val message: String) : HomeEffect()
         data class ShowDeleteConfirmDialog(val zoneId: String, val zoneName: String) : HomeEffect()
+        data class ShowParkingCompleteDialog(
+            val zoneName: String,
+            val duration: String,
+            val vehicleDisplay: String?,
+            val originalFee: Double?,
+            val finalFee: Double,
+            val hasDiscount: Boolean
+        ) : HomeEffect()
         object RequestStartParkingService : HomeEffect()
         object RequestStopParkingService : HomeEffect()
     }

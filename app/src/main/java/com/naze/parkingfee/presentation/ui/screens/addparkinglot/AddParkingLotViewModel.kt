@@ -49,6 +49,7 @@ class AddParkingLotViewModel @Inject constructor(
             is AddParkingLotContract.AddParkingLotIntent.OpenOcrScreen -> openOcrScreen()
             is AddParkingLotContract.AddParkingLotIntent.UpdateParkingLotName -> updateParkingLotName(intent.name)
             is AddParkingLotContract.AddParkingLotIntent.ToggleUseDefaultName -> toggleUseDefaultName(intent.useDefault)
+            is AddParkingLotContract.AddParkingLotIntent.ToggleIsPublic -> toggleIsPublic(intent.isPublic)
             is AddParkingLotContract.AddParkingLotIntent.UpdateBasicFeeDuration -> updateBasicFeeDuration(intent.minutes)
             is AddParkingLotContract.AddParkingLotIntent.UpdateBasicFeeAmount -> updateBasicFeeAmount(intent.amount)
             is AddParkingLotContract.AddParkingLotIntent.UpdateAdditionalFeeInterval -> updateAdditionalFeeInterval(intent.minutes)
@@ -88,6 +89,13 @@ class AddParkingLotViewModel @Inject constructor(
                 parkingLotName = if (useDefault) "" else it.parkingLotName
             )
         }
+    }
+
+    /**
+     * 공영 주차장 여부 토글
+     */
+    private fun toggleIsPublic(isPublic: Boolean) {
+        _state.update { it.copy(isPublic = isPublic) }
     }
 
     /**
@@ -206,6 +214,7 @@ class AddParkingLotViewModel @Inject constructor(
                         val updatedZone = existingZone.copy(
                             name = if (currentState.useDefaultName) existingZone.name else currentState.parkingLotName,
                             hourlyRate = calculateHourlyRate(currentState),
+                            isPublic = currentState.isPublic,
                             feeStructure = createFeeStructure(currentState),
                             updatedAt = System.currentTimeMillis()
                         )
@@ -224,6 +233,7 @@ class AddParkingLotViewModel @Inject constructor(
                         hourlyRate = calculateHourlyRate(currentState),
                         maxCapacity = 100,
                         currentOccupancy = 0,
+                        isPublic = currentState.isPublic,
                         feeStructure = createFeeStructure(currentState)
                     )
 
@@ -381,6 +391,7 @@ class AddParkingLotViewModel @Inject constructor(
                             editingZoneId = zoneId,
                             parkingLotName = zone.name,
                             useDefaultName = false,
+                            isPublic = zone.isPublic,
                             basicFeeDuration = zone.feeStructure?.basicFee?.durationMinutes ?: 30,
                             basicFeeAmount = zone.feeStructure?.basicFee?.fee ?: 1000,
                             additionalFeeInterval = zone.feeStructure?.additionalFee?.intervalMinutes ?: 10,

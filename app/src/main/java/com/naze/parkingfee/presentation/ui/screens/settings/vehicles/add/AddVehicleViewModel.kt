@@ -6,6 +6,8 @@ import com.naze.parkingfee.domain.common.discount.DiscountEligibility
 import com.naze.parkingfee.domain.common.discount.VehicleDiscountEligibilities
 import com.naze.parkingfee.domain.model.vehicle.Vehicle
 import com.naze.parkingfee.domain.repository.VehicleRepository
+import com.naze.parkingfee.domain.usecase.GetSelectedVehicleIdUseCase
+import com.naze.parkingfee.domain.usecase.SetSelectedVehicleIdUseCase
 import com.naze.parkingfee.domain.usecase.vehicle.AddVehicleUseCase
 import com.naze.parkingfee.domain.usecase.vehicle.UpdateVehicleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -27,7 +30,9 @@ import javax.inject.Inject
 class AddVehicleViewModel @Inject constructor(
     private val addVehicleUseCase: AddVehicleUseCase,
     private val updateVehicleUseCase: UpdateVehicleUseCase,
-    private val vehicleRepository: VehicleRepository
+    private val vehicleRepository: VehicleRepository,
+    private val getSelectedVehicleIdUseCase: GetSelectedVehicleIdUseCase,
+    private val setSelectedVehicleIdUseCase: SetSelectedVehicleIdUseCase
 ) : ViewModel() {
     
     private val _state = MutableStateFlow(AddVehicleContract.AddVehicleState())
@@ -107,6 +112,13 @@ class AddVehicleViewModel @Inject constructor(
                 }
                 
                 if (result.isSuccess) {
+                    // 차량 등록 직후, 아직 선택된 차량이 없다면 방금 등록한 차량을 선택
+                    if (!_state.value.isEditMode) {
+                        val currentSelected = getSelectedVehicleIdUseCase.execute().first()
+                        if (currentSelected == null) {
+                            setSelectedVehicleIdUseCase.execute(vehicle.id)
+                        }
+                    }
                     _effect.emit(AddVehicleContract.AddVehicleEffect.ShowToast(
                         if (_state.value.isEditMode) "차량이 수정되었습니다." else "차량이 등록되었습니다."
                     ))

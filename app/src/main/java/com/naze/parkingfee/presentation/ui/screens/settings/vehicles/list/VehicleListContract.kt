@@ -10,12 +10,14 @@ object VehicleListContract {
         object NavigateToAddVehicle : VehicleListIntent()
         data class DeleteVehicle(val vehicleId: String) : VehicleListIntent()
         data class NavigateToEditVehicle(val vehicleId: String) : VehicleListIntent()
+        data class SelectVehicle(val vehicleId: String) : VehicleListIntent()
         object NavigateBack : VehicleListIntent()
     }
     
     data class VehicleListState(
         val isLoading: Boolean = false,
         val vehicles: List<com.naze.parkingfee.domain.model.vehicle.Vehicle> = emptyList(),
+        val selectedVehicleId: String? = null, // 선택된 차량 ID
         val canAddVehicle: Boolean = true, // 최대 3대 제한
         val errorMessage: String? = null
     )

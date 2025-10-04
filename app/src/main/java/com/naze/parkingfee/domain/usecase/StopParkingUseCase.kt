@@ -4,7 +4,12 @@ import com.naze.parkingfee.domain.model.ParkingSession
 import com.naze.parkingfee.domain.model.ParkingHistory
 import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.domain.repository.ParkingHistoryRepository
+import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
+import com.naze.parkingfee.domain.repository.VehicleRepository
+import com.naze.parkingfee.utils.FeeCalculator
+import com.naze.parkingfee.utils.FeeResult
 import com.naze.parkingfee.utils.TimeUtils
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 /**
@@ -12,7 +17,9 @@ import javax.inject.Inject
  */
 class StopParkingUseCase @Inject constructor(
     private val parkingRepository: ParkingRepository,
-    private val parkingHistoryRepository: ParkingHistoryRepository
+    private val parkingHistoryRepository: ParkingHistoryRepository,
+    private val selectedVehicleRepository: SelectedVehicleRepository,
+    private val vehicleRepository: VehicleRepository
 ) {
     suspend operator fun invoke(sessionId: String): ParkingSession {
         val session = parkingRepository.stopParkingSession(sessionId)
@@ -34,14 +41,40 @@ class StopParkingUseCase @Inject constructor(
             // 주차 시간 계산 (분 단위)
             val durationMinutes = ((session.endTime!! - session.startTime) / (1000 * 60)).toInt()
             
+            // 선택 차량 스냅샷 조회
+            val selectedVehicleId = selectedVehicleRepository.selectedVehicleId
+                .first()
+            val vehicle = selectedVehicleId?.let { vehicleRepository.getVehicleById(it) }
+            
+            // 할인 적용된 요금 계산
+            val feeResult = if (zone != null) {
+                FeeCalculator.calculateFeeForZoneResult(
+                    session.startTime,
+                    session.endTime!!,
+                    zone,
+                    vehicle
+                )
+            } else {
+                // 구역 정보가 없으면 기본 요금 계산
+                FeeResult(
+                    original = session.totalFee,
+                    discounted = session.totalFee
+                )
+            }
+            
             val history = ParkingHistory(
                 id = "history_${session.id}",
                 zoneId = session.zoneId,
                 zoneNameSnapshot = zoneNameSnapshot,
+                vehicleId = vehicle?.id,
+                vehicleNameSnapshot = vehicle?.displayName,
+                vehiclePlateSnapshot = vehicle?.displayPlateNumber,
                 startedAt = session.startTime,
-                endedAt = session.endTime,
+                endedAt = session.endTime!!,
                 durationMinutes = durationMinutes,
-                feePaid = session.totalFee
+                feePaid = feeResult.discounted,
+                originalFee = feeResult.original,
+                hasDiscount = feeResult.hasDiscount
             )
             
             parkingHistoryRepository.saveParkingHistory(history)

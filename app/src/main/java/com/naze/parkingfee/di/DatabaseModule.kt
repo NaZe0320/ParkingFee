@@ -5,6 +5,7 @@ import com.naze.parkingfee.data.datasource.local.dao.ParkingDao
 import com.naze.parkingfee.data.datasource.local.dao.ParkingHistoryDao
 import com.naze.parkingfee.data.datasource.local.dao.VehicleDao
 import com.naze.parkingfee.data.datasource.local.database.ParkingDatabase
+import com.naze.parkingfee.data.datasource.local.datastore.SelectedVehicleDataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -38,5 +39,11 @@ object DatabaseModule {
     @Provides
     fun provideVehicleDao(database: ParkingDatabase): VehicleDao {
         return database.vehicleDao()
+    }
+    
+    @Provides
+    @Singleton
+    fun provideSelectedVehicleDataStore(@ApplicationContext context: Context): SelectedVehicleDataStore {
+        return SelectedVehicleDataStore(context)
     }
 }

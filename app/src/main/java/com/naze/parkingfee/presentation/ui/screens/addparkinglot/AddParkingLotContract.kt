@@ -27,6 +27,7 @@ object AddParkingLotContract {
         // 주차장 정보 입력
         data class UpdateParkingLotName(val name: String) : AddParkingLotIntent()
         data class ToggleUseDefaultName(val useDefault: Boolean) : AddParkingLotIntent()
+        data class ToggleIsPublic(val isPublic: Boolean) : AddParkingLotIntent()
         
         // 기본 요금 체계
         data class UpdateBasicFeeDuration(val minutes: Int) : AddParkingLotIntent()
@@ -74,6 +75,7 @@ object AddParkingLotContract {
         // 주차장 기본 정보
         val parkingLotName: String = "",
         val useDefaultName: Boolean = true,
+        val isPublic: Boolean = false, // 공영 주차장 여부
         
         // 기본 요금 체계
         val basicFeeDuration: Int = 30, // 기본 30분

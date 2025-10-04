@@ -15,6 +15,7 @@ data class ParkingZoneEntity(
     val maxCapacity: Int,
     val currentOccupancy: Int,
     val isActive: Boolean = true,
+    val isPublic: Boolean = false, // 공영 주차장 여부
     
     // 복잡한 요금 체계 필드들 (선택사항)
     val basicFeeDuration: Int? = null,

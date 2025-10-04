@@ -39,6 +39,7 @@ class ParkingZoneMapper @Inject constructor() {
             maxCapacity = entity.maxCapacity,
             currentOccupancy = entity.currentOccupancy,
             isActive = entity.isActive,
+            isPublic = entity.isPublic,
             feeStructure = feeStructure,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
@@ -53,6 +54,7 @@ class ParkingZoneMapper @Inject constructor() {
             maxCapacity = domain.maxCapacity,
             currentOccupancy = domain.currentOccupancy,
             isActive = domain.isActive,
+            isPublic = domain.isPublic,
             basicFeeDuration = domain.feeStructure?.basicFee?.durationMinutes,
             basicFeeAmount = domain.feeStructure?.basicFee?.fee,
             additionalFeeInterval = domain.feeStructure?.additionalFee?.intervalMinutes,

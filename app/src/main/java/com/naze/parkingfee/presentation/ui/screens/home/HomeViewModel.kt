@@ -10,6 +10,9 @@ import com.naze.parkingfee.domain.usecase.DeleteParkingZoneUseCase
 import com.naze.parkingfee.presentation.ui.screens.home.components.ZoneAction
 import com.naze.parkingfee.utils.TimeUtils
 import com.naze.parkingfee.utils.FeeCalculator
+import com.naze.parkingfee.domain.usecase.GetSelectedVehicleIdUseCase
+import com.naze.parkingfee.domain.repository.VehicleRepository
+import kotlinx.coroutines.flow.first
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +37,9 @@ class HomeViewModel @Inject constructor(
     private val stopParkingUseCase: StopParkingUseCase,
     private val getParkingZonesUseCase: GetParkingZonesUseCase,
     private val getActiveParkingSessionUseCase: GetActiveParkingSessionUseCase,
-    private val deleteParkingZoneUseCase: DeleteParkingZoneUseCase
+    private val deleteParkingZoneUseCase: DeleteParkingZoneUseCase,
+    private val getSelectedVehicleIdUseCase: GetSelectedVehicleIdUseCase,
+    private val vehicleRepository: VehicleRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeContract.HomeState())
@@ -82,11 +87,16 @@ class HomeViewModel @Inject constructor(
                 // 실행 중인(종료되지 않은) 주차 세션 조회
                 val activeSession = getActiveParkingSessionUseCase.execute()
 
+                // 선택된 차량 로드
+                val selectedVehicleId = getSelectedVehicleIdUseCase.execute().first()
+                val selectedVehicle = selectedVehicleId?.let { vehicleRepository.getVehicleById(it) }
+
                 _state.update {
                     it.copy(
                         isLoading = false,
                         availableZones = zones,
                         activeParkingSession = activeSession,
+                        selectedVehicle = selectedVehicle,
                         isParkingActive = activeSession != null // 실행 중인 세션이 있으면 true
                     )
                 }
@@ -131,8 +141,25 @@ class HomeViewModel @Inject constructor(
     private fun stopParking(sessionId: String) {
         viewModelScope.launch {
             try {
-                stopParkingUseCase.execute(sessionId)
+                val session = stopParkingUseCase.execute(sessionId)
                 stopTicker()
+                
+                // 주차 완료 정보 수집
+                val zone = resolveZone(session.zoneId)
+                val zoneName = zone?.name ?: "알 수 없는 구역"
+                val duration = TimeUtils.formatDuration(session.endTime!! - session.startTime)
+                val vehicleDisplay = _state.value.selectedVehicle?.let { v ->
+                    if (v.hasPlateNumber) "${v.displayName}(${v.displayPlateNumber})" else v.displayName
+                }
+                
+                // 할인 적용된 요금 계산
+                val feeResult = FeeCalculator.calculateFeeForZoneResult(
+                    session.startTime,
+                    session.endTime,
+                    zone ?: return@launch,
+                    _state.value.selectedVehicle
+                )
+                
                 _state.update { 
                     it.copy(
                         activeParkingSession = null,
@@ -141,7 +168,17 @@ class HomeViewModel @Inject constructor(
                         parkingDuration = "00:00"
                     )
                 }
-                _effect.emit(HomeContract.HomeEffect.ShowToast("주차가 종료되었습니다."))
+                
+                // 주차 완료 다이얼로그 표시
+                _effect.emit(HomeContract.HomeEffect.ShowParkingCompleteDialog(
+                    zoneName = zoneName,
+                    duration = duration,
+                    vehicleDisplay = vehicleDisplay,
+                    originalFee = feeResult.original,
+                    finalFee = feeResult.discounted,
+                    hasDiscount = feeResult.hasDiscount
+                ))
+                
                 _effect.emit(HomeContract.HomeEffect.RequestStopParkingService)
             } catch (e: Exception) {
                 _state.update { it.copy(errorMessage = e.message) }
@@ -232,7 +269,8 @@ class HomeViewModel @Inject constructor(
                     val duration = TimeUtils.formatDuration(now - session.startTime)
                     val zone = resolveZone(session.zoneId)
                     val fee = if (zone != null) {
-                        FeeCalculator.calculateFeeForZone(session.startTime, now, zone)
+                        // 차량 선택 반영하여 할인 포함 계산
+                        FeeCalculator.calculateFeeForZone(session.startTime, now, zone, _state.value.selectedVehicle)
                     } else {
                         0.0
                     }

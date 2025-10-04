@@ -2,6 +2,24 @@ package com.naze.parkingfee.utils
 
 import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.domain.model.FeeStructure
+import com.naze.parkingfee.domain.model.vehicle.Vehicle
+
+/**
+ * 요금 계산 결과
+ */
+data class FeeResult(
+    val original: Double,      // 할인 전 요금
+    val discounted: Double    // 할인 후 요금
+) {
+    val hasDiscount: Boolean
+        get() = original != discounted
+    
+    val discountAmount: Double
+        get() = original - discounted
+    
+    val discountRate: Double
+        get() = if (original > 0) discountAmount / original else 0.0
+}
 
 /**
  * 주차 요금 계산 유틸리티
@@ -106,6 +124,87 @@ object FeeCalculator {
     fun calculateCurrentFeeForZone(startTime: Long, zone: ParkingZone): Double {
         val currentTime = TimeUtils.getCurrentTimestamp()
         return calculateFeeForZone(startTime, currentTime, zone)
+    }
+    
+    /**
+     * 주차 구역과 차량에 따라 주차 요금을 계산합니다 (할인 적용).
+     * 
+     * @param startTime 주차 시작 시간 (밀리초)
+     * @param endTime 주차 종료 시간 (밀리초)
+     * @param zone 주차 구역
+     * @param vehicle 차량 (선택사항)
+     * @return 계산된 주차 요금 (할인 적용)
+     */
+    fun calculateFeeForZone(startTime: Long, endTime: Long, zone: ParkingZone, vehicle: Vehicle?): Double {
+        val result = calculateFeeForZoneResult(startTime, endTime, zone, vehicle)
+        return result.discounted
+    }
+    
+    /**
+     * 주차 구역과 차량에 따라 주차 요금을 계산합니다 (할인 전/후 모두 반환).
+     * 
+     * @param startTime 주차 시작 시간 (밀리초)
+     * @param endTime 주차 종료 시간 (밀리초)
+     * @param zone 주차 구역
+     * @param vehicle 차량 (선택사항)
+     * @return 계산된 주차 요금 결과 (할인 전/후)
+     */
+    fun calculateFeeForZoneResult(startTime: Long, endTime: Long, zone: ParkingZone, vehicle: Vehicle?): FeeResult {
+        // 기본 요금 계산
+        val originalFee = calculateFeeForZone(startTime, endTime, zone)
+        
+        // 할인 적용
+        val discountedFee = applyDiscount(originalFee, zone, vehicle)
+        
+        return FeeResult(
+            original = originalFee,
+            discounted = discountedFee
+        )
+    }
+    
+    /**
+     * 현재까지의 주차 요금을 주차 구역과 차량에 따라 계산합니다 (할인 적용).
+     * 
+     * @param startTime 주차 시작 시간 (밀리초)
+     * @param zone 주차 구역
+     * @param vehicle 차량 (선택사항)
+     * @return 현재까지의 주차 요금 (할인 적용)
+     */
+    fun calculateCurrentFeeForZone(startTime: Long, zone: ParkingZone, vehicle: Vehicle?): Double {
+        val currentTime = TimeUtils.getCurrentTimestamp()
+        return calculateFeeForZone(startTime, currentTime, zone, vehicle)
+    }
+    
+    /**
+     * 현재까지의 주차 요금을 주차 구역과 차량에 따라 계산합니다 (할인 전/후 모두 반환).
+     * 
+     * @param startTime 주차 시작 시간 (밀리초)
+     * @param zone 주차 구역
+     * @param vehicle 차량 (선택사항)
+     * @return 현재까지의 주차 요금 결과 (할인 전/후)
+     */
+    fun calculateCurrentFeeForZoneResult(startTime: Long, zone: ParkingZone, vehicle: Vehicle?): FeeResult {
+        val currentTime = TimeUtils.getCurrentTimestamp()
+        return calculateFeeForZoneResult(startTime, currentTime, zone, vehicle)
+    }
+    
+    /**
+     * 할인을 적용합니다.
+     * 
+     * @param originalFee 원래 요금
+     * @param zone 주차 구역
+     * @param vehicle 차량 (선택사항)
+     * @return 할인 적용된 요금
+     */
+    private fun applyDiscount(originalFee: Double, zone: ParkingZone, vehicle: Vehicle?): Double {
+        var discountedFee = originalFee
+        
+        // 공영 주차장에서 경차 할인 적용
+        if (zone.isPublic && vehicle?.isCompactCar == true) {
+            discountedFee = calculateDiscountedFee(originalFee, 0.5) // 50% 할인
+        }
+        
+        return discountedFee
     }
     
     /**

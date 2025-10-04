@@ -106,6 +106,16 @@ fun AddParkingLotScreen(
                 )
             }
 
+            // 주차장 타입 선택
+            item {
+                ParkingLotTypeCard(
+                    isPublic = state.isPublic,
+                    onIsPublicChange = { isPublic ->
+                        viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.ToggleIsPublic(isPublic))
+                    }
+                )
+            }
+
             // 기본 요금 체계
             item {
                 BasicFeeRuleCard(

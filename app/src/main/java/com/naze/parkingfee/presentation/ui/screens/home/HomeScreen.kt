@@ -42,6 +42,10 @@ fun HomeScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var pendingDeleteZoneId by remember { mutableStateOf<String?>(null) }
     var pendingDeleteZoneName by remember { mutableStateOf<String?>(null) }
+    
+    // 주차 완료 다이얼로그 상태
+    var showParkingCompleteDialog by remember { mutableStateOf(false) }
+    var parkingCompleteInfo by remember { mutableStateOf<HomeContract.HomeEffect.ShowParkingCompleteDialog?>(null) }
 
     // 화면 진입 시마다 주차장 목록 새로고침
     LaunchedEffect(Unit) {
@@ -81,6 +85,10 @@ fun HomeScreen(
                 }
                 is HomeContract.HomeEffect.RequestStopParkingService -> {
                     onStopParkingService()
+                }
+                is HomeContract.HomeEffect.ShowParkingCompleteDialog -> {
+                    parkingCompleteInfo = currentEffect
+                    showParkingCompleteDialog = true
                 }
             }
         }
@@ -145,7 +153,10 @@ fun HomeScreen(
                 isActive = state.isParkingActive,
                 session = state.activeParkingSession,
                 duration = state.parkingDuration,
-                fee = state.parkingFee
+                feeResult = com.naze.parkingfee.utils.FeeResult(state.parkingFee, state.parkingFee),
+                vehicleDisplay = state.selectedVehicle?.let { v ->
+                    if (v.hasPlateNumber) "${v.displayName}(${v.displayPlateNumber})" else v.displayName
+                }
             )
 
             ParkingControlButtons(
@@ -186,4 +197,74 @@ fun HomeScreen(
         },
         onDismiss = { showDeleteDialog = false }
     )
+    
+    // 주차 완료 다이얼로그
+    if (showParkingCompleteDialog && parkingCompleteInfo != null) {
+        AlertDialog(
+            onDismissRequest = { 
+                showParkingCompleteDialog = false
+                parkingCompleteInfo = null
+            },
+            title = { 
+                Text(
+                    text = "주차 완료",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "구역: ${parkingCompleteInfo!!.zoneName}",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "주차 시간: ${parkingCompleteInfo!!.duration}",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    if (!parkingCompleteInfo!!.vehicleDisplay.isNullOrBlank()) {
+                        Text(
+                            text = "차량: ${parkingCompleteInfo!!.vehicleDisplay}",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    
+                    if (parkingCompleteInfo!!.hasDiscount && parkingCompleteInfo!!.originalFee != null) {
+                        Text(
+                            text = "요금: ${parkingCompleteInfo!!.originalFee!!.toInt()}원 → ${parkingCompleteInfo!!.finalFee.toInt()}원",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "50% 할인 적용",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        Text(
+                            text = "요금: ${parkingCompleteInfo!!.finalFee.toInt()}원",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showParkingCompleteDialog = false
+                        parkingCompleteInfo = null
+                    }
+                ) {
+                    Text("확인")
+                }
+            }
+        )
+    }
 }
