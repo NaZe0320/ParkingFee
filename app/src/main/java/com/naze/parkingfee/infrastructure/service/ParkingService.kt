@@ -1,5 +1,6 @@
 package com.naze.parkingfee.infrastructure.service
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
@@ -104,6 +105,7 @@ class ParkingService : LifecycleService() {
         }
     }
     
+    @SuppressLint("MissingPermission")
     private fun startPeriodicUpdate(session: com.naze.parkingfee.domain.model.ParkingSession, zone: com.naze.parkingfee.domain.model.ParkingZone) {
         monitoringJob = lifecycleScope.launch {
             while (true) {
@@ -117,7 +119,7 @@ class ParkingService : LifecycleService() {
                         session.startTime,
                         currentFee
                     )
-                    
+
                     delay(60000) // 1분마다 업데이트
                 } catch (e: Exception) {
                     // 에러 처리

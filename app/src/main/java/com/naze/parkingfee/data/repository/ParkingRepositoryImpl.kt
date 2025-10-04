@@ -6,6 +6,7 @@ import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.data.datasource.local.dao.ParkingDao
 import com.naze.parkingfee.data.mapper.ParkingZoneMapper
 import com.naze.parkingfee.data.mapper.ParkingSessionMapper
+import com.naze.parkingfee.utils.FeeCalculator
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -87,10 +88,19 @@ class ParkingRepositoryImpl @Inject constructor(
             ?: throw IllegalArgumentException("Session not found: $sessionId")
         
         val endTime = System.currentTimeMillis()
+        
+        // 구역 정보 조회하여 FeeCalculator로 요금 계산
+        val zone = parkingDao.getParkingZone(sessionEntity.zoneId)?.let { entity ->
+            parkingZoneMapper.mapToDomain(entity)
+        }
+        val computedFee = zone?.let { 
+            FeeCalculator.calculateFeeForZone(sessionEntity.startTime, endTime, it) 
+        } ?: 0.0
+        
         val updatedEntity = sessionEntity.copy(
             endTime = endTime,
             isActive = false,
-            totalFee = calculateFee(sessionEntity.startTime, endTime)
+            totalFee = computedFee
         )
         
         parkingDao.updateParkingSession(updatedEntity)
@@ -126,11 +136,5 @@ class ParkingRepositoryImpl @Inject constructor(
 
     private fun generateSessionId(): String {
         return "session_${System.currentTimeMillis()}_${(1000..9999).random()}"
-    }
-
-    private fun calculateFee(startTime: Long, endTime: Long): Double {
-        val durationInHours = (endTime - startTime).toDouble() / (1000 * 60 * 60)
-        // 기본 시간당 요금 1000원으로 계산 (실제로는 구역별 요금 적용)
-        return durationInHours * 1000.0
     }
 }

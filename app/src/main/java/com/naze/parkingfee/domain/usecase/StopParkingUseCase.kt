@@ -41,7 +41,7 @@ class StopParkingUseCase @Inject constructor(
                 startedAt = session.startTime,
                 endedAt = session.endTime,
                 durationMinutes = durationMinutes,
-                feePaid = session.totalFee ?: 0.0
+                feePaid = session.totalFee
             )
             
             parkingHistoryRepository.saveParkingHistory(history)
