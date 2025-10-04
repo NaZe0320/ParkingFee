@@ -8,6 +8,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.naze.parkingfee.presentation.ui.screens.home.HomeScreen
 import com.naze.parkingfee.presentation.ui.screens.settings.SettingsScreen
+import com.naze.parkingfee.presentation.ui.screens.settings.vehicles.list.VehicleListScreen
+import com.naze.parkingfee.presentation.ui.screens.settings.vehicles.add.AddVehicleScreen
 import com.naze.parkingfee.presentation.ui.screens.addparkinglot.AddParkingLotScreen
 import com.naze.parkingfee.presentation.ui.screens.zonedetail.ZoneDetailScreen
 import com.naze.parkingfee.presentation.ui.screens.history.HistoryScreen
@@ -51,6 +53,9 @@ fun NavigationHost(
             SettingsScreen(
                 onNavigateBack = {
                     navController.popBackStack()
+                },
+                onNavigateToVehicleManagement = {
+                    navController.navigate("vehicles/list")
                 }
             )
         }
@@ -95,6 +100,39 @@ fun NavigationHost(
             HistoryScreen(
                 onNavigateBack = {
                     navController.popBackStack()
+                }
+            )
+        }
+        
+        // 차량 관리 라우트들
+        composable("vehicles/list") {
+            VehicleListScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToAddVehicle = {
+                    navController.navigate("vehicles/add")
+                },
+                onNavigateToEditVehicle = { vehicleId ->
+                    navController.navigate("vehicles/add?vehicleId=$vehicleId")
+                }
+            )
+        }
+        
+        composable(
+            route = "vehicles/add?vehicleId={vehicleId}",
+            arguments = listOf(
+                navArgument("vehicleId") { nullable = true }
+            )
+        ) { backStackEntry ->
+            val vehicleId = backStackEntry.arguments?.getString("vehicleId")
+            AddVehicleScreen(
+                vehicleId = vehicleId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToOcr = {
+                    // OCR 화면으로 이동 (추후 구현)
                 }
             )
         }

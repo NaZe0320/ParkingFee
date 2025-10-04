@@ -15,4 +15,4 @@
 local.properties
 
 # Cursor IDE rules
-.cursor/rules/
+.cursor

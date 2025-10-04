@@ -15,7 +15,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onNavigateToVehicleManagement: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
@@ -28,6 +29,9 @@ fun SettingsScreen(
                 }
                 is SettingsContract.SettingsEffect.NavigateBack -> {
                     onNavigateBack()
+                }
+                is SettingsContract.SettingsEffect.NavigateToVehicleManagement -> {
+                    onNavigateToVehicleManagement()
                 }
             }
         }
@@ -91,6 +95,34 @@ fun SettingsScreen(
                             viewModel.processIntent(SettingsContract.SettingsIntent.UpdateAutoStopSetting(enabled))
                         }
                     )
+                }
+            }
+            
+            // 차량 관리 카드
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                onClick = { viewModel.processIntent(SettingsContract.SettingsIntent.NavigateToVehicleManagement) }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "차량 관리",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "등록된 차량을 관리하고 할인 정보를 설정합니다",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text("→")
                 }
             }
         }

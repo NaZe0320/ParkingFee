@@ -3,6 +3,7 @@ package com.naze.parkingfee.di
 import android.content.Context
 import com.naze.parkingfee.data.datasource.local.dao.ParkingDao
 import com.naze.parkingfee.data.datasource.local.dao.ParkingHistoryDao
+import com.naze.parkingfee.data.datasource.local.dao.VehicleDao
 import com.naze.parkingfee.data.datasource.local.database.ParkingDatabase
 import dagger.Module
 import dagger.Provides
@@ -32,5 +33,10 @@ object DatabaseModule {
     @Provides
     fun provideParkingHistoryDao(database: ParkingDatabase): ParkingHistoryDao {
         return database.parkingHistoryDao()
+    }
+    
+    @Provides
+    fun provideVehicleDao(database: ParkingDatabase): VehicleDao {
+        return database.vehicleDao()
     }
 }
