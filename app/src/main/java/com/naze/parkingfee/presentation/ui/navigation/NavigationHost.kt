@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.naze.parkingfee.presentation.ui.screens.home.HomeScreen
 import com.naze.parkingfee.presentation.ui.screens.settings.SettingsScreen
 import com.naze.parkingfee.presentation.ui.screens.addparkinglot.AddParkingLotScreen
@@ -54,7 +55,12 @@ fun NavigationHost(
             )
         }
         
-        composable("add_parking_lot") { backStackEntry ->
+        composable(
+            route = "add_parking_lot?zoneId={zoneId}",
+            arguments = listOf(
+                navArgument("zoneId") { nullable = true }
+            )
+        ) { backStackEntry ->
             val zoneId = backStackEntry.arguments?.getString("zoneId")
             AddParkingLotScreen(
                 zoneId = zoneId,
