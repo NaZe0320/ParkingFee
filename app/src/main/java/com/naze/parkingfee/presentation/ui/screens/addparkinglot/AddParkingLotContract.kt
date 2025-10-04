@@ -17,6 +17,10 @@ object AddParkingLotContract {
      * 사용자 액션을 나타내는 Intent
      */
     sealed class AddParkingLotIntent {
+        // 초기화
+        object Initialize : AddParkingLotIntent()
+        data class LoadZoneForEdit(val zoneId: String) : AddParkingLotIntent()
+        
         // OCR 관련
         object OpenOcrScreen : AddParkingLotIntent()
         
@@ -62,6 +66,10 @@ object AddParkingLotContract {
     data class AddParkingLotState(
         val isLoading: Boolean = false,
         val isSaving: Boolean = false,
+        
+        // 편집 모드 관련
+        val isEditMode: Boolean = false,
+        val editingZoneId: String? = null,
         
         // 주차장 기본 정보
         val parkingLotName: String = "",

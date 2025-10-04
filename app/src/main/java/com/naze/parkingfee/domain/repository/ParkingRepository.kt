@@ -25,6 +25,11 @@ interface ParkingRepository {
     suspend fun getParkingZone(zoneId: String): ParkingZone?
     
     /**
+     * ID로 주차 구역을 조회합니다.
+     */
+    suspend fun getParkingZoneById(zoneId: String): ParkingZone?
+    
+    /**
      * 주차 구역을 추가합니다.
      */
     suspend fun addParkingZone(parkingZone: ParkingZone): ParkingZone
@@ -33,6 +38,7 @@ interface ParkingRepository {
      * 주차 구역을 업데이트합니다.
      */
     suspend fun updateParkingZone(parkingZone: ParkingZone): ParkingZone
+
     
     /**
      * 주차 구역을 삭제합니다.

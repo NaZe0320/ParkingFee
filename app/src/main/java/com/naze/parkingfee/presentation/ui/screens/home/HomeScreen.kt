@@ -3,6 +3,9 @@ package com.naze.parkingfee.presentation.ui.screens.home
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -25,6 +28,8 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToHistory: () -> Unit = {},
     onNavigateToAddParkingLot: () -> Unit = {},
+    onNavigateToZoneDetail: (String) -> Unit = {},
+    onNavigateToEditZone: (String) -> Unit = {},
     onStartParkingService: () -> Unit = {},
     onStopParkingService: () -> Unit = {}
 ) {
@@ -50,8 +55,17 @@ fun HomeScreen(
                         "add_parking_lot" -> onNavigateToAddParkingLot()
                     }
                 }
+                is HomeContract.HomeEffect.NavigateToZoneDetail -> {
+                    onNavigateToZoneDetail(currentEffect.zoneId)
+                }
+                is HomeContract.HomeEffect.NavigateToEditZone -> {
+                    onNavigateToEditZone(currentEffect.zoneId)
+                }
                 is HomeContract.HomeEffect.ShowDialog -> {
                     // Dialog 표시 로직
+                }
+                is HomeContract.HomeEffect.ShowDeleteConfirmDialog -> {
+                    // 삭제 확인 다이얼로그 표시 로직
                 }
                 is HomeContract.HomeEffect.RequestStartParkingService -> {
                     onStartParkingService()
@@ -68,8 +82,17 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text("주차 요금 계산기") },
                 actions = {
+                    IconButton(onClick = { viewModel.processIntent(HomeContract.HomeIntent.NavigateToHistory) }) {
+                        Icon(
+                            imageVector = Icons.Default.List,
+                            contentDescription = "주차 기록"
+                        )
+                    }
                     IconButton(onClick = { viewModel.processIntent(HomeContract.HomeIntent.NavigateToSettings) }) {
-                        Text("설정")
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "설정"
+                        )
                     }
                 }
             )
@@ -104,6 +127,9 @@ fun HomeScreen(
                 selectedZone = state.currentZone,
                 onZoneSelected = { zone ->
                     viewModel.processIntent(HomeContract.HomeIntent.SelectZone(zone))
+                },
+                onRequestZoneAction = { zone, action ->
+                    viewModel.processIntent(HomeContract.HomeIntent.RequestZoneAction(zone, action))
                 }
             )
 

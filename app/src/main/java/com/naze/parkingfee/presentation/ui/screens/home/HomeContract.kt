@@ -2,6 +2,7 @@ package com.naze.parkingfee.presentation.ui.screens.home
 
 import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.domain.model.ParkingSession
+import com.naze.parkingfee.presentation.ui.screens.home.components.ZoneAction
 
 /**
  * 홈 화면의 MVI Contract
@@ -20,6 +21,8 @@ object HomeContract {
         object NavigateToHistory : HomeIntent()
         object NavigateToAddParkingLot : HomeIntent()
         data class SelectZone(val zone: ParkingZone) : HomeIntent()
+        data class RequestZoneAction(val zone: ParkingZone, val action: ZoneAction) : HomeIntent()
+        data class DeleteZone(val zoneId: String) : HomeIntent()
     }
 
     /**
@@ -42,7 +45,10 @@ object HomeContract {
     sealed class HomeEffect {
         data class ShowToast(val message: String) : HomeEffect()
         data class NavigateTo(val route: String) : HomeEffect()
+        data class NavigateToZoneDetail(val zoneId: String) : HomeEffect()
+        data class NavigateToEditZone(val zoneId: String) : HomeEffect()
         data class ShowDialog(val title: String, val message: String) : HomeEffect()
+        data class ShowDeleteConfirmDialog(val zoneId: String, val zoneName: String) : HomeEffect()
         object RequestStartParkingService : HomeEffect()
         object RequestStopParkingService : HomeEffect()
     }

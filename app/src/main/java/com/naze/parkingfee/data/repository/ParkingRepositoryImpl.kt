@@ -38,6 +38,12 @@ class ParkingRepositoryImpl @Inject constructor(
             parkingZoneMapper.mapToDomain(entity)
         }
     }
+    
+    override suspend fun getParkingZoneById(zoneId: String): ParkingZone? {
+        return parkingDao.getParkingZone(zoneId)?.let { entity ->
+            parkingZoneMapper.mapToDomain(entity)
+        }
+    }
 
     override suspend fun addParkingZone(parkingZone: ParkingZone): ParkingZone {
         val entity = parkingZoneMapper.mapToEntity(parkingZone)

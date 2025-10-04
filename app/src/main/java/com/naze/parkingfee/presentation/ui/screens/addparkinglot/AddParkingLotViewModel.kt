@@ -10,6 +10,8 @@ import com.naze.parkingfee.domain.model.DailyMaxFeeRule
 import com.naze.parkingfee.domain.model.CustomFeeRule
 import com.naze.parkingfee.domain.usecase.AddParkingZoneUseCase
 import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
+import com.naze.parkingfee.domain.usecase.GetParkingZoneByIdUseCase
+import com.naze.parkingfee.domain.usecase.UpdateParkingZoneUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +28,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AddParkingLotViewModel @Inject constructor(
     private val addParkingZoneUseCase: AddParkingZoneUseCase,
-    private val getParkingZonesUseCase: GetParkingZonesUseCase
+    private val getParkingZonesUseCase: GetParkingZonesUseCase,
+    private val getParkingZoneByIdUseCase: GetParkingZoneByIdUseCase,
+    private val updateParkingZoneUseCase: UpdateParkingZoneUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddParkingLotContract.AddParkingLotState())
@@ -40,6 +44,8 @@ class AddParkingLotViewModel @Inject constructor(
      */
     fun processIntent(intent: AddParkingLotContract.AddParkingLotIntent) {
         when (intent) {
+            is AddParkingLotContract.AddParkingLotIntent.Initialize -> initialize()
+            is AddParkingLotContract.AddParkingLotIntent.LoadZoneForEdit -> loadZoneForEdit(intent.zoneId)
             is AddParkingLotContract.AddParkingLotIntent.OpenOcrScreen -> openOcrScreen()
             is AddParkingLotContract.AddParkingLotIntent.UpdateParkingLotName -> updateParkingLotName(intent.name)
             is AddParkingLotContract.AddParkingLotIntent.ToggleUseDefaultName -> toggleUseDefaultName(intent.useDefault)
@@ -193,22 +199,36 @@ class AddParkingLotViewModel @Inject constructor(
             try {
                 _state.update { it.copy(isSaving = true, validationErrors = emptyMap()) }
 
-                // 다음 주차 구역 번호 계산
-                val existingZones = getParkingZonesUseCase.execute()
-                val nextSequenceNumber = existingZones.size + 1
+                if (currentState.isEditMode && currentState.editingZoneId != null) {
+                    // 편집 모드: 기존 구역 업데이트
+                    val existingZone = getParkingZoneByIdUseCase.execute(currentState.editingZoneId!!)
+                    if (existingZone != null) {
+                        val updatedZone = existingZone.copy(
+                            name = if (currentState.useDefaultName) existingZone.name else currentState.parkingLotName,
+                            hourlyRate = calculateHourlyRate(currentState),
+                            feeStructure = createFeeStructure(currentState),
+                            updatedAt = System.currentTimeMillis()
+                        )
+                        updateParkingZoneUseCase.execute(updatedZone)
+                    } else {
+                        throw Exception("편집할 구역을 찾을 수 없습니다.")
+                    }
+                } else {
+                    // 추가 모드: 새 구역 생성
+                    val existingZones = getParkingZonesUseCase.execute()
+                    val nextSequenceNumber = existingZones.size + 1
 
-                // 주차 구역 생성
-                val parkingZone = ParkingZone(
-                    id = UUID.randomUUID().toString(),
-                    name = if (currentState.useDefaultName) "주차장$nextSequenceNumber" else currentState.parkingLotName,
-                    hourlyRate = calculateHourlyRate(currentState), // 기본 시간당 요금 계산
-                    maxCapacity = 100, // 기본값
-                    currentOccupancy = 0, // 기본값
-                    feeStructure = createFeeStructure(currentState)
-                )
+                    val parkingZone = ParkingZone(
+                        id = UUID.randomUUID().toString(),
+                        name = if (currentState.useDefaultName) "주차장$nextSequenceNumber" else currentState.parkingLotName,
+                        hourlyRate = calculateHourlyRate(currentState),
+                        maxCapacity = 100,
+                        currentOccupancy = 0,
+                        feeStructure = createFeeStructure(currentState)
+                    )
 
-                // 주차 구역 저장
-                addParkingZoneUseCase.execute(parkingZone)
+                    addParkingZoneUseCase.execute(parkingZone)
+                }
 
                 _state.update { 
                     it.copy(
@@ -217,7 +237,9 @@ class AddParkingLotViewModel @Inject constructor(
                     )
                 }
 
-                _effect.value = AddParkingLotContract.AddParkingLotEffect.ShowToast("주차장이 성공적으로 추가되었습니다.")
+                _effect.value = AddParkingLotContract.AddParkingLotEffect.ShowToast(
+                    if (currentState.isEditMode) "주차장이 성공적으로 수정되었습니다." else "주차장이 성공적으로 추가되었습니다."
+                )
                 
                 // 잠시 후 뒤로가기
                 kotlinx.coroutines.delay(1500)
@@ -331,5 +353,59 @@ class AddParkingLotViewModel @Inject constructor(
      */
     private fun resetForm() {
         _state.value = AddParkingLotContract.AddParkingLotState()
+    }
+
+    /**
+     * 초기화
+     */
+    private fun initialize() {
+        // 기본 상태로 초기화
+        _state.value = AddParkingLotContract.AddParkingLotState()
+    }
+
+    /**
+     * 편집을 위한 구역 로드
+     */
+    private fun loadZoneForEdit(zoneId: String) {
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(isLoading = true, errorMessage = null) }
+                
+                val zone = getParkingZoneByIdUseCase.execute(zoneId)
+                
+                if (zone != null) {
+                    _state.update { 
+                        it.copy(
+                            isLoading = false,
+                            isEditMode = true,
+                            editingZoneId = zoneId,
+                            parkingLotName = zone.name,
+                            useDefaultName = false,
+                            basicFeeDuration = zone.feeStructure?.basicFee?.durationMinutes ?: 30,
+                            basicFeeAmount = zone.feeStructure?.basicFee?.fee ?: 1000,
+                            additionalFeeInterval = zone.feeStructure?.additionalFee?.intervalMinutes ?: 10,
+                            additionalFeeAmount = zone.feeStructure?.additionalFee?.fee ?: 500,
+                            dailyMaxFeeEnabled = zone.feeStructure?.dailyMaxFee != null,
+                            dailyMaxFeeAmount = zone.feeStructure?.dailyMaxFee?.maxFee ?: 10000,
+                            customFeeRules = zone.feeStructure?.customFeeRules ?: emptyList()
+                        )
+                    }
+                } else {
+                    _state.update { 
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "구역을 찾을 수 없습니다."
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update { 
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.message ?: "구역을 불러오는 중 오류가 발생했습니다."
+                    )
+                }
+            }
+        }
     }
 }

@@ -8,6 +8,8 @@ import androidx.navigation.compose.rememberNavController
 import com.naze.parkingfee.presentation.ui.screens.home.HomeScreen
 import com.naze.parkingfee.presentation.ui.screens.settings.SettingsScreen
 import com.naze.parkingfee.presentation.ui.screens.addparkinglot.AddParkingLotScreen
+import com.naze.parkingfee.presentation.ui.screens.zonedetail.ZoneDetailScreen
+import com.naze.parkingfee.presentation.ui.screens.history.HistoryScreen
 
 /**
  * 앱의 네비게이션 호스트
@@ -28,10 +30,16 @@ fun NavigationHost(
                     navController.navigate("settings")
                 },
                 onNavigateToHistory = {
-                    // 히스토리 화면으로 이동 (추후 구현)
+                    navController.navigate("history")
                 },
                 onNavigateToAddParkingLot = {
                     navController.navigate("add_parking_lot")
+                },
+                onNavigateToZoneDetail = { zoneId ->
+                    navController.navigate("zone_detail/$zoneId")
+                },
+                onNavigateToEditZone = { zoneId ->
+                    navController.navigate("add_parking_lot?zoneId=$zoneId")
                 },
                 onStartParkingService = onStartParkingService,
                 onStopParkingService = onStopParkingService
@@ -46,13 +54,41 @@ fun NavigationHost(
             )
         }
         
-        composable("add_parking_lot") {
+        composable("add_parking_lot") { backStackEntry ->
+            val zoneId = backStackEntry.arguments?.getString("zoneId")
             AddParkingLotScreen(
+                zoneId = zoneId,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
                 onNavigateToOcr = {
                     // OCR 화면으로 이동 (추후 구현)
+                }
+            )
+        }
+        
+        composable("zone_detail/{zoneId}") { backStackEntry ->
+            val zoneId = backStackEntry.arguments?.getString("zoneId") ?: ""
+            ZoneDetailScreen(
+                zoneId = zoneId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToEdit = { editZoneId ->
+                    navController.navigate("add_parking_lot?zoneId=$editZoneId")
+                },
+                onNavigateToHome = {
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = false }
+                    }
+                }
+            )
+        }
+        
+        composable("history") {
+            HistoryScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }

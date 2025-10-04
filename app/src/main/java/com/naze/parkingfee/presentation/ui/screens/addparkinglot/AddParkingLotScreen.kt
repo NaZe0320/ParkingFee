@@ -20,10 +20,20 @@ import com.naze.parkingfee.presentation.ui.screens.addparkinglot.components.*
 fun AddParkingLotScreen(
     viewModel: AddParkingLotViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
-    onNavigateToOcr: () -> Unit = {}
+    onNavigateToOcr: () -> Unit = {},
+    zoneId: String? = null // 편집 모드를 위한 구역 ID
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+
+    // 편집 모드 초기화
+    LaunchedEffect(zoneId) {
+        if (zoneId != null) {
+            viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.LoadZoneForEdit(zoneId))
+        } else {
+            viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.Initialize)
+        }
+    }
 
     // Effect 처리
     LaunchedEffect(effect) {
@@ -56,7 +66,7 @@ fun AddParkingLotScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("주차장 추가") },
+                title = { Text(if (state.isEditMode) "주차장 편집" else "주차장 추가") },
                 navigationIcon = {
                     TextButton(onClick = { viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.NavigateBack) }) {
                         Text("취소")

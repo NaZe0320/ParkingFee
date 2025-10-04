@@ -6,6 +6,8 @@ import com.naze.parkingfee.domain.usecase.StartParkingUseCase
 import com.naze.parkingfee.domain.usecase.StopParkingUseCase
 import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
 import com.naze.parkingfee.domain.usecase.GetActiveParkingSessionUseCase
+import com.naze.parkingfee.domain.usecase.DeleteParkingZoneUseCase
+import com.naze.parkingfee.presentation.ui.screens.home.components.ZoneAction
 import com.naze.parkingfee.utils.TimeUtils
 import com.naze.parkingfee.utils.FeeCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,7 +33,8 @@ class HomeViewModel @Inject constructor(
     private val startParkingUseCase: StartParkingUseCase,
     private val stopParkingUseCase: StopParkingUseCase,
     private val getParkingZonesUseCase: GetParkingZonesUseCase,
-    private val getActiveParkingSessionUseCase: GetActiveParkingSessionUseCase
+    private val getActiveParkingSessionUseCase: GetActiveParkingSessionUseCase,
+    private val deleteParkingZoneUseCase: DeleteParkingZoneUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeContract.HomeState())
@@ -57,6 +60,8 @@ class HomeViewModel @Inject constructor(
             is HomeContract.HomeIntent.NavigateToHistory -> navigateToHistory()
             is HomeContract.HomeIntent.NavigateToAddParkingLot -> navigateToAddParkingLot()
             is HomeContract.HomeIntent.SelectZone -> selectZone(intent.zone)
+            is HomeContract.HomeIntent.RequestZoneAction -> handleZoneAction(intent.zone, intent.action)
+            is HomeContract.HomeIntent.DeleteZone -> deleteZone(intent.zoneId)
         }
     }
 
@@ -168,6 +173,49 @@ class HomeViewModel @Inject constructor(
 
     private fun selectZone(zone: com.naze.parkingfee.domain.model.ParkingZone) {
         _state.update { it.copy(currentZone = zone) }
+    }
+    
+    private fun handleZoneAction(zone: com.naze.parkingfee.domain.model.ParkingZone, action: ZoneAction) {
+        viewModelScope.launch {
+            when (action) {
+                ZoneAction.Detail -> {
+                    _effect.emit(HomeContract.HomeEffect.NavigateToZoneDetail(zone.id))
+                }
+                ZoneAction.Edit -> {
+                    _effect.emit(HomeContract.HomeEffect.NavigateToEditZone(zone.id))
+                }
+                ZoneAction.Delete -> {
+                    _effect.emit(HomeContract.HomeEffect.ShowDeleteConfirmDialog(zone.id, zone.name))
+                }
+            }
+        }
+    }
+    
+    private fun deleteZone(zoneId: String) {
+        viewModelScope.launch {
+            try {
+                // 활성 세션이 있는지 확인
+                val activeSession = _state.value.activeParkingSession
+                if (activeSession?.zoneId == zoneId) {
+                    _effect.emit(HomeContract.HomeEffect.ShowToast("현재 주차 중인 구역은 삭제할 수 없습니다."))
+                    return@launch
+                }
+                
+                deleteParkingZoneUseCase.execute(zoneId)
+                
+                // 현재 선택된 구역이 삭제된 구역이면 선택 해제
+                val currentZone = _state.value.currentZone
+                if (currentZone?.id == zoneId) {
+                    _state.update { it.copy(currentZone = null) }
+                }
+                
+                // 구역 목록 새로고침
+                refreshParkingInfo()
+                _effect.emit(HomeContract.HomeEffect.ShowToast("주차 구역이 삭제되었습니다."))
+            } catch (e: Exception) {
+                _effect.emit(HomeContract.HomeEffect.ShowToast("삭제 중 오류가 발생했습니다: ${e.message}"))
+            }
+        }
     }
     
     /**
