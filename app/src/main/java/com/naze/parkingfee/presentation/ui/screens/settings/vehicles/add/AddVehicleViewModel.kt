@@ -202,12 +202,20 @@ class AddVehicleViewModel @Inject constructor(
         return errors
     }
     
-    private fun createVehicleFromState(): Vehicle {
+    private suspend fun createVehicleFromState(): Vehicle {
         val currentState = _state.value
+        
+        // 차량명이 비어있으면 기본 이름 생성
+        val vehicleName = if (currentState.vehicleName.isNotBlank()) {
+            currentState.vehicleName
+        } else {
+            val vehicleCount = vehicleRepository.getVehicleCount()
+            "자동차${vehicleCount + 1}"
+        }
         
         return Vehicle(
             id = currentState.vehicleId ?: UUID.randomUUID().toString(),
-            name = currentState.vehicleName.takeIf { it.isNotBlank() },
+            name = vehicleName,
             plateNumber = currentState.plateNumber.takeIf { it.isNotBlank() },
             discountEligibilities = VehicleDiscountEligibilities(
                 compactCar = DiscountEligibility.CompactCar(currentState.compactCarDiscount),

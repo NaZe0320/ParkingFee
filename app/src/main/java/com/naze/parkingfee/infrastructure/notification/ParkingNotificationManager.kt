@@ -52,6 +52,7 @@ object ParkingNotificationManager {
         startTime: Long,
         currentFee: Double,
         hasDiscount: Boolean = false,
+        originalFee: Double? = null,
         stopIntent: PendingIntent
     ): Notification {
         // 앱 열기 인텐트
@@ -66,14 +67,18 @@ object ParkingNotificationManager {
         val elapsedTime = TimeUtils.formatDuration(System.currentTimeMillis() - startTime)
         val formattedFee = String.format("%.0f", currentFee)
         
-        val feeText = if (hasDiscount) {
-            "💰 요금: ${formattedFee}원 (할인 적용)"
+        val feeText = if (hasDiscount && originalFee != null) {
+            val formattedOriginalFee = String.format("%.0f", originalFee)
+            val discountPercent = ((1 - currentFee / originalFee) * 100).toInt()
+            "💰 요금: ~~${formattedOriginalFee}원~~ → ${formattedFee}원 (${discountPercent}% 할인)"
         } else {
             "💰 요금: ${formattedFee}원"
         }
         
-        val bigText = if (hasDiscount) {
-            "🚗 주차 중 • $zoneName\n\n⏰ 경과: $elapsedTime\n💰 요금: ${formattedFee}원 (할인 적용)\n\n주차 진행 중입니다."
+        val bigText = if (hasDiscount && originalFee != null) {
+            // val formattedOriginalFee = String.format("%.0f", originalFee)
+            val discountPercent = ((1 - currentFee / originalFee) * 100).toInt()
+            "🚗 주차 중 • $zoneName\n\n⏰ 경과: $elapsedTime\n💰 요금: ${formattedFee}원 (${discountPercent}% 할인 적용용)\n\n주차 진행 중입니다."
         } else {
             "🚗 주차 중 • $zoneName\n\n⏰ 경과: $elapsedTime\n💰 요금: ${formattedFee}원\n\n주차 진행 중입니다."
         }
@@ -84,7 +89,7 @@ object ParkingNotificationManager {
             .setContentText("⏰ 경과: $elapsedTime  $feeText")
             .setSubText("주차 진행 중")
             .setWhen(startTime)
-            .setUsesChronometer(true)
+            .setUsesChronometer(false)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -108,7 +113,8 @@ object ParkingNotificationManager {
         zoneName: String,
         startTime: Long,
         currentFee: Double,
-        hasDiscount: Boolean = false
+        hasDiscount: Boolean = false,
+        originalFee: Double? = null
     ) {
         // 정지 액션 인텐트 생성
         val stopIntent = Intent(context, ParkingService::class.java).apply {
@@ -125,6 +131,7 @@ object ParkingNotificationManager {
             startTime = startTime,
             currentFee = currentFee,
             hasDiscount = hasDiscount,
+            originalFee = originalFee,
             stopIntent = stopPendingIntent
         )
 

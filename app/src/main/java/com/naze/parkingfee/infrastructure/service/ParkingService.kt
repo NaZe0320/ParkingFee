@@ -107,6 +107,7 @@ class ParkingService : LifecycleService() {
                             activeSession.startTime,
                             feeResult.discounted,
                             feeResult.hasDiscount,
+                            feeResult.original,
                             stopPendingIntent
                         )
 
@@ -147,7 +148,8 @@ class ParkingService : LifecycleService() {
                         zone.name,
                         session.startTime,
                         feeResult.discounted,
-                        feeResult.hasDiscount
+                        feeResult.hasDiscount,
+                        feeResult.original
                     )
 
                     delay(60000) // 1분마다 업데이트
@@ -224,6 +226,7 @@ class ParkingService : LifecycleService() {
                             activeSession.startTime,
                             feeResult.discounted,
                             feeResult.hasDiscount,
+                            feeResult.original,
                             stopPendingIntent
                         )
 

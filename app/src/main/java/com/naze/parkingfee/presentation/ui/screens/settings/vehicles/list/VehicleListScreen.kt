@@ -293,15 +293,17 @@ private fun VehicleItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 
-                Text(
-                    text = vehicle.displayPlateNumber,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
+                if (vehicle.hasPlateNumber) {
+                    Text(
+                        text = vehicle.displayPlateNumber,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isSelected) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                }
                 
                 if (vehicle.hasDiscount) {
                     Row {

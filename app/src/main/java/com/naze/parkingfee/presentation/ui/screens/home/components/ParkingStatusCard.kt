@@ -80,26 +80,41 @@ fun ParkingStatusCard(
                 
                 Spacer(modifier = Modifier.height(4.dp))
                 
-                Text(
-                    text = "요금: ${String.format("%.0f", feeResult.discounted)}원",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondary
-                )
-                
                 if (feeResult.hasDiscount) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "요금: ",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSecondary
+                        )
+                        Text(
+                            text = "${String.format("%.0f", feeResult.original)}원",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Light,
+                            color = MaterialTheme.colorScheme.onSecondary,
+                            textDecoration = TextDecoration.LineThrough
+                        )
+                        Text(
+                            text = "→ ${String.format("%.0f", feeResult.discounted)}원",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSecondary
+                        )
+                        Text(
+                            text = "(50% 할인)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondary
+                        )
+                    }
+                } else {
                     Text(
-                        text = "할인 전: ${String.format("%.0f", feeResult.original)}원",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSecondary,
-                        textDecoration = TextDecoration.LineThrough
-                    )
-                    
-                    Text(
-                        text = "50% 할인 적용",
-                        style = MaterialTheme.typography.bodySmall,
+                        text = "요금: ${String.format("%.0f", feeResult.discounted)}원",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSecondary
                     )
                 }
