@@ -1,8 +1,10 @@
 package com.naze.parkingfee.presentation.ui.screens.history
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -54,74 +56,90 @@ fun HistoryScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("주차 기록") },
-                navigationIcon = {
-                    IconButton(onClick = { viewModel.processIntent(HistoryContract.HistoryIntent.NavigateBack) }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로가기")
-                    }
-                },
-                actions = {
-                    if (state.histories.isNotEmpty()) {
-                        IconButton(
-                            onClick = { viewModel.processIntent(HistoryContract.HistoryIntent.DeleteAllHistories) }
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = "모든 기록 삭제")
-                        }
-                    }
-                }
-            )
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        // 헤더와 삭제 버튼
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "주차 기록",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                // if (state.histories.isNotEmpty()) {
+                //     OutlinedButton(
+                //         onClick = { viewModel.processIntent(HistoryContract.HistoryIntent.DeleteAllHistories) },
+                //         colors = ButtonDefaults.outlinedButtonColors(
+                //             contentColor = MaterialTheme.colorScheme.error
+                //         ),
+                //         border = BorderStroke(
+                //             1.dp,
+                //             MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                //         ),
+                //         shape = RoundedCornerShape(12.dp)
+                //     ) {
+                //         Icon(Icons.Default.Delete, contentDescription = "모든 기록 삭제", modifier = Modifier.size(16.dp))
+                //         Spacer(modifier = Modifier.width(4.dp))
+                //         Text("전체 삭제", style = MaterialTheme.typography.bodySmall)
+                //     }
+                // }
+            }
         }
-    ) { paddingValues ->
+
+        // 상태 표시
         when {
             state.isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
             state.histories.isEmpty() -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "주차 기록이 없습니다",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "주차를 시작하면 기록이 저장됩니다",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = "주차 기록이 없습니다",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "주차를 시작하면 기록이 저장됩니다",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
             else -> {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(state.histories) { history ->
-                        HistoryItem(
-                            history = history,
-                            onDelete = { 
-                                viewModel.processIntent(HistoryContract.HistoryIntent.DeleteHistory(history.id))
-                            }
-                        )
-                    }
+                items(state.histories) { history ->
+                    HistoryItem(
+                        history = history,
+                        onDelete = { 
+                            viewModel.processIntent(HistoryContract.HistoryIntent.DeleteHistory(history.id))
+                        }
+                    )
                 }
             }
         }
@@ -195,99 +213,166 @@ private fun HistoryItem(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(
-                modifier = Modifier.weight(1f)
+            // 상단: 주차장 이름과 삭제 버튼
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = history.zoneNameSnapshot,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                Text(
-                    text = history.getFormattedStartDate(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                
-                Text(
-                    text = "주차 시간: ${history.getFormattedDuration()}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                
-                // 차량 정보 표시
-                if (!history.vehicleNameSnapshot.isNullOrBlank()) {
-                    val vehicleDisplay = if (!history.vehiclePlateSnapshot.isNullOrBlank()) {
-                        "${history.vehicleNameSnapshot}(${history.vehiclePlateSnapshot})"
-                    } else {
-                        history.vehicleNameSnapshot
-                    }
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "삭제",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+            
+            // 날짜와 시간 정보
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
                     Text(
-                        text = "차량: $vehicleDisplay",
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = "시작",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = history.getFormattedStartDate(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 
-                // 요금 표시 (할인 정보 포함)
-                if (history.hasDiscount && history.originalFee != null) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = "요금: ",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "${history.originalFee.toInt()}원",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Light,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textDecoration = TextDecoration.LineThrough
-                        )
-                        Text(
-                            text = "→ ${history.feePaid.toInt()}원",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "(50% 할인)",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                } else {
+                Column {
                     Text(
-                        text = "요금: ${history.feePaid.toInt()}원",
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = "주차 시간",
+                        style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = history.getFormattedDuration(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
             
-            IconButton(onClick = onDelete) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "삭제",
-                    tint = MaterialTheme.colorScheme.error
-                )
+            // 차량 정보
+            if (!history.vehicleNameSnapshot.isNullOrBlank()) {
+                val vehicleDisplay = if (!history.vehiclePlateSnapshot.isNullOrBlank()) {
+                    "${history.vehicleNameSnapshot}(${history.vehiclePlateSnapshot})"
+                } else {
+                    history.vehicleNameSnapshot
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "차량",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = vehicleDisplay,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+            
+            // 요금 정보 (할인 정보 포함)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (history.hasDiscount && history.originalFee != null) {
+                    Column {
+                        Text(
+                            text = "요금",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "${history.originalFee.toInt()}원",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textDecoration = TextDecoration.LineThrough
+                            )
+                            Text(
+                                text = "→ ${history.feePaid.toInt()}원",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                    
+                    // 할인 배지
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = "50% 할인",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                } else {
+                    Column {
+                        Text(
+                            text = "요금",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "${history.feePaid.toInt()}원",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
         }
     }
