@@ -39,6 +39,10 @@ interface ParkingRepository {
      */
     suspend fun updateParkingZone(parkingZone: ParkingZone): ParkingZone
 
+    /**
+     * 주차 구역의 즐겨찾기 상태를 토글합니다.
+     */
+    suspend fun toggleParkingZoneFavorite(zoneId: String): Boolean
     
     /**
      * 주차 구역을 삭제합니다.

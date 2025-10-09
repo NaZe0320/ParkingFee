@@ -10,6 +10,7 @@ object SettingsContract {
         data class UpdateNotificationSetting(val enabled: Boolean) : SettingsIntent()
         data class UpdateAutoStopSetting(val enabled: Boolean) : SettingsIntent()
         object NavigateToVehicleManagement : SettingsIntent()
+        object NavigateToParkingLotManagement : SettingsIntent()
         object NavigateBack : SettingsIntent()
     }
 
@@ -24,5 +25,6 @@ object SettingsContract {
         data class ShowToast(val message: String) : SettingsEffect()
         object NavigateBack : SettingsEffect()
         object NavigateToVehicleManagement : SettingsEffect()
+        object NavigateToParkingLotManagement : SettingsEffect()
     }
 }

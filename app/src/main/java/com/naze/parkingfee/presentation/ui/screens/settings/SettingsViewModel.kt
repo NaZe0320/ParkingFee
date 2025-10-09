@@ -37,6 +37,7 @@ class SettingsViewModel @Inject constructor(
             is SettingsContract.SettingsIntent.UpdateNotificationSetting -> updateNotificationSetting(intent.enabled)
             is SettingsContract.SettingsIntent.UpdateAutoStopSetting -> updateAutoStopSetting(intent.enabled)
             is SettingsContract.SettingsIntent.NavigateToVehicleManagement -> navigateToVehicleManagement()
+            is SettingsContract.SettingsIntent.NavigateToParkingLotManagement -> navigateToParkingLotManagement()
             is SettingsContract.SettingsIntent.NavigateBack -> navigateBack()
         }
     }
@@ -79,6 +80,12 @@ class SettingsViewModel @Inject constructor(
     private fun navigateToVehicleManagement() {
         viewModelScope.launch {
             _effect.emit(SettingsContract.SettingsEffect.NavigateToVehicleManagement)
+        }
+    }
+    
+    private fun navigateToParkingLotManagement() {
+        viewModelScope.launch {
+            _effect.emit(SettingsContract.SettingsEffect.NavigateToParkingLotManagement)
         }
     }
 }

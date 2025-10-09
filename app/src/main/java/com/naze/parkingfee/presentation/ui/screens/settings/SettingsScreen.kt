@@ -21,7 +21,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
-    onNavigateToVehicleManagement: () -> Unit = {}
+    onNavigateToVehicleManagement: () -> Unit = {},
+    onNavigateToParkingLotManagement: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
@@ -37,6 +38,9 @@ fun SettingsScreen(
                 }
                 is SettingsContract.SettingsEffect.NavigateToVehicleManagement -> {
                     onNavigateToVehicleManagement()
+                }
+                is SettingsContract.SettingsEffect.NavigateToParkingLotManagement -> {
+                    onNavigateToParkingLotManagement()
                 }
             }
         }
@@ -152,6 +156,57 @@ fun SettingsScreen(
                     onCheckedChange = { enabled ->
                         viewModel.processIntent(SettingsContract.SettingsIntent.UpdateAutoStopSetting(enabled))
                     }
+                )
+            }
+        }
+        
+        // 주차장 관리 카드
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            onClick = { viewModel.processIntent(SettingsContract.SettingsIntent.NavigateToParkingLotManagement) }
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocalParking,
+                        contentDescription = "주차장 관리",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Column {
+                        Text(
+                            text = "주차장 관리",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "등록된 주차장을 관리하고 요금 정보를 설정합니다",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = "이동",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }

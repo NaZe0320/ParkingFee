@@ -34,10 +34,10 @@ fun BottomNavigationBar(
             selectedIcon = Icons.Default.LocationOn
         ),
         NavigationItem(
-            route = "add_parking_lot",
-            icon = Icons.Default.Add,
-            label = "추가",
-            selectedIcon = Icons.Default.Add
+            route = "parkinglots/list",
+            icon = Icons.Default.LocalParking,
+            label = "주차장",
+            selectedIcon = Icons.Default.LocalParking
         ),
         NavigationItem(
             route = "vehicles/list",
@@ -74,7 +74,7 @@ fun BottomNavigationBar(
             navigationItems.forEach { item ->
                 val isSelected = currentRoute == item.route || 
                                (item.route == "home" && currentRoute == "home") ||
-                               (item.route == "add_parking_lot" && currentRoute.startsWith("add_parking_lot")) ||
+                               (item.route == "parkinglots/list" && currentRoute.startsWith("parkinglots/")) ||
                                (item.route == "vehicles/list" && currentRoute.startsWith("vehicles/")) ||
                                (item.route == "history" && currentRoute == "history") ||
                                (item.route == "settings" && currentRoute == "settings")

@@ -7,6 +7,7 @@ import com.naze.parkingfee.domain.usecase.StopParkingUseCase
 import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
 import com.naze.parkingfee.domain.usecase.GetActiveParkingSessionUseCase
 import com.naze.parkingfee.domain.usecase.DeleteParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.UpdateParkingZoneUseCase
 import com.naze.parkingfee.presentation.ui.screens.home.components.ZoneAction
 import com.naze.parkingfee.utils.TimeUtils
 import com.naze.parkingfee.utils.FeeCalculator
@@ -38,6 +39,7 @@ class HomeViewModel @Inject constructor(
     private val stopParkingUseCase: StopParkingUseCase,
     private val getParkingZonesUseCase: GetParkingZonesUseCase,
     private val getActiveParkingSessionUseCase: GetActiveParkingSessionUseCase,
+    private val updateParkingZoneUseCase: UpdateParkingZoneUseCase,
     private val deleteParkingZoneUseCase: DeleteParkingZoneUseCase,
     private val getSelectedVehicleIdUseCase: GetSelectedVehicleIdUseCase,
     private val vehicleRepository: VehicleRepository,
@@ -212,8 +214,27 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 주차장을 선택합니다.
+     * 선택 시 updatedAt을 현재 시간으로 업데이트하여 최근 사용 추적
+     */
     private fun selectZone(zone: com.naze.parkingfee.domain.model.ParkingZone) {
-        _state.update { it.copy(currentZone = zone) }
+        viewModelScope.launch {
+            try {
+                // updatedAt을 현재 시간으로 업데이트
+                val updatedZone = zone.copy(updatedAt = System.currentTimeMillis())
+                updateParkingZoneUseCase.execute(updatedZone)
+                
+                _state.update { 
+                    it.copy(currentZone = updatedZone)
+                }
+            } catch (e: Exception) {
+                // 에러가 발생해도 UI 상태는 업데이트 (사용자 경험 우선)
+                _state.update { 
+                    it.copy(currentZone = zone)
+                }
+            }
+        }
     }
     
     private fun handleZoneAction(zone: com.naze.parkingfee.domain.model.ParkingZone, action: ZoneAction) {
@@ -242,7 +263,7 @@ class HomeViewModel @Inject constructor(
                     return@launch
                 }
                 
-                deleteParkingZoneUseCase.execute(zoneId)
+                deleteParkingZoneUseCase.invoke(zoneId)
                 
                 // 현재 선택된 구역이 삭제된 구역이면 선택 해제
                 val currentZone = _state.value.currentZone

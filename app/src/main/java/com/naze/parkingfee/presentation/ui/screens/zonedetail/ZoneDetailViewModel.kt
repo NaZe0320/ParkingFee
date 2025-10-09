@@ -116,7 +116,7 @@ class ZoneDetailViewModel @Inject constructor(
     fun confirmDeleteZone(zoneId: String) {
         viewModelScope.launch {
             try {
-                deleteParkingZoneUseCase.execute(zoneId)
+                deleteParkingZoneUseCase.invoke(zoneId)
                 _effect.emit(ZoneDetailContract.ZoneDetailEffect.ShowToast("구역이 삭제되었습니다."))
                 _effect.emit(ZoneDetailContract.ZoneDetailEffect.NavigateToHome)
             } catch (e: Exception) {

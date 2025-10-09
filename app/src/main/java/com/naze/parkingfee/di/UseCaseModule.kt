@@ -9,6 +9,7 @@ import com.naze.parkingfee.domain.usecase.DeleteParkingZoneUseCase
 import com.naze.parkingfee.domain.usecase.GetActiveParkingSessionUseCase
 import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
 import com.naze.parkingfee.domain.usecase.GetParkingZoneByIdUseCase
+import com.naze.parkingfee.domain.usecase.ToggleParkingZoneFavoriteUseCase
 import com.naze.parkingfee.domain.usecase.UpdateParkingZoneUseCase
 import com.naze.parkingfee.domain.usecase.StartParkingUseCase
 import com.naze.parkingfee.domain.usecase.StopParkingUseCase
@@ -32,6 +33,12 @@ object UseCaseModule {
     @Singleton
     fun provideAddParkingZoneUseCase(repository: ParkingRepository): AddParkingZoneUseCase {
         return AddParkingZoneUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideToggleParkingZoneFavoriteUseCase(repository: ParkingRepository): ToggleParkingZoneFavoriteUseCase {
+        return ToggleParkingZoneFavoriteUseCase(repository)
     }
 
     @Provides

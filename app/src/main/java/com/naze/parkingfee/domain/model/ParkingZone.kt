@@ -11,6 +11,7 @@ data class ParkingZone(
     val currentOccupancy: Int,
     val isActive: Boolean = true,
     val isPublic: Boolean = false, // 공영 주차장 여부
+    val isFavorite: Boolean = false, // 즐겨찾기 여부
     
     // 복잡한 요금 체계 (선택사항)
     val feeStructure: FeeStructure? = null,

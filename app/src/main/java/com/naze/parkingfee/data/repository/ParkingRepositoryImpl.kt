@@ -58,6 +58,19 @@ class ParkingRepositoryImpl @Inject constructor(
         return parkingZone
     }
 
+    override suspend fun toggleParkingZoneFavorite(zoneId: String): Boolean {
+        return try {
+            val entity = parkingDao.getParkingZone(zoneId)
+                ?: return false
+            
+            val updatedEntity = entity.copy(isFavorite = !entity.isFavorite)
+            parkingDao.updateParkingZone(updatedEntity)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     override suspend fun deleteParkingZone(zoneId: String): Boolean {
         return try {
             parkingDao.deleteParkingZoneById(zoneId)

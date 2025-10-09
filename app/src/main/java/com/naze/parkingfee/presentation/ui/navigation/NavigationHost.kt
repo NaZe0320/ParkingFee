@@ -16,6 +16,7 @@ import com.naze.parkingfee.presentation.ui.screens.settings.SettingsScreen
 import com.naze.parkingfee.presentation.ui.screens.settings.vehicles.list.VehicleListScreen
 import com.naze.parkingfee.presentation.ui.screens.settings.vehicles.add.AddVehicleScreen
 import com.naze.parkingfee.presentation.ui.screens.addparkinglot.AddParkingLotScreen
+import com.naze.parkingfee.presentation.ui.screens.settings.parkinglots.list.ParkingLotListScreen
 import com.naze.parkingfee.presentation.ui.screens.zonedetail.ZoneDetailScreen
 import com.naze.parkingfee.presentation.ui.screens.history.HistoryScreen
 
@@ -42,7 +43,7 @@ fun NavigationHost(
                         "home" -> navController.navigate("home") {
                             popUpTo("home") { inclusive = false }
                         }
-                        "add_parking_lot" -> navController.navigate("add_parking_lot")
+                        "parkinglots/list" -> navController.navigate("parkinglots/list")
                         "vehicles/list" -> navController.navigate("vehicles/list")
                         "history" -> navController.navigate("history")
                         "settings" -> navController.navigate("settings")
@@ -65,13 +66,13 @@ fun NavigationHost(
                         navController.navigate("history")
                     },
                     onNavigateToAddParkingLot = {
-                        navController.navigate("add_parking_lot")
+                        navController.navigate("parkinglots/add")
                     },
                     onNavigateToZoneDetail = { zoneId ->
                         navController.navigate("zone_detail/$zoneId")
                     },
                     onNavigateToEditZone = { zoneId ->
-                        navController.navigate("add_parking_lot?zoneId=$zoneId")
+                        navController.navigate("parkinglots/add?zoneId=$zoneId")
                     },
                     onStartParkingService = onStartParkingService,
                     onStopParkingService = onStopParkingService
@@ -85,12 +86,30 @@ fun NavigationHost(
                     },
                     onNavigateToVehicleManagement = {
                         navController.navigate("vehicles/list")
+                    },
+                    onNavigateToParkingLotManagement = {
+                        navController.navigate("parkinglots/list")
+                    }
+                )
+            }
+            
+            // 주차장 관리 라우트들
+            composable("parkinglots/list") {
+                ParkingLotListScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToAddParkingLot = {
+                        navController.navigate("parkinglots/add")
+                    },
+                    onNavigateToEditParkingLot = { zoneId ->
+                        navController.navigate("parkinglots/add?zoneId=$zoneId")
                     }
                 )
             }
             
             composable(
-                route = "add_parking_lot?zoneId={zoneId}",
+                route = "parkinglots/add?zoneId={zoneId}",
                 arguments = listOf(
                     navArgument("zoneId") { nullable = true }
                 )
@@ -115,7 +134,7 @@ fun NavigationHost(
                         navController.popBackStack()
                     },
                     onNavigateToEdit = { editZoneId ->
-                        navController.navigate("add_parking_lot?zoneId=$editZoneId")
+                        navController.navigate("parkinglots/add?zoneId=$editZoneId")
                     },
                     onNavigateToHome = {
                         navController.navigate("home") {
