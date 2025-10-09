@@ -1,47 +1,73 @@
 package com.naze.parkingfee.presentation.ui.screens.settings.vehicles.add.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
- * 차량 이름 입력 컴포넌트
+ * 차량 이름 입력 카드 컴포넌트
  */
 @Composable
 fun VehicleNameInputCard(
     vehicleName: String,
     onNameChange: (String) -> Unit,
-    nameError: String? = null
+    nameError: String? = null,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // 제목
             Text(
                 text = "차량 이름",
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
             )
             
+            // 차량 이름 입력
             OutlinedTextField(
                 value = vehicleName,
                 onValueChange = onNameChange,
-                label = { Text("차량 이름 (선택사항)") },
+                placeholder = {
+                    Text(
+                        text = "내 차",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    errorBorderColor = MaterialTheme.colorScheme.error
+                ),
                 isError = nameError != null,
-                supportingText = nameError?.let { { Text(it) } }
+                singleLine = true
             )
             
-            Text(
-                text = "차량을 구분하기 위한 이름입니다. 예: 내 차, 아내 차 등",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // 에러 메시지
+            if (nameError != null) {
+                Text(
+                    text = nameError,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
         }
     }
 }

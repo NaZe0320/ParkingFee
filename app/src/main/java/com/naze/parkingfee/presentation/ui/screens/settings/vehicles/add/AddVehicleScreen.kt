@@ -59,99 +59,86 @@ fun AddVehicleScreen(
         }
     }
     
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(if (state.isEditMode) "차량 편집" else "차량 등록") },
-                navigationIcon = {
-                    TextButton(onClick = { viewModel.processIntent(AddVehicleContract.AddVehicleIntent.NavigateBack) }) {
-                        Text("취소")
-                    }
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        // OCR 진입 버튼
+        item {
+            OcrEntryButton(
+                onOcrClick = {
+                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.OpenOcrScreen)
                 }
             )
         }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // OCR 진입 버튼
+        
+        // 차량 이름 입력
+        item {
+            VehicleNameInputCard(
+                vehicleName = state.vehicleName,
+                onNameChange = { name ->
+                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.UpdateVehicleName(name))
+                },
+                nameError = state.validationErrors["vehicleName"]
+            )
+        }
+        
+        // 번호판 입력
+        item {
+            PlateInputCard(
+                plateNumber = state.plateNumber,
+                onPlateNumberChange = { plateNumber ->
+                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.UpdatePlateNumber(plateNumber))
+                },
+                plateNumberError = state.validationErrors["plateNumber"]
+            )
+        }
+        
+        // 할인 자격 설정
+        item {
+            DiscountEligibilityCard(
+                compactCarEnabled = state.compactCarDiscount,
+                nationalMeritEnabled = state.nationalMeritDiscount,
+                disabledEnabled = state.disabledDiscount,
+                onCompactCarChange = { enabled ->
+                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.ToggleCompactCarDiscount(enabled))
+                },
+                onNationalMeritChange = { enabled ->
+                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.ToggleNationalMeritDiscount(enabled))
+                },
+                onDisabledChange = { enabled ->
+                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.ToggleDisabledDiscount(enabled))
+                }
+            )
+        }
+        
+        // 저장 버튼
+        item {
+            SaveVehicleButton(
+                isSaving = state.isSaving,
+                onSaveClick = {
+                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.SaveVehicle)
+                }
+            )
+        }
+        
+        // 에러 메시지 표시
+        val errorMessage = state.errorMessage
+        if (errorMessage != null) {
             item {
-                OcrEntryButton(
-                    onOcrClick = {
-                        viewModel.processIntent(AddVehicleContract.AddVehicleIntent.OpenOcrScreen)
-                    }
-                )
-            }
-            
-            // 차량 이름 입력
-            item {
-                VehicleNameInputCard(
-                    vehicleName = state.vehicleName,
-                    onNameChange = { name ->
-                        viewModel.processIntent(AddVehicleContract.AddVehicleIntent.UpdateVehicleName(name))
-                    },
-                    nameError = state.validationErrors["vehicleName"]
-                )
-            }
-            
-            // 번호판 입력
-            item {
-                PlateInputCard(
-                    plateNumber = state.plateNumber,
-                    onPlateNumberChange = { plateNumber ->
-                        viewModel.processIntent(AddVehicleContract.AddVehicleIntent.UpdatePlateNumber(plateNumber))
-                    },
-                    plateNumberError = state.validationErrors["plateNumber"]
-                )
-            }
-            
-            // 할인 자격 설정
-            item {
-                DiscountEligibilityCard(
-                    compactCarEnabled = state.compactCarDiscount,
-                    nationalMeritEnabled = state.nationalMeritDiscount,
-                    disabledEnabled = state.disabledDiscount,
-                    onCompactCarChange = { enabled ->
-                        viewModel.processIntent(AddVehicleContract.AddVehicleIntent.ToggleCompactCarDiscount(enabled))
-                    },
-                    onNationalMeritChange = { enabled ->
-                        viewModel.processIntent(AddVehicleContract.AddVehicleIntent.ToggleNationalMeritDiscount(enabled))
-                    },
-                    onDisabledChange = { enabled ->
-                        viewModel.processIntent(AddVehicleContract.AddVehicleIntent.ToggleDisabledDiscount(enabled))
-                    }
-                )
-            }
-            
-            // 저장 버튼
-            item {
-                SaveVehicleButton(
-                    isSaving = state.isSaving,
-                    onSaveClick = {
-                        viewModel.processIntent(AddVehicleContract.AddVehicleIntent.SaveVehicle)
-                    }
-                )
-            }
-            
-            // 에러 메시지 표시
-            val errorMessage = state.errorMessage
-            if (errorMessage != null) {
-                item {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        )
-                    ) {
-                        Text(
-                            text = errorMessage,
-                            modifier = Modifier.padding(16.dp),
-                            color = MaterialTheme.colorScheme.onErrorContainer
-                        )
-                    }
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = errorMessage,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
                 }
             }
         }

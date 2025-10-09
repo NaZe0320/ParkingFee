@@ -1,5 +1,6 @@
 package com.naze.parkingfee.presentation.ui.screens.settings.vehicles.list
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,6 +10,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -77,112 +80,107 @@ fun VehicleListScreen(
         }
     }
     
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("차량 관리") },
-                navigationIcon = {
-                    IconButton(onClick = { viewModel.processIntent(VehicleListContract.VehicleListIntent.NavigateBack) }) {
-                        Text("←")
-                    }
-                }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        // 헤더와 추가 버튼
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "차량 관리",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
-        },
-        floatingActionButton = {
+            
             if (state.canAddVehicle) {
-                FloatingActionButton(
-                    onClick = { viewModel.processIntent(VehicleListContract.VehicleListIntent.NavigateToAddVehicle) }
+                Button(
+                    onClick = { viewModel.processIntent(VehicleListContract.VehicleListIntent.NavigateToAddVehicle) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "차량 추가")
+                    Icon(Icons.Default.Add, contentDescription = "차량 추가", modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("추가", style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // 상태 표시
-            if (state.isLoading) {
+        // 상태 표시
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            // 차량 목록
+            if (state.vehicles.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(
+                            text = "등록된 차량이 없습니다",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "차량을 등록하여 할인 정보를 설정하세요",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             } else {
-                // 차량 목록
-                if (state.vehicles.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Text(
-                                text = "등록된 차량이 없습니다",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                text = "차량을 등록하여 할인 정보를 설정하세요",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            if (state.canAddVehicle) {
-                                Button(
-                                    onClick = { viewModel.processIntent(VehicleListContract.VehicleListIntent.NavigateToAddVehicle) }
-                                ) {
-                                    Icon(Icons.Default.Add, contentDescription = null)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("차량 추가")
-                                }
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(state.vehicles) { vehicle ->
+                        VehicleItem(
+                            vehicle = vehicle,
+                            isSelected = state.selectedVehicleId == vehicle.id,
+                            onSelectClick = { 
+                                viewModel.processIntent(VehicleListContract.VehicleListIntent.SelectVehicle(vehicle.id))
+                            },
+                            onEditClick = { 
+                                viewModel.processIntent(VehicleListContract.VehicleListIntent.NavigateToEditVehicle(vehicle.id))
+                            },
+                            onDeleteClick = { 
+                                viewModel.processIntent(VehicleListContract.VehicleListIntent.DeleteVehicle(vehicle.id))
                             }
-                        }
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(state.vehicles) { vehicle ->
-                            VehicleItem(
-                                vehicle = vehicle,
-                                isSelected = state.selectedVehicleId == vehicle.id,
-                                onSelectClick = { 
-                                    viewModel.processIntent(VehicleListContract.VehicleListIntent.SelectVehicle(vehicle.id))
-                                },
-                                onEditClick = { 
-                                    viewModel.processIntent(VehicleListContract.VehicleListIntent.NavigateToEditVehicle(vehicle.id))
-                                },
-                                onDeleteClick = { 
-                                    viewModel.processIntent(VehicleListContract.VehicleListIntent.DeleteVehicle(vehicle.id))
-                                }
-                            )
-                        }
+                        )
                     }
                 }
             }
-            
-            // 에러 메시지 표시
-            state.errorMessage?.let { errorMessage ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    )
-                ) {
-                    Text(
-                        text = errorMessage,
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
+        }
+        
+        // 에러 메시지 표시
+        state.errorMessage?.let { errorMessage ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                ),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+            ) {
+                Text(
+                    text = errorMessage,
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
             }
         }
     }
@@ -240,6 +238,7 @@ private fun VehicleItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onSelectClick() },
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) {
                 MaterialTheme.colorScheme.primary
@@ -247,122 +246,162 @@ private fun VehicleItem(
                 MaterialTheme.colorScheme.surface
             }
         ),
-        border = if (isSelected) {
-            androidx.compose.foundation.BorderStroke(
-                2.dp,
-                MaterialTheme.colorScheme.primary
-            )
-        } else null,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isSelected) 8.dp else 0.dp
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // 라디오 버튼
-            RadioButton(
-                selected = isSelected,
-                onClick = onSelectClick,
-                colors = RadioButtonDefaults.colors(
-                    selectedColor = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    }
-                )
-            )
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            
             // 차량 정보
-            Column(
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                Text(
-                    text = vehicle.displayName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                
-                if (vehicle.hasPlateNumber) {
-                    Text(
-                        text = vehicle.displayPlateNumber,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
-                }
-                
-                if (vehicle.hasDiscount) {
-                    Row {
-                        Text(
-                            text = "할인 적용: ",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isSelected) {
-                                MaterialTheme.colorScheme.onPrimary
+                // 차량 아이콘
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            if (isSelected) {
+                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
                             } else {
-                                MaterialTheme.colorScheme.primary
-                            }
-                        )
-                        Text(
-                            text = vehicle.discountEligibilities.activeEligibilities.joinToString(" / ") { it.typeName },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isSelected) {
-                                MaterialTheme.colorScheme.onPrimary
-                            } else {
-                                MaterialTheme.colorScheme.primary
-                            }
-                        )
-                    }
-                }
-            }
-            
-            // 더보기 메뉴 버튼
-            Box {
-                IconButton(
-                    onClick = { showMenu = true }
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "더보기",
+                        imageVector = Icons.Default.DirectionsCar,
+                        contentDescription = "차량 아이콘",
                         tint = if (isSelected) {
                             MaterialTheme.colorScheme.onPrimary
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
-                        }
+                        },
+                        modifier = Modifier.size(24.dp)
                     )
                 }
                 
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("편집") },
-                        onClick = {
-                            showMenu = false
-                            onEditClick()
-                        }
+                // 차량 정보
+                Column {
+                    Text(
+                        text = vehicle.displayName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (isSelected) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                    DropdownMenuItem(
-                        text = { Text("삭제") },
-                        onClick = {
-                            showMenu = false
-                            onDeleteClick()
+                    
+                    if (vehicle.hasPlateNumber) {
+                        Text(
+                            text = vehicle.displayPlateNumber,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (isSelected) {
+                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    }
+                    
+                    // 할인 정보 배지
+                    if (vehicle.hasDiscount) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            vehicle.discountEligibilities.activeEligibilities.forEach { eligibility ->
+                                Card(
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = if (isSelected) {
+                                            MaterialTheme.colorScheme.tertiary
+                                        } else {
+                                            MaterialTheme.colorScheme.tertiaryContainer
+                                        }
+                                    ),
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)
+                                ) {
+                                    Text(
+                                        text = eligibility.typeName,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Medium,
+                                        color = if (isSelected) {
+                                            MaterialTheme.colorScheme.onTertiary
+                                        } else {
+                                            MaterialTheme.colorScheme.onTertiaryContainer
+                                        },
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
                         }
+                    }
+                }
+            }
+            
+            // 선택 표시 및 더보기 메뉴
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "선택됨",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(20.dp)
                     )
+                }
+                
+                // 더보기 메뉴 버튼
+                Box {
+                    IconButton(
+                        onClick = { showMenu = true },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "더보기",
+                            tint = if (isSelected) {
+                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("편집") },
+                            onClick = {
+                                showMenu = false
+                                onEditClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("삭제") },
+                            onClick = {
+                                showMenu = false
+                                onDeleteClick()
+                            }
+                        )
+                    }
                 }
             }
         }

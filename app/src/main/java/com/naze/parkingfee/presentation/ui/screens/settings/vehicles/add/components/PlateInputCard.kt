@@ -1,74 +1,73 @@
 package com.naze.parkingfee.presentation.ui.screens.settings.vehicles.add.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
- * 번호판 입력 컴포넌트
+ * 번호판 입력 카드 컴포넌트
  */
 @Composable
 fun PlateInputCard(
     plateNumber: String,
     onPlateNumberChange: (String) -> Unit,
-    plateNumberError: String? = null
+    plateNumberError: String? = null,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // 제목
             Text(
-                text = "번호판 입력",
-                style = MaterialTheme.typography.titleMedium
+                text = "번호판",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
             )
             
+            // 번호판 입력
             OutlinedTextField(
                 value = plateNumber,
-                onValueChange = { value ->
-                    // 번호판 형식 자동 포맷팅 (예: 12가3456)
-                    val formattedValue = formatPlateNumber(value)
-                    onPlateNumberChange(formattedValue)
+                onValueChange = onPlateNumberChange,
+                placeholder = {
+                    Text(
+                        text = "12가3456",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
                 },
-                label = { Text("번호판 (선택사항)") },
-                placeholder = { Text("예: 12가3456") },
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    errorBorderColor = MaterialTheme.colorScheme.error
+                ),
                 isError = plateNumberError != null,
-                supportingText = plateNumberError?.let { { Text(it) } }
+                singleLine = true
             )
             
-            Text(
-                text = "번호판은 선택사항입니다. 미입력 시 차량 이름으로 구분됩니다.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // 에러 메시지
+            if (plateNumberError != null) {
+                Text(
+                    text = plateNumberError,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
         }
     }
-}
-
-/**
- * 번호판 형식 자동 포맷팅
- */
-private fun formatPlateNumber(input: String): String {
-    // 숫자와 한글만 허용
-    val filtered = input.filter { it.isDigit() || it.isKorean() }
-    
-    // 최대 7자리로 제한 (12가3456)
-    return if (filtered.length <= 7) filtered else filtered.take(7)
-}
-
-/**
- * 한글 문자인지 확인
- */
-private fun Char.isKorean(): Boolean {
-    return this in '\uAC00'..'\uD7AF' || // 한글 완성형
-           this in '\u1100'..'\u11FF' || // 한글 자모
-           this in '\u3130'..'\u318F'    // 한글 호환 자모
 }

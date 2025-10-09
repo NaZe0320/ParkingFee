@@ -1,9 +1,11 @@
 package com.naze.parkingfee.presentation.ui.screens.settings.vehicles.add.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
@@ -12,20 +14,40 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SaveVehicleButton(
     isSaving: Boolean,
-    onSaveClick: () -> Unit
+    onSaveClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Button(
         onClick = onSaveClick,
-        modifier = Modifier.fillMaxWidth(),
-        enabled = !isSaving
+        enabled = !isSaving,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
     ) {
         if (isSaving) {
             CircularProgressIndicator(
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(20.dp),
+                color = MaterialTheme.colorScheme.onPrimary,
                 strokeWidth = 2.dp
             )
             Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "저장 중...",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        } else {
+            Text(
+                text = "저장",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
         }
-        Text(if (isSaving) "저장 중..." else "저장")
     }
 }
