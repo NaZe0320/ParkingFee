@@ -94,51 +94,13 @@ fun HomeScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("주차 요금 계산기") },
-                actions = {
-                    IconButton(onClick = { viewModel.processIntent(HomeContract.HomeIntent.NavigateToHistory) }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.List,
-                            contentDescription = "주차 기록"
-                        )
-                    }
-                    IconButton(onClick = { viewModel.processIntent(HomeContract.HomeIntent.NavigateToSettings) }) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "설정"
-                        )
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { viewModel.processIntent(HomeContract.HomeIntent.NavigateToAddParkingLot) },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.semantics {
-                    contentDescription = "주차장 추가"
-                }
-            ) {
-                Text(
-                    text = "+",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            ParkingZoneSelector(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        ParkingZoneSelector(
                 zones = state.availableZones,
                 selectedZone = state.currentZone,
                 onZoneSelected = { zone ->
@@ -149,7 +111,7 @@ fun HomeScreen(
                 }
             )
 
-            ParkingStatusCard(
+        ParkingStatusCard(
                 isActive = state.isParkingActive,
                 session = state.activeParkingSession,
                 duration = state.parkingDuration,
@@ -159,7 +121,7 @@ fun HomeScreen(
                 }
             )
 
-            ParkingControlButtons(
+        ParkingControlButtons(
                 isParkingActive = state.isParkingActive,
                 selectedZone = state.currentZone,
                 activeSession = state.activeParkingSession,
@@ -171,16 +133,16 @@ fun HomeScreen(
                 }
             )
 
-            if (state.errorMessage != null) {
-                ErrorMessage(
-                    message = state.errorMessage,
-                    onDismiss = {
-                        viewModel.processIntent(HomeContract.HomeIntent.RefreshParkingInfo)
-                    }
-                )
-            }
+        if (state.errorMessage != null) {
+            ErrorMessage(
+                message = state.errorMessage,
+                onDismiss = {
+                    viewModel.processIntent(HomeContract.HomeIntent.RefreshParkingInfo)
+                }
+            )
         }
-    }
+        }
+
 
     // 삭제 확인 다이얼로그
     DeleteConfirmDialog(

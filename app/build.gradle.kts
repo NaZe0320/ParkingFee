@@ -45,6 +45,11 @@ dependencies {
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48")
     implementation(libs.androidx.ui)
+    implementation(libs.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
     kapt("com.google.dagger:hilt-compiler:2.48")
     
     // Hilt Navigation Compose
