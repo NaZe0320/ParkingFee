@@ -1,13 +1,15 @@
 package com.naze.parkingfee.presentation.ui.screens.home.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,7 +29,8 @@ enum class ZoneAction {
 }
 
 /**
- * 주차 구역 선택 컴포넌트
+ * 주차장 선택 컴포넌트
+ * React 디자인의 주차장 선택 UI를 구현합니다.
  */
 @Composable
 fun ParkingZoneSelector(
@@ -37,40 +40,36 @@ fun ParkingZoneSelector(
     onRequestZoneAction: (ParkingZone, ZoneAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    Column(
+        modifier = modifier.fillMaxWidth()
     ) {
+        Text(
+            text = "주차장",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
         Column(
-            modifier = Modifier.padding(16.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = "주차 구역 선택",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            LazyColumn(
-                modifier = Modifier.heightIn(max = 300.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(zones) { zone ->
-                    ZoneListItem(
-                        zone = zone,
-                        isSelected = selectedZone?.id == zone.id,
-                        onZoneSelected = onZoneSelected,
-                        onRequestZoneAction = onRequestZoneAction
-                    )
-                }
+            zones.forEach { zone ->
+                ZoneItem(
+                    zone = zone,
+                    isSelected = selectedZone?.id == zone.id,
+                    onZoneSelected = onZoneSelected,
+                    onRequestZoneAction = onRequestZoneAction
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ZoneListItem(
+private fun ZoneItem(
     zone: ParkingZone,
     isSelected: Boolean,
     onZoneSelected: (ParkingZone) -> Unit,
@@ -86,6 +85,7 @@ private fun ZoneListItem(
                 onClick = { onZoneSelected(zone) },
                 onLongClick = { showMenu = true }
             ),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) {
                 MaterialTheme.colorScheme.primary
@@ -93,42 +93,25 @@ private fun ZoneListItem(
                 MaterialTheme.colorScheme.surface
             }
         ),
-        border = if (isSelected) {
-            androidx.compose.foundation.BorderStroke(
-                2.dp,
-                MaterialTheme.colorScheme.primary
-            )
-        } else null
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isSelected) 8.dp else 0.dp
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // 라디오 버튼
-            RadioButton(
-                selected = isSelected,
-                onClick = { onZoneSelected(zone) },
-                colors = RadioButtonDefaults.colors(
-                    selectedColor = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    }
-                )
-            )
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            // 존 정보
+            // 주차장 정보
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = zone.name,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = if (isSelected) {
                         MaterialTheme.colorScheme.onPrimary
                     } else {
@@ -140,56 +123,77 @@ private fun ZoneListItem(
                     text = zone.getDisplayFeeInfo(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimary
+                        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     }
                 )
+                
+                // 공영 주차장 배지
+                if (zone.isPublic) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) {
+                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
+                            } else {
+                                MaterialTheme.colorScheme.secondaryContainer
+                            }
+                        ),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text(
+                            text = "공영",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
+                            color = if (isSelected) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            },
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
             }
             
-            // 더보기 메뉴 버튼
-            Box {
-                IconButton(
-                    onClick = { showMenu = true }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "더보기",
-                        tint = if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
-                }
-                
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("상세") },
-                        onClick = {
-                            showMenu = false
-                            onRequestZoneAction(zone, ZoneAction.Detail)
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("편집") },
-                        onClick = {
-                            showMenu = false
-                            onRequestZoneAction(zone, ZoneAction.Edit)
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("삭제") },
-                        onClick = {
-                            showMenu = false
-                            onRequestZoneAction(zone, ZoneAction.Delete)
-                        }
-                    )
-                }
+            // 선택 표시
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "선택됨",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
+    }
+    
+    // 더보기 메뉴
+    DropdownMenu(
+        expanded = showMenu,
+        onDismissRequest = { showMenu = false }
+    ) {
+        DropdownMenuItem(
+            text = { Text("상세") },
+            onClick = {
+                showMenu = false
+                onRequestZoneAction(zone, ZoneAction.Detail)
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("편집") },
+            onClick = {
+                showMenu = false
+                onRequestZoneAction(zone, ZoneAction.Edit)
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("삭제") },
+            onClick = {
+                showMenu = false
+                onRequestZoneAction(zone, ZoneAction.Delete)
+            }
+        )
     }
 }

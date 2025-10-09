@@ -12,6 +12,7 @@ import com.naze.parkingfee.utils.TimeUtils
 import com.naze.parkingfee.utils.FeeCalculator
 import com.naze.parkingfee.domain.usecase.GetSelectedVehicleIdUseCase
 import com.naze.parkingfee.domain.repository.VehicleRepository
+import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
 import kotlinx.coroutines.flow.first
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +40,8 @@ class HomeViewModel @Inject constructor(
     private val getActiveParkingSessionUseCase: GetActiveParkingSessionUseCase,
     private val deleteParkingZoneUseCase: DeleteParkingZoneUseCase,
     private val getSelectedVehicleIdUseCase: GetSelectedVehicleIdUseCase,
-    private val vehicleRepository: VehicleRepository
+    private val vehicleRepository: VehicleRepository,
+    private val selectedVehicleRepository: SelectedVehicleRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeContract.HomeState())
@@ -65,8 +67,10 @@ class HomeViewModel @Inject constructor(
             is HomeContract.HomeIntent.NavigateToHistory -> navigateToHistory()
             is HomeContract.HomeIntent.NavigateToAddParkingLot -> navigateToAddParkingLot()
             is HomeContract.HomeIntent.SelectZone -> selectZone(intent.zone)
+            is HomeContract.HomeIntent.SelectVehicle -> selectVehicle(intent.vehicle)
             is HomeContract.HomeIntent.RequestZoneAction -> handleZoneAction(intent.zone, intent.action)
             is HomeContract.HomeIntent.DeleteZone -> deleteZone(intent.zoneId)
+            is HomeContract.HomeIntent.ToggleStatusCard -> toggleStatusCard()
         }
     }
 
@@ -252,6 +256,49 @@ class HomeViewModel @Inject constructor(
             } catch (e: Exception) {
                 _effect.emit(HomeContract.HomeEffect.ShowToast("삭제 중 오류가 발생했습니다: ${e.message}"))
             }
+        }
+    }
+    
+    /**
+     * 차량을 선택합니다.
+     */
+    private fun selectVehicle(vehicle: com.naze.parkingfee.domain.model.vehicle.Vehicle) {
+        viewModelScope.launch {
+            try {
+                // 선택된 차량을 저장
+                selectedVehicleRepository.setSelectedVehicleId(vehicle.id)
+                
+                // 상태 업데이트
+                _state.update { 
+                    it.copy(selectedVehicle = vehicle)
+                }
+                
+                // 활성 주차 세션이 있으면 요금 재계산
+                val session = _state.value.activeParkingSession
+                if (session != null) {
+                    val zone = resolveZone(session.zoneId)
+                    if (zone != null) {
+                        val now = TimeUtils.getCurrentTimestamp()
+                        val fee = FeeCalculator.calculateFeeForZone(session.startTime, now, zone, vehicle)
+                        _state.update { 
+                            it.copy(parkingFee = fee)
+                        }
+                    }
+                }
+                
+                _effect.emit(HomeContract.HomeEffect.ShowToast("${vehicle.displayName}이(가) 선택되었습니다."))
+            } catch (e: Exception) {
+                _effect.emit(HomeContract.HomeEffect.ShowToast("차량 선택 중 오류가 발생했습니다: ${e.message}"))
+            }
+        }
+    }
+    
+    /**
+     * 상태 카드 접기/펼치기를 토글합니다.
+     */
+    private fun toggleStatusCard() {
+        _state.update { 
+            it.copy(isStatusCardExpanded = !it.isStatusCardExpanded)
         }
     }
     

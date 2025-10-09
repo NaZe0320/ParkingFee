@@ -1,6 +1,7 @@
 package com.naze.parkingfee.presentation.ui.screens.home.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -11,6 +12,7 @@ import com.naze.parkingfee.domain.model.ParkingSession
 
 /**
  * 주차 시작/종료 버튼 컴포넌트
+ * React 디자인의 버튼 스타일을 구현합니다.
  */
 @Composable
 fun ParkingControlButtons(
@@ -23,49 +25,67 @@ fun ParkingControlButtons(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        if (!isParkingActive) {
-            Button(
-                onClick = { 
+        // 주차 시작/종료 버튼
+        Button(
+            onClick = { 
+                if (!isParkingActive) {
                     selectedZone?.let { zone ->
                         onStartParking(zone.id)
                     }
-                },
-                enabled = selectedZone != null,
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = "주차 시작",
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        } else {
-            Button(
-                onClick = { 
+                } else {
                     activeSession?.let { session ->
                         onStopParking(session.id)
                     }
+                }
+            },
+            enabled = if (!isParkingActive) selectedZone != null else activeSession != null,
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isParkingActive) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.primary
+                }
+            ),
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = if (isParkingActive) 8.dp else 8.dp
+            )
+        ) {
+            Text(
+                text = if (isParkingActive) "종료" else "시작",
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
+                color = if (isParkingActive) {
+                    MaterialTheme.colorScheme.onError
+                } else {
+                    MaterialTheme.colorScheme.onPrimary
                 },
-                enabled = activeSession != null,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                ),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = "주차 종료",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onError
-                )
-            }
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
         }
         
+        // 새로고침 버튼
         OutlinedButton(
             onClick = { /* 새로고침 로직 */ },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ),
+            border = androidx.compose.foundation.BorderStroke(
+                2.dp,
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+            )
         ) {
-            Text("새로고침")
+            Text(
+                text = "새로고침",
+                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
         }
     }
 }

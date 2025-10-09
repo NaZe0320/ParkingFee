@@ -21,8 +21,10 @@ object HomeContract {
         object NavigateToHistory : HomeIntent()
         object NavigateToAddParkingLot : HomeIntent()
         data class SelectZone(val zone: ParkingZone) : HomeIntent()
+        data class SelectVehicle(val vehicle: com.naze.parkingfee.domain.model.vehicle.Vehicle) : HomeIntent()
         data class RequestZoneAction(val zone: ParkingZone, val action: ZoneAction) : HomeIntent()
         data class DeleteZone(val zoneId: String) : HomeIntent()
+        object ToggleStatusCard : HomeIntent()
     }
 
     /**
@@ -37,7 +39,8 @@ object HomeContract {
         val parkingFee: Double = 0.0,
         val parkingDuration: String = "00:00",
         val errorMessage: String? = null,
-        val isParkingActive: Boolean = false
+        val isParkingActive: Boolean = false,
+        val isStatusCardExpanded: Boolean = true
     )
 
     /**

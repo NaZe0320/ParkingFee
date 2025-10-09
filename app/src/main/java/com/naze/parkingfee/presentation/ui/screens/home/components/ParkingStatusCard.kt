@@ -1,10 +1,17 @@
 package com.naze.parkingfee.presentation.ui.screens.home.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -15,6 +22,7 @@ import com.naze.parkingfee.utils.FeeResult
 
 /**
  * 주차 상태 카드 컴포넌트
+ * React 디자인의 큰 타이머와 Indigo 배경을 구현합니다.
  */
 @Composable
 fun ParkingStatusCard(
@@ -23,107 +31,236 @@ fun ParkingStatusCard(
     duration: String,
     feeResult: FeeResult,
     vehicleDisplay: String? = null,
+    isExpanded: Boolean = true,
+    onToggleExpand: () -> Unit = {},
+    controlButtons: @Composable () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isActive) {
-                MaterialTheme.colorScheme.secondary
+                MaterialTheme.colorScheme.primary
             } else {
-                MaterialTheme.colorScheme.surface
+                MaterialTheme.colorScheme.surfaceVariant
             }
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.padding(24.dp)
         ) {
+            // 상단 상태 표시
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // 상태 점
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(
+                                if (isActive) {
+                                    MaterialTheme.colorScheme.tertiary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
+                    )
+                    
+                    Text(
+                        text = if (isActive) "주차 중" else "대기",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = if (isActive) {
+                            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                }
+                
+                // 접기/펼치기 버튼
+                IconButton(
+                    onClick = onToggleExpand
+                ) {
+                    Icon(
+                        imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = if (isExpanded) "접기" else "펼치기",
+                        tint = if (isActive) {
+                            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // 큰 타이머 표시
             Text(
-                text = if (isActive) "주차 중" else "주차 대기",
-                style = MaterialTheme.typography.headlineMedium,
+                text = if (isActive) duration else "00:00",
+                style = MaterialTheme.typography.displayLarge,
                 fontWeight = FontWeight.Bold,
                 color = if (isActive) {
-                    MaterialTheme.colorScheme.onSecondary
+                    MaterialTheme.colorScheme.onPrimary
                 } else {
-                    MaterialTheme.colorScheme.onSurface
+                    MaterialTheme.colorScheme.onSurfaceVariant
                 }
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            // 접혔을 때는 현재 요금만 표시
+            if (!isExpanded && isActive && session != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "${String.format("%.0f", feeResult.discounted).replace(",", ",")}원",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
             
-            if (isActive && session != null) {
-                Text(
-                    text = "시작 시간: ${formatTime(session.startTime)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondary
-                )
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                if (!vehicleDisplay.isNullOrBlank()) {
-                    Text(
-                        text = "차량: $vehicleDisplay",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSecondary
+            // 펼쳤을 때만 상세 정보 표시
+            if (isExpanded) {
+                // 주차 중일 때 추가 정보 표시
+                if (isActive && session != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // 구분선
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(
+                                if (isActive) {
+                                    MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f)
+                                } else {
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                                }
+                            )
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-                
-                Text(
-                    text = "경과 시간: $duration",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondary
-                )
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                if (feeResult.hasDiscount) {
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // 현재 요금 표시
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "요금: ",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSecondary
-                        )
-                        Text(
-                            text = "${String.format("%.0f", feeResult.original)}원",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Light,
-                            color = MaterialTheme.colorScheme.onSecondary,
-                            textDecoration = TextDecoration.LineThrough
-                        )
-                        Text(
-                            text = "→ ${String.format("%.0f", feeResult.discounted)}원",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSecondary
-                        )
-                        Text(
-                            text = "(50% 할인)",
+                            text = "현재 요금",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSecondary
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = "${String.format("%.0f", feeResult.discounted).replace(",", ",")}원",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // 시작 시간과 위치 정보
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "시작",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+                            )
+                            Text(
+                                text = formatTime(session.startTime),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
+                            )
+                        }
+                        
+                        // 구분선
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .height(32.dp)
+                                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f))
+                        )
+                        
+                        Column {
+                            Text(
+                                text = "위치",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+                            )
+                            Text(
+                                text = session.zoneId,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
+                            )
+                        }
+                    }
+                    
+                    // 차량 정보가 있으면 표시
+                    if (!vehicleDisplay.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "차량: $vehicleDisplay",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                        )
+                    }
+                    
+                    // 할인 정보가 있으면 표시
+                    if (feeResult.hasDiscount) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "경차 할인 적용",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                            Text(
+                                text = "${String.format("%.0f", feeResult.original)}원",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
+                                textDecoration = TextDecoration.LineThrough
+                            )
+                            Text(
+                                text = "→ -50%",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                    }
                 } else {
+                    Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "요금: ${String.format("%.0f", feeResult.discounted)}원",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondary
+                        text = "주차 구역을 선택하고 시작하세요",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            } else {
-                Text(
-                    text = "주차 구역을 선택하고 시작하세요",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                
+                // 제어 버튼들
+                Spacer(modifier = Modifier.height(20.dp))
+                controlButtons()
             }
         }
     }

@@ -1,8 +1,8 @@
 package com.naze.parkingfee.presentation.ui.screens.home
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Settings
@@ -98,50 +98,79 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        ParkingZoneSelector(
-                zones = state.availableZones,
-                selectedZone = state.currentZone,
-                onZoneSelected = { zone ->
-                    viewModel.processIntent(HomeContract.HomeIntent.SelectZone(zone))
-                },
-                onRequestZoneAction = { zone, action ->
-                    viewModel.processIntent(HomeContract.HomeIntent.RequestZoneAction(zone, action))
-                }
-            )
-
+        // 고정 영역 - 주차 상태 카드
         ParkingStatusCard(
-                isActive = state.isParkingActive,
-                session = state.activeParkingSession,
-                duration = state.parkingDuration,
-                feeResult = com.naze.parkingfee.utils.FeeResult(state.parkingFee, state.parkingFee),
-                vehicleDisplay = state.selectedVehicle?.let { v ->
-                    if (v.hasPlateNumber) "${v.displayName}(${v.displayPlateNumber})" else v.displayName
-                }
-            )
+            isActive = state.isParkingActive,
+            session = state.activeParkingSession,
+            duration = state.parkingDuration,
+            feeResult = com.naze.parkingfee.utils.FeeResult(state.parkingFee, state.parkingFee),
+            vehicleDisplay = state.selectedVehicle?.let { v ->
+                if (v.hasPlateNumber) "${v.displayName}(${v.displayPlateNumber})" else v.displayName
+            },
+            isExpanded = state.isStatusCardExpanded,
+            onToggleExpand = {
+                viewModel.processIntent(HomeContract.HomeIntent.ToggleStatusCard)
+            },
+            controlButtons = {
+                ParkingControlButtons(
+                    isParkingActive = state.isParkingActive,
+                    selectedZone = state.currentZone,
+                    activeSession = state.activeParkingSession,
+                    onStartParking = { zoneId ->
+                        viewModel.processIntent(HomeContract.HomeIntent.StartParking(zoneId))
+                    },
+                    onStopParking = { sessionId ->
+                        viewModel.processIntent(HomeContract.HomeIntent.StopParking(sessionId))
+                    }
+                )
+            }
+        )
 
-        ParkingControlButtons(
-                isParkingActive = state.isParkingActive,
-                selectedZone = state.currentZone,
-                activeSession = state.activeParkingSession,
-                onStartParking = { zoneId ->
-                    viewModel.processIntent(HomeContract.HomeIntent.StartParking(zoneId))
-                },
-                onStopParking = { sessionId ->
-                    viewModel.processIntent(HomeContract.HomeIntent.StopParking(sessionId))
-                }
-            )
+        // 스크롤 가능 영역
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            // 차량 선택 섹션
+            item {
+                VehicleSelector(
+                    vehicles = emptyList(), // TODO: 실제 차량 목록 구현
+                    selectedVehicle = state.selectedVehicle,
+                    onVehicleSelected = { vehicle ->
+                        viewModel.processIntent(HomeContract.HomeIntent.SelectVehicle(vehicle))
+                    }
+                )
+            }
 
-        if (state.errorMessage != null) {
-            ErrorMessage(
-                message = state.errorMessage,
-                onDismiss = {
-                    viewModel.processIntent(HomeContract.HomeIntent.RefreshParkingInfo)
+            // 주차장 선택 섹션
+            item {
+                ParkingZoneSelector(
+                    zones = state.availableZones,
+                    selectedZone = state.currentZone,
+                    onZoneSelected = { zone ->
+                        viewModel.processIntent(HomeContract.HomeIntent.SelectZone(zone))
+                    },
+                    onRequestZoneAction = { zone, action ->
+                        viewModel.processIntent(HomeContract.HomeIntent.RequestZoneAction(zone, action))
+                    }
+                )
+            }
+
+            // 에러 메시지
+            if (state.errorMessage != null) {
+                item {
+                    ErrorMessage(
+                        message = state.errorMessage,
+                        onDismiss = {
+                            viewModel.processIntent(HomeContract.HomeIntent.RefreshParkingInfo)
+                        }
+                    )
                 }
-            )
+            }
         }
-        }
+    }
 
 
     // 삭제 확인 다이얼로그
