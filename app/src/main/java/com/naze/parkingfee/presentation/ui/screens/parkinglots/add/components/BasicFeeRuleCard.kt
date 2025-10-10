@@ -1,4 +1,4 @@
-package com.naze.parkingfee.presentation.ui.screens.addparkinglot.components
+package com.naze.parkingfee.presentation.ui.screens.parkinglots.add.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,15 +11,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 /**
- * 추가 요금 체계 입력 컴포넌트
+ * 기본 요금 규칙 카드 컴포넌트
+ * React 디자인의 기본 요금 입력 UI를 구현합니다.
  */
 @Composable
-fun AdditionalFeeRuleCard(
-    intervalMinutes: Int,
+fun BasicFeeRuleCard(
+    durationMinutes: Int,
     feeAmount: Int,
-    onIntervalChange: (Int) -> Unit,
+    onDurationChange: (Int) -> Unit,
     onFeeChange: (Int) -> Unit,
-    intervalError: String? = null,
+    durationError: String? = null,
     feeError: String? = null,
     modifier: Modifier = Modifier
 ) {
@@ -37,23 +38,23 @@ fun AdditionalFeeRuleCard(
         ) {
             // 제목
             Text(
-                text = "추가 요금",
+                text = "기본 요금",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             
-            // 간격과 요금 입력
+            // 시간과 요금 입력
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // 간격 입력
+                // 시간 입력
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "간격(분)",
+                        text = "시간(분)",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -61,13 +62,13 @@ fun AdditionalFeeRuleCard(
                     )
                     
                     OutlinedTextField(
-                        value = intervalMinutes.toString(),
+                        value = durationMinutes.toString(),
                         onValueChange = { value ->
-                            value.toIntOrNull()?.let { onIntervalChange(it) }
+                            value.toIntOrNull()?.let { onDurationChange(it) }
                         },
                         placeholder = {
                             Text(
-                                text = "10",
+                                text = "30",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
                         },
@@ -79,16 +80,16 @@ fun AdditionalFeeRuleCard(
                             errorBorderColor = MaterialTheme.colorScheme.error
                         ),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        isError = intervalError != null,
+                        isError = durationError != null,
                         singleLine = true,
                         textStyle = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold
                         )
                     )
                     
-                    if (intervalError != null) {
+                    if (durationError != null) {
                         Text(
-                            text = intervalError,
+                            text = durationError,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(top = 4.dp)
@@ -115,7 +116,7 @@ fun AdditionalFeeRuleCard(
                         },
                         placeholder = {
                             Text(
-                                text = "500",
+                                text = "1000",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
                         },

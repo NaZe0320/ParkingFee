@@ -1,4 +1,4 @@
-package com.naze.parkingfee.presentation.ui.screens.addparkinglot.components
+package com.naze.parkingfee.presentation.ui.screens.parkinglots.add.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape

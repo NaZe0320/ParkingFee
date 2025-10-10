@@ -1,4 +1,4 @@
-package com.naze.parkingfee.presentation.ui.screens.addparkinglot.components
+package com.naze.parkingfee.presentation.ui.screens.parkinglots.add.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

@@ -1,4 +1,4 @@
-package com.naze.parkingfee.presentation.ui.screens.addparkinglot
+package com.naze.parkingfee.presentation.ui.screens.parkinglots.add
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.naze.parkingfee.presentation.ui.screens.addparkinglot.components.*
+import com.naze.parkingfee.presentation.ui.screens.parkinglots.add.components.*
 
 /**
  * 주차장 추가 화면

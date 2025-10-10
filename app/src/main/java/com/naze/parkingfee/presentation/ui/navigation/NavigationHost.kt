@@ -15,7 +15,7 @@ import com.naze.parkingfee.presentation.ui.screens.home.HomeScreen
 import com.naze.parkingfee.presentation.ui.screens.settings.SettingsScreen
 import com.naze.parkingfee.presentation.ui.screens.settings.vehicles.list.VehicleListScreen
 import com.naze.parkingfee.presentation.ui.screens.settings.vehicles.add.AddVehicleScreen
-import com.naze.parkingfee.presentation.ui.screens.addparkinglot.AddParkingLotScreen
+import com.naze.parkingfee.presentation.ui.screens.parkinglots.add.AddParkingLotScreen
 import com.naze.parkingfee.presentation.ui.screens.settings.parkinglots.list.ParkingLotListScreen
 import com.naze.parkingfee.presentation.ui.screens.zonedetail.ZoneDetailScreen
 import com.naze.parkingfee.presentation.ui.screens.history.HistoryScreen
@@ -108,12 +108,7 @@ fun NavigationHost(
                 )
             }
             
-            composable(
-                route = "parkinglots/add?zoneId={zoneId}",
-                arguments = listOf(
-                    navArgument("zoneId") { nullable = true }
-                )
-            ) { backStackEntry ->
+            composable("parkinglots/add") { backStackEntry ->
                 val zoneId = backStackEntry.arguments?.getString("zoneId")
                 AddParkingLotScreen(
                     zoneId = zoneId,

@@ -1,4 +1,4 @@
-package com.naze.parkingfee.presentation.ui.screens.addparkinglot
+package com.naze.parkingfee.presentation.ui.screens.parkinglots.add
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
