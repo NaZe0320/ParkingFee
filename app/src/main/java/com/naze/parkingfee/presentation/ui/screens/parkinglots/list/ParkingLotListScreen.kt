@@ -18,9 +18,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import com.naze.parkingfee.domain.model.ParkingZone
 
 /**
@@ -37,19 +34,7 @@ fun ParkingLotListScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
     
-    // 화면이 다시 포커스될 때 자동 새로고침
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.refreshParkingLots()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
+    // ViewModel init에서 자동 로드되므로 별도 새로고침 불필요
     
     var showDeleteDialog by remember { mutableStateOf(false) }
     var parkingLotToDelete by remember { mutableStateOf<Pair<String, String>?>(null) }
@@ -162,6 +147,10 @@ fun ParkingLotListScreen(
                     items(state.parkingLots) { parkingLot ->
                         ParkingLotItem(
                             parkingLot = parkingLot,
+                            isSelected = state.selectedParkingLotId == parkingLot.id,
+                            onSelectClick = {
+                                viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.SelectParkingLot(parkingLot.id))
+                            },
                             onEditClick = { 
                                 viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.NavigateToEditParkingLot(parkingLot.id))
                             },
@@ -261,11 +250,13 @@ fun ParkingLotListScreen(
 }
 
 /**
- * 주차장 아이템 컴포넌트
+ * 주차장 아이템 컴포넌트 (선택 가능한 카드 스타일)
  */
 @Composable
 private fun ParkingLotItem(
     parkingLot: ParkingZone,
+    isSelected: Boolean,
+    onSelectClick: () -> Unit,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onFavoriteClick: () -> Unit
@@ -273,38 +264,63 @@ private fun ParkingLotItem(
     var showMenu by remember { mutableStateOf(false) }
     
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onSelectClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = if (isSelected) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        border = if (isSelected) {
+            androidx.compose.foundation.BorderStroke(
+                2.dp,
+                MaterialTheme.colorScheme.primary
+            )
+        } else null,
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isSelected) 4.dp else 0.dp
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // 주차장 정보
             Row(
-                modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.weight(1f)
             ) {
                 // 주차장 아이콘
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer),
+                        .size(48.dp)
+                        .background(
+                            if (isSelected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            RoundedCornerShape(12.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Default.LocalParking,
-                        contentDescription = "주차장",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
+                        imageVector = Icons.Default.LocalParking,
+                        contentDescription = "주차장 아이콘",
+                        tint = if (isSelected) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        modifier = Modifier.size(24.dp)
                     )
                 }
                 
@@ -316,29 +332,69 @@ private fun ParkingLotItem(
                         text = parkingLot.name,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = if (isSelected) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                    
                     Text(
                         text = parkingLot.getDisplayFeeInfo(),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (isSelected) {
+                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                     )
+                    
+                    // 공영 주차장 배지
                     if (parkingLot.isPublic) {
-                        Text(
-                            text = "공영 주차장",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected) {
+                                    MaterialTheme.colorScheme.tertiary
+                                } else {
+                                    MaterialTheme.colorScheme.tertiaryContainer
+                                }
+                            ),
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Text(
+                                text = "공영",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Medium,
+                                color = if (isSelected) {
+                                    MaterialTheme.colorScheme.onTertiary
+                                } else {
+                                    MaterialTheme.colorScheme.onTertiaryContainer
+                                },
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
                     }
                 }
             }
             
+            // 선택 표시 및 액션 버튼들
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // 선택 표시
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "선택됨",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                
                 // 즐겨찾기 버튼
                 IconButton(
                     onClick = onFavoriteClick
@@ -348,50 +404,53 @@ private fun ParkingLotItem(
                         contentDescription = if (parkingLot.isFavorite) "즐겨찾기 해제" else "즐겨찾기",
                         tint = if (parkingLot.isFavorite) {
                             MaterialTheme.colorScheme.primary
+                        } else if (isSelected) {
+                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         }
                     )
                 }
                 
-                // 메뉴 버튼
-                IconButton(
-                    onClick = { showMenu = true }
-                ) {
-                    Icon(
-                        Icons.Default.MoreVert,
-                        contentDescription = "메뉴",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                // 더보기 메뉴 버튼
+                Box {
+                    IconButton(
+                        onClick = { showMenu = true },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "더보기",
+                            tint = if (isSelected) {
+                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("편집") },
+                            onClick = {
+                                showMenu = false
+                                onEditClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("삭제") },
+                            onClick = {
+                                showMenu = false
+                                onDeleteClick()
+                            }
+                        )
+                    }
                 }
             }
         }
-    }
-    
-    // 메뉴 드롭다운
-    DropdownMenu(
-        expanded = showMenu,
-        onDismissRequest = { showMenu = false }
-    ) {
-        DropdownMenuItem(
-            text = { Text("편집") },
-            onClick = {
-                onEditClick()
-                showMenu = false
-            },
-            leadingIcon = {
-                Icon(Icons.Default.Edit, contentDescription = "편집")
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("삭제") },
-            onClick = {
-                onDeleteClick()
-                showMenu = false
-            },
-            leadingIcon = {
-                Icon(Icons.Default.Delete, contentDescription = "삭제")
-            }
-        )
     }
 }

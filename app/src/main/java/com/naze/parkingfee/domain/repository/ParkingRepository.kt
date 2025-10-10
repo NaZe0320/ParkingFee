@@ -3,11 +3,22 @@ package com.naze.parkingfee.domain.repository
 import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.domain.model.ParkingSession
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * 주차 관련 데이터 접근을 위한 Repository 인터페이스
  */
 interface ParkingRepository {
+    
+    /**
+     * 선택된 주차장 ID (앱 실행 중에만 유지)
+     */
+    val selectedParkingZoneId: StateFlow<String?>
+    
+    /**
+     * 선택된 주차장 ID를 설정합니다.
+     */
+    suspend fun setSelectedParkingZoneId(zoneId: String?)
     
     /**
      * 모든 주차 구역을 조회합니다.

@@ -8,6 +8,9 @@ import com.naze.parkingfee.data.mapper.ParkingZoneMapper
 import com.naze.parkingfee.data.mapper.ParkingSessionMapper
 import com.naze.parkingfee.utils.FeeCalculator
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -19,6 +22,14 @@ class ParkingRepositoryImpl @Inject constructor(
     private val parkingZoneMapper: ParkingZoneMapper,
     private val parkingSessionMapper: ParkingSessionMapper
 ) : ParkingRepository {
+
+    // 선택된 주차장 ID (메모리에만 저장, 앱 재시작 시 초기화)
+    private val _selectedParkingZoneId = MutableStateFlow<String?>(null)
+    override val selectedParkingZoneId: StateFlow<String?> = _selectedParkingZoneId.asStateFlow()
+    
+    override suspend fun setSelectedParkingZoneId(zoneId: String?) {
+        _selectedParkingZoneId.value = zoneId
+    }
 
     override suspend fun getParkingZones(): List<ParkingZone> {
         return parkingDao.getAllParkingZones().map { entity ->

@@ -45,7 +45,8 @@ class HomeViewModel @Inject constructor(
     private val getSelectedVehicleIdUseCase: GetSelectedVehicleIdUseCase,
     private val getVehiclesUseCase: GetVehiclesUseCase,
     private val vehicleRepository: VehicleRepository,
-    private val selectedVehicleRepository: SelectedVehicleRepository
+    private val selectedVehicleRepository: SelectedVehicleRepository,
+    private val parkingRepository: com.naze.parkingfee.domain.repository.ParkingRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeContract.HomeState())
@@ -57,7 +58,20 @@ class HomeViewModel @Inject constructor(
     // 실시간 갱신을 위한 틱커
     private var tickerJob: Job? = null
 
-    // init 블록 제거 - 화면 진입 시마다 LaunchedEffect로 새로고침
+    init {
+        // Repository의 선택된 주차장 ID를 구독하여 State에 반영
+        viewModelScope.launch {
+            parkingRepository.selectedParkingZoneId.collect { selectedId ->
+                if (selectedId != null) {
+                    // 선택된 ID에 해당하는 주차장을 availableZones에서 찾아서 currentZone에 설정
+                    val selectedZone = _state.value.availableZones.firstOrNull { it.id == selectedId }
+                    if (selectedZone != null) {
+                        _state.update { it.copy(currentZone = selectedZone) }
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Intent를 처리하는 메서드
@@ -111,6 +125,15 @@ class HomeViewModel @Inject constructor(
                         selectedVehicle = selectedVehicle,
                         isParkingActive = activeSession != null // 실행 중인 세션이 있으면 true
                     )
+                }
+                
+                // zones 로드 후 선택된 주차장 ID 확인하여 currentZone 설정
+                val selectedZoneId = parkingRepository.selectedParkingZoneId.value
+                if (selectedZoneId != null) {
+                    val selectedZone = zones.firstOrNull { it.id == selectedZoneId }
+                    if (selectedZone != null) {
+                        _state.update { it.copy(currentZone = selectedZone) }
+                    }
                 }
                 
                 // 활성 세션이 있으면 틱커 시작
@@ -227,6 +250,9 @@ class HomeViewModel @Inject constructor(
     private fun selectZone(zone: com.naze.parkingfee.domain.model.ParkingZone) {
         viewModelScope.launch {
             try {
+                // Repository에 선택된 주차장 ID 저장 (메모리에만 유지)
+                parkingRepository.setSelectedParkingZoneId(zone.id)
+                
                 // updatedAt을 현재 시간으로 업데이트
                 val updatedZone = zone.copy(updatedAt = System.currentTimeMillis())
                 updateParkingZoneUseCase.execute(updatedZone)
@@ -236,6 +262,7 @@ class HomeViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 // 에러가 발생해도 UI 상태는 업데이트 (사용자 경험 우선)
+                parkingRepository.setSelectedParkingZoneId(zone.id)
                 _state.update { 
                     it.copy(currentZone = zone)
                 }

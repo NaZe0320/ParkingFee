@@ -20,6 +20,7 @@ object ParkingLotListContract {
         data class NavigateToEditParkingLot(val zoneId: String) : ParkingLotListIntent()
         
         // 주차장 관리
+        data class SelectParkingLot(val zoneId: String) : ParkingLotListIntent()
         data class DeleteParkingLot(val zoneId: String) : ParkingLotListIntent()
         data class ToggleFavorite(val zoneId: String) : ParkingLotListIntent()
         
@@ -32,6 +33,7 @@ object ParkingLotListContract {
      */
     data class ParkingLotListState(
         val parkingLots: List<ParkingZone> = emptyList(),
+        val selectedParkingLotId: String? = null,
         val isLoading: Boolean = false,
         val errorMessage: String? = null,
         val sortOrder: SortOrder = SortOrder.NAME

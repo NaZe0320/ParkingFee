@@ -3,6 +3,7 @@ package com.naze.parkingfee.presentation.ui.screens.settings.parkinglots.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.naze.parkingfee.domain.model.ParkingZone
+import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
 import com.naze.parkingfee.domain.usecase.DeleteParkingZoneUseCase
 import com.naze.parkingfee.domain.usecase.ToggleParkingZoneFavoriteUseCase
@@ -20,6 +21,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ParkingLotListViewModel @Inject constructor(
+    private val parkingRepository: ParkingRepository,
     private val getParkingZonesUseCase: GetParkingZonesUseCase,
     private val deleteParkingZoneUseCase: DeleteParkingZoneUseCase,
     private val toggleParkingZoneFavoriteUseCase: ToggleParkingZoneFavoriteUseCase
@@ -30,6 +32,18 @@ class ParkingLotListViewModel @Inject constructor(
 
     private val _effect = MutableStateFlow<ParkingLotListContract.ParkingLotListEffect?>(null)
     val effect: StateFlow<ParkingLotListContract.ParkingLotListEffect?> = _effect.asStateFlow()
+    
+    init {
+        // Repository의 선택된 주차장 ID를 구독하여 State에 반영
+        viewModelScope.launch {
+            parkingRepository.selectedParkingZoneId.collect { selectedId ->
+                _state.update { it.copy(selectedParkingLotId = selectedId) }
+            }
+        }
+        
+        // 초기 데이터 자동 로드
+        loadParkingLots()
+    }
 
     /**
      * Intent를 처리하는 메서드
@@ -45,6 +59,9 @@ class ParkingLotListViewModel @Inject constructor(
             is ParkingLotListContract.ParkingLotListIntent.NavigateToEditParkingLot -> {
                 _effect.value = ParkingLotListContract.ParkingLotListEffect.NavigateToEditParkingLot(intent.zoneId)
             }
+            is ParkingLotListContract.ParkingLotListIntent.SelectParkingLot -> {
+                selectParkingLot(intent.zoneId)
+            }
             is ParkingLotListContract.ParkingLotListIntent.DeleteParkingLot -> {
                 deleteParkingLot(intent.zoneId)
             }
@@ -54,6 +71,15 @@ class ParkingLotListViewModel @Inject constructor(
             is ParkingLotListContract.ParkingLotListIntent.ChangeSortOrder -> {
                 changeSortOrder(intent.sortOrder)
             }
+        }
+    }
+    
+    /**
+     * 주차장을 선택합니다.
+     */
+    private fun selectParkingLot(zoneId: String) {
+        viewModelScope.launch {
+            parkingRepository.setSelectedParkingZoneId(zoneId)
         }
     }
 
