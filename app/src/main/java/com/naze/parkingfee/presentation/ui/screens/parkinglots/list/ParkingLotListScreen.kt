@@ -394,10 +394,11 @@ private fun ParkingLotItem(
                         modifier = Modifier.size(20.dp)
                     )
                 }
-                
+
                 // 즐겨찾기 버튼
                 IconButton(
-                    onClick = onFavoriteClick
+                    onClick = onFavoriteClick,
+                    modifier = Modifier.size(24.dp)
                 ) {
                     Icon(
                         if (parkingLot.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
@@ -416,7 +417,7 @@ private fun ParkingLotItem(
                 Box {
                     IconButton(
                         onClick = { showMenu = true },
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(24.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
