@@ -50,7 +50,12 @@ fun ParkingStatusCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(
+                top = 12.dp,
+                bottom = 16.dp,
+                start = 24.dp,
+                end = 24.dp
+            )
         ) {
             // 상단 상태 표시
             Row(
@@ -90,11 +95,13 @@ fun ParkingStatusCard(
                 
                 // 접기/펼치기 버튼
                 IconButton(
-                    onClick = onToggleExpand
+                    onClick = onToggleExpand,
+                    modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
                         imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                         contentDescription = if (isExpanded) "접기" else "펼치기",
+                        modifier = Modifier.size(20.dp),
                         tint = if (isActive) {
                             MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                         } else {
@@ -106,29 +113,44 @@ fun ParkingStatusCard(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            // 큰 타이머 표시
-            Text(
-                text = if (isActive) duration else "00:00",
-                style = MaterialTheme.typography.displayLarge,
-                fontWeight = FontWeight.Bold,
-                color = if (isActive) {
-                    MaterialTheme.colorScheme.onPrimary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            )
+            // 큰 타이머 표시 (펼쳤을 때만)
+            if (isExpanded) {
+                Text(
+                    text = if (isActive) duration else "00:00",
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isActive) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
+            }
             
-            // 접힌 상태일 때는 상태와 타이머를 한 줄에 배치
+            // 접힌 상태일 때는 시간과 비용을 가로로 나란히 배치
             if (!isExpanded && isActive && session != null) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.Bottom
                 ) {
                     Text(
+                        text = duration,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "|",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
                         text = "${String.format("%.0f", feeResult.discounted).replace(",", ",")}원",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
@@ -167,12 +189,12 @@ fun ParkingStatusCard(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
                         )
-                        Text(
-                            text = "${String.format("%.0f", feeResult.discounted).replace(",", ",")}원",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
+                    Text(
+                        text = "${String.format("%.0f", feeResult.discounted).replace(",", ",")}원",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
                     }
                     
                     Spacer(modifier = Modifier.height(12.dp))
@@ -204,7 +226,9 @@ fun ParkingStatusCard(
                                 .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f))
                         )
                         
-                        Column {
+                        Column(
+                            horizontalAlignment = Alignment.End
+                        ) {
                             Text(
                                 text = "위치",
                                 style = MaterialTheme.typography.bodySmall,

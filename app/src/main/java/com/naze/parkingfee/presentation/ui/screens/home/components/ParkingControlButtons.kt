@@ -41,7 +41,7 @@ fun ParkingControlButtons(
                 }
             },
             enabled = if (!isParkingActive) selectedZone != null else activeSession != null,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = if (isParkingActive) {
@@ -63,27 +63,6 @@ fun ParkingControlButtons(
                 } else {
                     MaterialTheme.colorScheme.onPrimary
                 },
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
-        }
-        
-        // 새로고침 버튼
-        OutlinedButton(
-            onClick = { /* 새로고침 로직 */ },
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface
-            ),
-            border = androidx.compose.foundation.BorderStroke(
-                2.dp,
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-            )
-        ) {
-            Text(
-                text = "새로고침",
-                fontWeight = FontWeight.Medium,
-                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
         }
