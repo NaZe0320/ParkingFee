@@ -13,13 +13,13 @@ interface VehicleDao {
     /**
      * 모든 차량 조회
      */
-    @Query("SELECT * FROM vehicles ORDER BY createdAt DESC")
+    @Query("SELECT * FROM vehicles ORDER BY createdAt ASC")
     suspend fun getAllVehicles(): List<VehicleEntity>
     
     /**
      * 모든 차량 조회 (Flow)
      */
-    @Query("SELECT * FROM vehicles ORDER BY createdAt DESC")
+    @Query("SELECT * FROM vehicles ORDER BY createdAt ASC")
     fun observeAllVehicles(): Flow<List<VehicleEntity>>
     
     /**

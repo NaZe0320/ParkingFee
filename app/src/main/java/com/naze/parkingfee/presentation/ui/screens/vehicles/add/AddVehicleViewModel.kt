@@ -213,6 +213,11 @@ class AddVehicleViewModel @Inject constructor(
             "자동차${vehicleCount + 1}"
         }
         
+        // 편집 모드인 경우 기존 차량 정보를 가져와서 createdAt 유지
+        val existingVehicle = if (currentState.isEditMode && currentState.vehicleId != null) {
+            vehicleRepository.getVehicleById(currentState.vehicleId)
+        } else null
+        
         return Vehicle(
             id = currentState.vehicleId ?: UUID.randomUUID().toString(),
             name = vehicleName,
@@ -221,7 +226,9 @@ class AddVehicleViewModel @Inject constructor(
                 compactCar = DiscountEligibility.CompactCar(currentState.compactCarDiscount),
                 nationalMerit = DiscountEligibility.NationalMerit(currentState.nationalMeritDiscount),
                 disabled = DiscountEligibility.Disabled(currentState.disabledDiscount)
-            )
+            ),
+            createdAt = existingVehicle?.createdAt ?: System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
         )
     }
 }

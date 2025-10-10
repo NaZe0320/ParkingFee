@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -92,12 +93,21 @@ fun VehicleListScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "차량 관리",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "차량 관리",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "등록된 차량 ${state.vehicles.size}/3",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             
             if (state.canAddVehicle) {
                 Button(
@@ -241,39 +251,47 @@ private fun VehicleItem(
         shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) {
-                MaterialTheme.colorScheme.primary
+                MaterialTheme.colorScheme.primaryContainer
             } else {
                 MaterialTheme.colorScheme.surface
             }
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isSelected) 8.dp else 0.dp
-        )
+        border = if (isSelected) {
+            androidx.compose.foundation.BorderStroke(
+                2.dp,
+                MaterialTheme.colorScheme.primary
+            )
+        } else {
+            androidx.compose.foundation.BorderStroke(
+                2.dp,
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+            )
+        },
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // 차량 정보
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.weight(1f)
             ) {
                 // 차량 아이콘
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(44.dp)
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
                         .background(
                             if (isSelected) {
-                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
+                                MaterialTheme.colorScheme.primary
                             } else {
                                 MaterialTheme.colorScheme.surfaceVariant
-                            },
-                            androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                            }
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -285,7 +303,7 @@ private fun VehicleItem(
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         },
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
                 
@@ -296,7 +314,7 @@ private fun VehicleItem(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimary
+                            MaterialTheme.colorScheme.onPrimaryContainer
                         } else {
                             MaterialTheme.colorScheme.onSurface
                         },
@@ -309,7 +327,7 @@ private fun VehicleItem(
                             text = vehicle.displayPlateNumber,
                             style = MaterialTheme.typography.bodyMedium,
                             color = if (isSelected) {
-                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
                             }
@@ -351,16 +369,16 @@ private fun VehicleItem(
                 }
             }
             
-            // 선택 표시 및 더보기 메뉴
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // 선택 표시
                 if (isSelected) {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "선택됨",
-                        tint = MaterialTheme.colorScheme.onPrimary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -375,7 +393,7 @@ private fun VehicleItem(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = "더보기",
                             tint = if (isSelected) {
-                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
                             },
