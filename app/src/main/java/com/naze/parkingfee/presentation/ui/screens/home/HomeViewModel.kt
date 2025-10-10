@@ -245,26 +245,44 @@ class HomeViewModel @Inject constructor(
 
     /**
      * 주차장을 선택합니다.
+     * 이미 선택된 주차장을 다시 선택하면 선택을 해제합니다.
      * 선택 시 updatedAt을 현재 시간으로 업데이트하여 최근 사용 추적
      */
     private fun selectZone(zone: com.naze.parkingfee.domain.model.ParkingZone) {
         viewModelScope.launch {
             try {
-                // Repository에 선택된 주차장 ID 저장 (메모리에만 유지)
-                parkingRepository.setSelectedParkingZoneId(zone.id)
-                
-                // updatedAt을 현재 시간으로 업데이트
-                val updatedZone = zone.copy(updatedAt = System.currentTimeMillis())
-                updateParkingZoneUseCase.execute(updatedZone)
-                
-                _state.update { 
-                    it.copy(currentZone = updatedZone)
+                val currentSelectedId = parkingRepository.selectedParkingZoneId.value
+                if (currentSelectedId == zone.id) {
+                    // 이미 선택된 주차장을 다시 선택하면 선택 해제
+                    parkingRepository.setSelectedParkingZoneId(null)
+                    _state.update { 
+                        it.copy(currentZone = null)
+                    }
+                } else {
+                    // 새로운 주차장 선택
+                    parkingRepository.setSelectedParkingZoneId(zone.id)
+                    
+                    // updatedAt을 현재 시간으로 업데이트
+                    val updatedZone = zone.copy(updatedAt = System.currentTimeMillis())
+                    updateParkingZoneUseCase.execute(updatedZone)
+                    
+                    _state.update { 
+                        it.copy(currentZone = updatedZone)
+                    }
                 }
             } catch (e: Exception) {
                 // 에러가 발생해도 UI 상태는 업데이트 (사용자 경험 우선)
-                parkingRepository.setSelectedParkingZoneId(zone.id)
-                _state.update { 
-                    it.copy(currentZone = zone)
+                val currentSelectedId = parkingRepository.selectedParkingZoneId.value
+                if (currentSelectedId == zone.id) {
+                    parkingRepository.setSelectedParkingZoneId(null)
+                    _state.update { 
+                        it.copy(currentZone = null)
+                    }
+                } else {
+                    parkingRepository.setSelectedParkingZoneId(zone.id)
+                    _state.update { 
+                        it.copy(currentZone = zone)
+                    }
                 }
             }
         }

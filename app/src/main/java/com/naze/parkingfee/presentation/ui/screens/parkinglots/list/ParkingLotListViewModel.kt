@@ -76,10 +76,18 @@ class ParkingLotListViewModel @Inject constructor(
     
     /**
      * 주차장을 선택합니다.
+     * 이미 선택된 주차장을 다시 선택하면 선택을 해제합니다.
      */
     private fun selectParkingLot(zoneId: String) {
         viewModelScope.launch {
-            parkingRepository.setSelectedParkingZoneId(zoneId)
+            val currentSelectedId = parkingRepository.selectedParkingZoneId.value
+            if (currentSelectedId == zoneId) {
+                // 이미 선택된 주차장을 다시 선택하면 선택 해제
+                parkingRepository.setSelectedParkingZoneId(null)
+            } else {
+                // 새로운 주차장 선택
+                parkingRepository.setSelectedParkingZoneId(zoneId)
+            }
         }
     }
 
