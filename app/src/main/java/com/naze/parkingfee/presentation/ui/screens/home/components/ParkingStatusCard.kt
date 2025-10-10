@@ -52,7 +52,7 @@ fun ParkingStatusCard(
         Column(
             modifier = Modifier.padding(
                 top = 12.dp,
-                bottom = 16.dp,
+                bottom = if (!isActive && !isExpanded) 4.dp else 16.dp,
                 start = 24.dp,
                 end = 24.dp
             )
