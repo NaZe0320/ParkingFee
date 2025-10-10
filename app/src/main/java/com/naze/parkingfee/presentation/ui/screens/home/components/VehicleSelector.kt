@@ -19,7 +19,6 @@ import com.naze.parkingfee.domain.model.vehicle.Vehicle
 
 /**
  * 차량 선택 컴포넌트
- * React 디자인의 차량 선택 UI를 구현합니다.
  */
 @Composable
 fun VehicleSelector(
