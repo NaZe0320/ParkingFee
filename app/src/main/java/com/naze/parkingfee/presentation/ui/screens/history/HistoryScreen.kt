@@ -1,6 +1,7 @@
 package com.naze.parkingfee.presentation.ui.screens.history
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,10 +9,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -213,15 +217,15 @@ private fun HistoryItem(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = Color(0xFFF5F5F5) // 연한 회색 배경
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             // 상단: 주차장 이름과 삭제 버튼
             Row(
@@ -232,144 +236,140 @@ private fun HistoryItem(
                 Text(
                     text = history.zoneNameSnapshot,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
                 )
                 
+                // 삭제 버튼 (빨간색 아이콘)
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(24.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Delete,
+                        imageVector = Icons.Outlined.Delete,
                         contentDescription = "삭제",
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(18.dp)
+                        tint = Color(0xFFE57373), // 연한 빨간색
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
             
-            // 날짜와 시간 정보
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = "시작",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = history.getFormattedStartDate(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                
-                Column {
-                    Text(
-                        text = "주차 시간",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = history.getFormattedDuration(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+            // 날짜/시간 정보
+            Text(
+                text = history.getFormattedStartDate(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF666666) // 회색 텍스트
+            )
             
-            // 차량 정보
+            // 차량 정보 (있는 경우)
             if (!history.vehicleNameSnapshot.isNullOrBlank()) {
                 val vehicleDisplay = if (!history.vehiclePlateSnapshot.isNullOrBlank()) {
                     "${history.vehicleNameSnapshot}(${history.vehiclePlateSnapshot})"
                 } else {
                     history.vehicleNameSnapshot
                 }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "차량",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = vehicleDisplay,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                Text(
+                    text = vehicleDisplay,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF666666)
+                )
             }
             
-            // 요금 정보 (할인 정보 포함)
+            // 구분선
+            Spacer(modifier = Modifier.height(4.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Color(0xFFE0E0E0))
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            // 하단: 주차 시간과 요금 정보
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (history.hasDiscount && history.originalFee != null) {
+                // 좌측: 주차 시간과 요금
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 주차 시간
+                    Column {
+                        Text(
+                            text = "주차 시간",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF666666)
+                        )
+                        Text(
+                            text = history.getFormattedDuration(),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
+                    
+                    // 세로 구분선
+                    Box(
+                        modifier = Modifier
+                            .width(1.dp)
+                            .height(40.dp)
+                            .background(Color(0xFFE0E0E0))
+                    )
+                    
+                    // 요금
                     Column {
                         Text(
                             text = "요금",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color(0xFF666666)
                         )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
+                        if (history.hasDiscount && history.originalFee != null) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "${history.originalFee.toInt()}원",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color(0xFF999999),
+                                    textDecoration = TextDecoration.LineThrough
+                                )
+                                Text(
+                                    text = "→ ${history.feePaid.toInt()}원",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                            }
+                        } else {
                             Text(
-                                text = "${history.originalFee.toInt()}원",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textDecoration = TextDecoration.LineThrough
-                            )
-                            Text(
-                                text = "→ ${history.feePaid.toInt()}원",
+                                text = "${history.feePaid.toInt()}원",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
                             )
                         }
                     }
-                    
-                    // 할인 배지
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                        ),
-                        shape = RoundedCornerShape(8.dp)
+                }
+                
+                // 우측: 할인 배지 (있는 경우)
+                if (history.hasDiscount) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color(0xFF4CAF50)) // 녹색 배경
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
                             text = "50% 할인",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                } else {
-                    Column {
-                        Text(
-                            text = "요금",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "${history.feePaid.toInt()}원",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = Color.White
                         )
                     }
                 }
