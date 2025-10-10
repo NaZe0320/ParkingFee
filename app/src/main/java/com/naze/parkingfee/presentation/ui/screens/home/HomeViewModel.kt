@@ -89,6 +89,8 @@ class HomeViewModel @Inject constructor(
             is HomeContract.HomeIntent.RequestZoneAction -> handleZoneAction(intent.zone, intent.action)
             is HomeContract.HomeIntent.DeleteZone -> deleteZone(intent.zoneId)
             is HomeContract.HomeIntent.ToggleStatusCard -> toggleStatusCard()
+            is HomeContract.HomeIntent.ToggleVehicleSelector -> toggleVehicleSelector()
+            is HomeContract.HomeIntent.ToggleParkingZoneSelector -> toggleParkingZoneSelector()
         }
     }
 
@@ -123,7 +125,10 @@ class HomeViewModel @Inject constructor(
                         vehicles = vehicles,
                         activeParkingSession = activeSession,
                         selectedVehicle = selectedVehicle,
-                        isParkingActive = activeSession != null // 실행 중인 세션이 있으면 true
+                        isParkingActive = activeSession != null, // 실행 중인 세션이 있으면 true
+                        activeZoneName = activeSession?.let { session ->
+                            zones.firstOrNull { zone -> zone.id == session.zoneId }?.name
+                        }
                     )
                 }
                 
@@ -157,11 +162,13 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val session = startParkingUseCase.execute(zoneId)
+                val zone = _state.value.availableZones.firstOrNull { it.id == zoneId }
                 _state.update { 
                     it.copy(
                         activeParkingSession = session,
                         isParkingActive = true,
-                        errorMessage = null
+                        errorMessage = null,
+                        activeZoneName = zone?.name
                     )
                 }
                 startTicker()
@@ -200,7 +207,8 @@ class HomeViewModel @Inject constructor(
                         activeParkingSession = null,
                         isParkingActive = false,
                         parkingFee = 0.0,
-                        parkingDuration = "00:00"
+                        parkingDuration = "00:00",
+                        activeZoneName = null
                     )
                 }
                 
@@ -371,6 +379,24 @@ class HomeViewModel @Inject constructor(
     private fun toggleStatusCard() {
         _state.update { 
             it.copy(isStatusCardExpanded = !it.isStatusCardExpanded)
+        }
+    }
+    
+    /**
+     * 차량 선택 섹션 접기/펼치기를 토글합니다.
+     */
+    private fun toggleVehicleSelector() {
+        _state.update { 
+            it.copy(isVehicleSelectorExpanded = !it.isVehicleSelectorExpanded)
+        }
+    }
+    
+    /**
+     * 주차장 선택 섹션 접기/펼치기를 토글합니다.
+     */
+    private fun toggleParkingZoneSelector() {
+        _state.update { 
+            it.copy(isParkingZoneSelectorExpanded = !it.isParkingZoneSelectorExpanded)
         }
     }
     

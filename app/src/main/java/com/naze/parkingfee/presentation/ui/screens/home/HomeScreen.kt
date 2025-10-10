@@ -109,6 +109,7 @@ fun HomeScreen(
             vehicleDisplay = state.selectedVehicle?.let { v ->
                 if (v.hasPlateNumber) "${v.displayName}(${v.displayPlateNumber})" else v.displayName
             },
+            zoneName = state.activeZoneName,
             isExpanded = state.isStatusCardExpanded,
             onToggleExpand = {
                 viewModel.processIntent(HomeContract.HomeIntent.ToggleStatusCard)
@@ -140,6 +141,10 @@ fun HomeScreen(
                     selectedVehicle = state.selectedVehicle,
                     onVehicleSelected = { vehicle ->
                         viewModel.processIntent(HomeContract.HomeIntent.SelectVehicle(vehicle))
+                    },
+                    isExpanded = state.isVehicleSelectorExpanded,
+                    onToggleExpand = {
+                        viewModel.processIntent(HomeContract.HomeIntent.ToggleVehicleSelector)
                     }
                 )
             }
@@ -154,6 +159,10 @@ fun HomeScreen(
                     },
                     onRequestZoneAction = { zone, action ->
                         viewModel.processIntent(HomeContract.HomeIntent.RequestZoneAction(zone, action))
+                    },
+                    isExpanded = state.isParkingZoneSelectorExpanded,
+                    onToggleExpand = {
+                        viewModel.processIntent(HomeContract.HomeIntent.ToggleParkingZoneSelector)
                     }
                 )
             }

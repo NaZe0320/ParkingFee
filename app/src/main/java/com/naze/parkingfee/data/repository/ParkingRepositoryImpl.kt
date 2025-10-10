@@ -4,6 +4,7 @@ import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.domain.model.ParkingSession
 import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.data.datasource.local.dao.ParkingDao
+import com.naze.parkingfee.data.datasource.local.entity.ParkingSessionEntity
 import com.naze.parkingfee.data.mapper.ParkingZoneMapper
 import com.naze.parkingfee.data.mapper.ParkingSessionMapper
 import com.naze.parkingfee.utils.FeeCalculator
@@ -95,7 +96,7 @@ class ParkingRepositoryImpl @Inject constructor(
         val sessionId = generateSessionId()
         val startTime = System.currentTimeMillis()
         
-        val sessionEntity = com.naze.parkingfee.data.datasource.local.entity.ParkingSessionEntity(
+        val sessionEntity = ParkingSessionEntity(
             id = sessionId,
             zoneId = zoneId,
             startTime = startTime,

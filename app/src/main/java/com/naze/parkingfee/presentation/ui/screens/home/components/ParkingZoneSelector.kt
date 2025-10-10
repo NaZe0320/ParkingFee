@@ -12,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,31 +41,66 @@ fun ParkingZoneSelector(
     selectedZone: ParkingZone?,
     onZoneSelected: (ParkingZone) -> Unit,
     onRequestZoneAction: (ParkingZone, ZoneAction) -> Unit,
+    isExpanded: Boolean = true,
+    onToggleExpand: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
-        Text(
-            text = "주차장",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        // Title 행 - 접기/펼치기 아이콘과 선택된 주차장 정보
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onToggleExpand() }
+                .padding(horizontal = 4.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            zones.forEach { zone ->
-                ZoneItem(
-                    zone = zone,
-                    isSelected = selectedZone?.id == zone.id,
-                    onZoneSelected = onZoneSelected,
-                    onRequestZoneAction = onRequestZoneAction
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "주차장",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
+                
+                // 접혔을 때 선택된 주차장 정보 표시
+                if (!isExpanded && selectedZone != null) {
+                    Text(
+                        text = selectedZone.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+            
+            Icon(
+                imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                contentDescription = if (isExpanded) "접기" else "펼치기",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        
+        // 펼쳤을 때만 주차장 목록 표시
+        if (isExpanded) {
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                zones.forEach { zone ->
+                    ZoneItem(
+                        zone = zone,
+                        isSelected = selectedZone?.id == zone.id,
+                        onZoneSelected = onZoneSelected,
+                        onRequestZoneAction = onRequestZoneAction
+                    )
+                }
             }
         }
     }

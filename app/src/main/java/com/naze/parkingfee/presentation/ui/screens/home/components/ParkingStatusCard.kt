@@ -31,6 +31,7 @@ fun ParkingStatusCard(
     duration: String,
     feeResult: FeeResult,
     vehicleDisplay: String? = null,
+    zoneName: String? = null,
     isExpanded: Boolean = true,
     onToggleExpand: () -> Unit = {},
     controlButtons: @Composable () -> Unit = {},
@@ -49,7 +50,7 @@ fun ParkingStatusCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
-            modifier = Modifier.padding(24.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
             // 상단 상태 표시
             Row(
@@ -117,15 +118,21 @@ fun ParkingStatusCard(
                 }
             )
             
-            // 접혔을 때는 현재 요금만 표시
+            // 접힌 상태일 때는 상태와 타이머를 한 줄에 배치
             if (!isExpanded && isActive && session != null) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "${String.format("%.0f", feeResult.discounted).replace(",", ",")}원",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${String.format("%.0f", feeResult.discounted).replace(",", ",")}원",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
             
             // 펼쳤을 때만 상세 정보 표시
@@ -204,7 +211,7 @@ fun ParkingStatusCard(
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
                             )
                             Text(
-                                text = session.zoneId,
+                                text = zoneName ?: session.zoneId,
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)

@@ -25,6 +25,8 @@ object HomeContract {
         data class RequestZoneAction(val zone: ParkingZone, val action: ZoneAction) : HomeIntent()
         data class DeleteZone(val zoneId: String) : HomeIntent()
         object ToggleStatusCard : HomeIntent()
+        object ToggleVehicleSelector : HomeIntent()
+        object ToggleParkingZoneSelector : HomeIntent()
     }
 
     /**
@@ -41,7 +43,10 @@ object HomeContract {
         val parkingDuration: String = "00:00",
         val errorMessage: String? = null,
         val isParkingActive: Boolean = false,
-        val isStatusCardExpanded: Boolean = true
+        val isStatusCardExpanded: Boolean = true,
+        val isVehicleSelectorExpanded: Boolean = true,
+        val isParkingZoneSelectorExpanded: Boolean = true,
+        val activeZoneName: String? = null
     )
 
     /**
