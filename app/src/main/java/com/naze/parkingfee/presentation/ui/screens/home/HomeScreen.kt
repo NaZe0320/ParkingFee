@@ -136,7 +136,7 @@ fun HomeScreen(
             // 차량 선택 섹션
             item {
                 VehicleSelector(
-                    vehicles = emptyList(), // TODO: 실제 차량 목록 구현
+                    vehicles = state.vehicles,
                     selectedVehicle = state.selectedVehicle,
                     onVehicleSelected = { vehicle ->
                         viewModel.processIntent(HomeContract.HomeIntent.SelectVehicle(vehicle))

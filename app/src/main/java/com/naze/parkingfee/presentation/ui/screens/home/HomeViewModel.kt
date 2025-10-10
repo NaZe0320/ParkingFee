@@ -12,6 +12,7 @@ import com.naze.parkingfee.presentation.ui.screens.home.components.ZoneAction
 import com.naze.parkingfee.utils.TimeUtils
 import com.naze.parkingfee.utils.FeeCalculator
 import com.naze.parkingfee.domain.usecase.GetSelectedVehicleIdUseCase
+import com.naze.parkingfee.domain.usecase.vehicle.GetVehiclesUseCase
 import com.naze.parkingfee.domain.repository.VehicleRepository
 import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
 import kotlinx.coroutines.flow.first
@@ -42,6 +43,7 @@ class HomeViewModel @Inject constructor(
     private val updateParkingZoneUseCase: UpdateParkingZoneUseCase,
     private val deleteParkingZoneUseCase: DeleteParkingZoneUseCase,
     private val getSelectedVehicleIdUseCase: GetSelectedVehicleIdUseCase,
+    private val getVehiclesUseCase: GetVehiclesUseCase,
     private val vehicleRepository: VehicleRepository,
     private val selectedVehicleRepository: SelectedVehicleRepository
 ) : ViewModel() {
@@ -93,6 +95,9 @@ class HomeViewModel @Inject constructor(
                 // 실행 중인(종료되지 않은) 주차 세션 조회
                 val activeSession = getActiveParkingSessionUseCase.execute()
 
+                // 차량 목록 조회
+                val vehicles = getVehiclesUseCase.invoke()
+                
                 // 선택된 차량 로드
                 val selectedVehicleId = getSelectedVehicleIdUseCase.execute().first()
                 val selectedVehicle = selectedVehicleId?.let { vehicleRepository.getVehicleById(it) }
@@ -101,6 +106,7 @@ class HomeViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         availableZones = zones,
+                        vehicles = vehicles,
                         activeParkingSession = activeSession,
                         selectedVehicle = selectedVehicle,
                         isParkingActive = activeSession != null // 실행 중인 세션이 있으면 true

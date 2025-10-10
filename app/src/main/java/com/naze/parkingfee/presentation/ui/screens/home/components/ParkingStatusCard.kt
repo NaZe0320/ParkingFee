@@ -103,7 +103,7 @@ fun ParkingStatusCard(
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             
             // 큰 타이머 표시
             Text(

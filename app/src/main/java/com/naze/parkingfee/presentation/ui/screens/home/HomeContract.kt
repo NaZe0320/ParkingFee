@@ -34,6 +34,7 @@ object HomeContract {
         val isLoading: Boolean = false,
         val currentZone: ParkingZone? = null,
         val availableZones: List<ParkingZone> = emptyList(),
+        val vehicles: List<com.naze.parkingfee.domain.model.vehicle.Vehicle> = emptyList(),
         val activeParkingSession: ParkingSession? = null,
         val selectedVehicle: com.naze.parkingfee.domain.model.vehicle.Vehicle? = null,
         val parkingFee: Double = 0.0,
