@@ -24,6 +24,7 @@ object HomeContract {
         data class SelectVehicle(val vehicle: com.naze.parkingfee.domain.model.vehicle.Vehicle) : HomeIntent()
         data class RequestZoneAction(val zone: ParkingZone, val action: ZoneAction) : HomeIntent()
         data class DeleteZone(val zoneId: String) : HomeIntent()
+        data class DeleteVehicle(val vehicle: com.naze.parkingfee.domain.model.vehicle.Vehicle) : HomeIntent()
         object ToggleStatusCard : HomeIntent()
         object ToggleVehicleSelector : HomeIntent()
         object ToggleParkingZoneSelector : HomeIntent()

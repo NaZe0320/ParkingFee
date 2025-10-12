@@ -1,5 +1,7 @@
 package com.naze.parkingfee.domain.model
 
+import java.util.Locale
+
 /**
  * 주차 기록 도메인 모델
  */
@@ -24,24 +26,15 @@ data class ParkingHistory(
     fun getFormattedDuration(): String {
         val hours = durationMinutes / 60
         val minutes = durationMinutes % 60
-        return String.format("%02d:%02d", hours, minutes)
+        return String.format(Locale.getDefault(),"%02d:%02d", hours, minutes)
     }
     
     /**
      * 주차 시작 시간을 날짜 형식으로 반환
      */
-    fun getFormattedStartDate(): String {
+    fun getFormattedDate(): String {
         val date = java.util.Date(startedAt)
-        val formatter = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
-        return formatter.format(date)
-    }
-    
-    /**
-     * 주차 종료 시간을 날짜 형식으로 반환
-     */
-    fun getFormattedEndDate(): String {
-        val date = java.util.Date(endedAt)
-        val formatter = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
+        val formatter = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
         return formatter.format(date)
     }
 }

@@ -18,6 +18,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.naze.parkingfee.domain.model.vehicle.Vehicle
+import com.naze.parkingfee.presentation.ui.screens.vehicles.list.components.VehicleItem
+
+/**
+ * 차량 액션 타입
+ */
+enum class VehicleAction {
+    Edit, Delete
+}
 
 /**
  * 차량 선택 컴포넌트
@@ -27,6 +35,7 @@ fun VehicleSelector(
     vehicles: List<Vehicle>,
     selectedVehicle: Vehicle?,
     onVehicleSelected: (Vehicle) -> Unit,
+    onRequestVehicleAction: (Vehicle, VehicleAction) -> Unit = { _, _ -> },
     isExpanded: Boolean = true,
     onToggleExpand: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -87,7 +96,10 @@ fun VehicleSelector(
                     VehicleItem(
                         vehicle = vehicle,
                         isSelected = selectedVehicle?.id == vehicle.id,
-                        onVehicleSelected = onVehicleSelected
+                        onSelectClick = { onVehicleSelected(vehicle) },
+                        onEditClick = { onRequestVehicleAction(vehicle, VehicleAction.Edit) },
+                        onDeleteClick = { onRequestVehicleAction(vehicle, VehicleAction.Delete) },
+                        showMenuButton = true // 더보기 버튼 표시
                     )
                 }
             }
@@ -95,131 +107,3 @@ fun VehicleSelector(
     }
 }
 
-@Composable
-private fun VehicleItem(
-    vehicle: Vehicle,
-    isSelected: Boolean,
-    onVehicleSelected: (Vehicle) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onVehicleSelected(vehicle) },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surface
-            }
-        ),
-        border = if (isSelected) {
-            androidx.compose.foundation.BorderStroke(
-                2.dp,
-                MaterialTheme.colorScheme.primary
-            )
-        } else {
-            androidx.compose.foundation.BorderStroke(
-                2.dp,
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-            )
-        },
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // 차량 아이콘
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            if (isSelected) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant
-                            }
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DirectionsCar,
-                        contentDescription = "차량",
-                        tint = if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                
-                // 차량 정보
-                Column {
-                    Text(
-                        text = vehicle.displayName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        }
-                    )
-                    Text(
-                        text = vehicle.displayPlateNumber,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
-                }
-            }
-            
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // 경차 배지
-                if (vehicle.isCompactCar) {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.tertiary
-                        ),
-                        shape = RoundedCornerShape(6.dp)
-                    ) {
-                        Text(
-                            text = "경차",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onTertiary,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-                
-                // 선택 표시
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "선택됨",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-        }
-    }
-}

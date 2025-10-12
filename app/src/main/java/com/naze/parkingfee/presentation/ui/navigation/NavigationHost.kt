@@ -1,5 +1,7 @@
 package com.naze.parkingfee.presentation.ui.navigation
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -74,6 +76,9 @@ fun NavigationHost(
                     onNavigateToEditZone = { zoneId ->
                         navController.navigate("parkinglots/add?zoneId=$zoneId")
                     },
+                    onNavigateToEditVehicle = { vehicleId ->
+                        navController.navigate("vehicles/add?vehicleId=$vehicleId")
+                    },
                     onStartParkingService = onStartParkingService,
                     onStopParkingService = onStopParkingService
                 )
@@ -96,19 +101,23 @@ fun NavigationHost(
             // 주차장 관리 라우트들
             composable("parkinglots/list") {
                 ParkingLotListScreen(
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    },
                     onNavigateToAddParkingLot = {
                         navController.navigate("parkinglots/add")
                     },
                     onNavigateToEditParkingLot = { zoneId ->
                         navController.navigate("parkinglots/add?zoneId=$zoneId")
+                    },
+                    onNavigateToDetailParkingLot = { zoneId ->
+                        navController.navigate("zone_detail/$zoneId")
                     }
                 )
             }
             
-            composable("parkinglots/add") { backStackEntry ->
+            composable(route = "parkinglots/add?zoneId={zoneId}",  // 이 부분 추가
+                arguments = listOf(
+                    navArgument("zoneId") { nullable = true }  // 이 부분 추가
+                )
+            ) { backStackEntry ->
                 val zoneId = backStackEntry.arguments?.getString("zoneId")
                 AddParkingLotScreen(
                     zoneId = zoneId,
