@@ -225,7 +225,7 @@ class AddParkingLotViewModel @Inject constructor(
                     val existingZone = getParkingZoneByIdUseCase.execute(currentState.editingZoneId)
                     if (existingZone != null) {
                         val updatedZone = existingZone.copy(
-                            name = if (currentState.useDefaultName) existingZone.name else currentState.parkingLotName,
+                            name = if (currentState.parkingLotName.isBlank()) existingZone.name else currentState.parkingLotName,
                             hourlyRate = calculateHourlyRate(currentState),
                             isPublic = currentState.isPublic,
                             feeStructure = createFeeStructure(currentState),
@@ -242,7 +242,7 @@ class AddParkingLotViewModel @Inject constructor(
 
                     val parkingZone = ParkingZone(
                         id = UUID.randomUUID().toString(),
-                        name = if (currentState.useDefaultName) "주차장$nextSequenceNumber" else currentState.parkingLotName,
+                        name = if (currentState.parkingLotName.isBlank()) "주차장$nextSequenceNumber" else currentState.parkingLotName,
                         hourlyRate = calculateHourlyRate(currentState),
                         maxCapacity = 100,
                         currentOccupancy = 0,
@@ -286,10 +286,8 @@ class AddParkingLotViewModel @Inject constructor(
     private fun validateForm(state: AddParkingLotContract.AddParkingLotState): Map<String, String> {
         val errors = mutableMapOf<String, String>()
 
-        // 주차장 이름 검사 (기본 이름 사용하지 않는 경우)
-        if (!state.useDefaultName && state.parkingLotName.isBlank()) {
-            errors["parkingLotName"] = "주차장 이름을 입력해주세요."
-        }
+        // 주차장 이름 검사 (빈 문자열이면 기본 이름 사용, 입력했으면 그대로 사용)
+        // 별도 유효성 검사 불필요
 
         // 기본 요금 검사
         if (state.basicFeeDuration <= 0) {

@@ -2,12 +2,10 @@ package com.naze.parkingfee.presentation.ui.screens.parkinglots.add.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 /**
@@ -16,10 +14,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ParkingLotBasicInfoCard(
     parkingLotName: String,
-    useDefaultName: Boolean,
     onNameChange: (String) -> Unit,
-    onUseDefaultNameChange: (Boolean) -> Unit,
-    nameError: String? = null,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -68,43 +63,15 @@ fun ParkingLotBasicInfoCard(
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                         errorBorderColor = MaterialTheme.colorScheme.error
                     ),
-                    isError = nameError != null,
                     singleLine = true
                 )
                 
-                // 에러 메시지 (기본 이름 사용하지 않을 때만)
-                if (nameError != null && !useDefaultName) {
-                    Text(
-                        text = nameError,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-            }
-            
-            // 공영 주차장 토글
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-            ) {
+                // 힌트 텍스트
                 Text(
-                    text = "공영 주차장",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                
-                Switch(
-                    checked = useDefaultName,
-                    onCheckedChange = onUseDefaultNameChange,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                        checkedTrackColor = MaterialTheme.colorScheme.primary,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                    text = "비워두면 기본 이름(주차장1, 주차장2...)이 사용됩니다",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(top = 4.dp)
                 )
             }
         }
