@@ -108,7 +108,11 @@ fun NavigationHost(
                 )
             }
             
-            composable("parkinglots/add") { backStackEntry ->
+            composable(route = "parkinglots/add?zoneId={zoneId}",  // 이 부분 추가
+                arguments = listOf(
+                    navArgument("zoneId") { nullable = true }  // 이 부분 추가
+                )
+            ) { backStackEntry ->
                 val zoneId = backStackEntry.arguments?.getString("zoneId")
                 AddParkingLotScreen(
                     zoneId = zoneId,
