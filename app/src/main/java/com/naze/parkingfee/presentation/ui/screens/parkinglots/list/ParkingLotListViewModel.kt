@@ -11,6 +11,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -30,8 +33,8 @@ class ParkingLotListViewModel @Inject constructor(
     private val _state = MutableStateFlow(ParkingLotListContract.ParkingLotListState())
     val state: StateFlow<ParkingLotListContract.ParkingLotListState> = _state.asStateFlow()
 
-    private val _effect = MutableStateFlow<ParkingLotListContract.ParkingLotListEffect?>(null)
-    val effect: StateFlow<ParkingLotListContract.ParkingLotListEffect?> = _effect.asStateFlow()
+    private val _effect = MutableSharedFlow<ParkingLotListContract.ParkingLotListEffect>()
+    val effect: SharedFlow<ParkingLotListContract.ParkingLotListEffect> = _effect.asSharedFlow()
     
     init {
         // Repository의 선택된 주차장 ID를 구독하여 State에 반영
@@ -54,10 +57,14 @@ class ParkingLotListViewModel @Inject constructor(
                 loadParkingLots()
             }
             is ParkingLotListContract.ParkingLotListIntent.NavigateToAddParkingLot -> {
-                _effect.value = ParkingLotListContract.ParkingLotListEffect.NavigateToAddParkingLot
+                viewModelScope.launch {
+                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.NavigateToAddParkingLot)
+                }
             }
             is ParkingLotListContract.ParkingLotListIntent.NavigateToEditParkingLot -> {
-                _effect.value = ParkingLotListContract.ParkingLotListEffect.NavigateToEditParkingLot(intent.zoneId)
+                viewModelScope.launch {
+                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.NavigateToEditParkingLot(intent.zoneId))
+                }
             }
             is ParkingLotListContract.ParkingLotListIntent.SelectParkingLot -> {
                 selectParkingLot(intent.zoneId)
@@ -126,15 +133,15 @@ class ParkingLotListViewModel @Inject constructor(
             try {
                 val zone = _state.value.parkingLots.find { it.id == zoneId }
                 if (zone != null) {
-                    _effect.value = ParkingLotListContract.ParkingLotListEffect.ShowDeleteConfirmation(
+                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowDeleteConfirmation(
                         zoneId = zoneId,
                         zoneName = zone.name
-                    )
+                    ))
                 }
             } catch (e: Exception) {
-                _effect.value = ParkingLotListContract.ParkingLotListEffect.ShowToast(
+                _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast(
                     e.message ?: "주차장 삭제에 실패했습니다."
-                )
+                ))
             }
         }
     }
@@ -147,15 +154,15 @@ class ParkingLotListViewModel @Inject constructor(
             try {
                 val success = deleteParkingZoneUseCase.invoke(zoneId)
                 if (success) {
-                    _effect.value = ParkingLotListContract.ParkingLotListEffect.ShowToast("주차장이 삭제되었습니다.")
+                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast("주차장이 삭제되었습니다."))
                     loadParkingLots() // 목록 새로고침
                 } else {
-                    _effect.value = ParkingLotListContract.ParkingLotListEffect.ShowToast("주차장 삭제에 실패했습니다.")
+                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast("주차장 삭제에 실패했습니다."))
                 }
             } catch (e: Exception) {
-                _effect.value = ParkingLotListContract.ParkingLotListEffect.ShowToast(
+                _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast(
                     e.message ?: "주차장 삭제에 실패했습니다."
-                )
+                ))
             }
         }
     }
@@ -170,12 +177,12 @@ class ParkingLotListViewModel @Inject constructor(
                 if (success) {
                     loadParkingLots() // 목록 새로고침
                 } else {
-                    _effect.value = ParkingLotListContract.ParkingLotListEffect.ShowToast("즐겨찾기 설정에 실패했습니다.")
+                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast("즐겨찾기 설정에 실패했습니다."))
                 }
             } catch (e: Exception) {
-                _effect.value = ParkingLotListContract.ParkingLotListEffect.ShowToast(
+                _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast(
                     e.message ?: "즐겨찾기 설정에 실패했습니다."
-                )
+                ))
             }
         }
     }

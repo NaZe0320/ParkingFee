@@ -27,7 +27,6 @@ import com.naze.parkingfee.domain.model.ParkingZone
 @Composable
 fun ParkingLotListScreen(
     viewModel: ParkingLotListViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit = {},
     onNavigateToAddParkingLot: () -> Unit = {},
     onNavigateToEditParkingLot: (zoneId: String) -> Unit = {}
 ) {

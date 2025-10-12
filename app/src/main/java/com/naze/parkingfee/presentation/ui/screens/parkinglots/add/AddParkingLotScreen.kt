@@ -51,6 +51,7 @@ fun AddParkingLotScreen(
                     // Dialog 표시 로직
                 }
                 is AddParkingLotContract.AddParkingLotEffect.NavigateBack -> {
+                    print("ASDF")
                     onNavigateBack()
                 }
                 is AddParkingLotContract.AddParkingLotEffect.OpenOcrScreen -> {

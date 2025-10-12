@@ -16,6 +16,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -36,8 +39,8 @@ class AddParkingLotViewModel @Inject constructor(
     private val _state = MutableStateFlow(AddParkingLotContract.AddParkingLotState())
     val state: StateFlow<AddParkingLotContract.AddParkingLotState> = _state.asStateFlow()
 
-    private val _effect = MutableStateFlow<AddParkingLotContract.AddParkingLotEffect?>(null)
-    val effect: StateFlow<AddParkingLotContract.AddParkingLotEffect?> = _effect.asStateFlow()
+    private val _effect = MutableSharedFlow<AddParkingLotContract.AddParkingLotEffect>()
+    val effect: SharedFlow<AddParkingLotContract.AddParkingLotEffect> = _effect.asSharedFlow()
 
     /**
      * Intent를 처리하는 메서드
@@ -69,7 +72,9 @@ class AddParkingLotViewModel @Inject constructor(
      * OCR 화면 열기
      */
     private fun openOcrScreen() {
-        _effect.value = AddParkingLotContract.AddParkingLotEffect.OpenOcrScreen
+        viewModelScope.launch {
+            _effect.emit(AddParkingLotContract.AddParkingLotEffect.OpenOcrScreen)
+        }
     }
 
     /**
@@ -195,7 +200,8 @@ class AddParkingLotViewModel @Inject constructor(
      */
     private fun saveParkingLot() {
         val currentState = _state.value
-        
+
+        print("ASDF2")
         // 재진입 방지 가드
         if (currentState.isSaving) {
             return
@@ -216,7 +222,7 @@ class AddParkingLotViewModel @Inject constructor(
 
                 if (currentState.isEditMode && currentState.editingZoneId != null) {
                     // 편집 모드: 기존 구역 업데이트
-                    val existingZone = getParkingZoneByIdUseCase.execute(currentState.editingZoneId!!)
+                    val existingZone = getParkingZoneByIdUseCase.execute(currentState.editingZoneId)
                     if (existingZone != null) {
                         val updatedZone = existingZone.copy(
                             name = if (currentState.useDefaultName) existingZone.name else currentState.parkingLotName,
@@ -254,13 +260,13 @@ class AddParkingLotViewModel @Inject constructor(
                     )
                 }
 
-                _effect.value = AddParkingLotContract.AddParkingLotEffect.ShowToast(
+                _effect.emit(AddParkingLotContract.AddParkingLotEffect.ShowToast(
                     if (currentState.isEditMode) "주차장이 성공적으로 수정되었습니다." else "주차장이 성공적으로 추가되었습니다."
-                )
+                ))
                 
                 // 잠시 후 뒤로가기
                 kotlinx.coroutines.delay(1500)
-                _effect.value = AddParkingLotContract.AddParkingLotEffect.NavigateBack
+                _effect.emit(AddParkingLotContract.AddParkingLotEffect.NavigateBack)
 
             } catch (e: Exception) {
                 _state.update { 
@@ -269,7 +275,7 @@ class AddParkingLotViewModel @Inject constructor(
                         errorMessage = e.message ?: "주차장 저장 중 오류가 발생했습니다."
                     )
                 }
-                _effect.value = AddParkingLotContract.AddParkingLotEffect.ShowToast("주차장 저장에 실패했습니다.")
+                _effect.emit(AddParkingLotContract.AddParkingLotEffect.ShowToast("주차장 저장에 실패했습니다."))
             }
         }
     }
@@ -346,7 +352,9 @@ class AddParkingLotViewModel @Inject constructor(
      * 뒤로가기
      */
     private fun navigateBack() {
-        _effect.value = AddParkingLotContract.AddParkingLotEffect.NavigateBack
+        viewModelScope.launch {
+            _effect.emit(AddParkingLotContract.AddParkingLotEffect.NavigateBack)
+        }
     }
 
     /**

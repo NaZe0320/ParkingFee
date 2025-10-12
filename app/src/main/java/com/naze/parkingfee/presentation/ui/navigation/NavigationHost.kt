@@ -1,5 +1,7 @@
 package com.naze.parkingfee.presentation.ui.navigation
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -96,9 +98,6 @@ fun NavigationHost(
             // 주차장 관리 라우트들
             composable("parkinglots/list") {
                 ParkingLotListScreen(
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    },
                     onNavigateToAddParkingLot = {
                         navController.navigate("parkinglots/add")
                     },
