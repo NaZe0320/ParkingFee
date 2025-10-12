@@ -32,6 +32,7 @@ fun HomeScreen(
     onNavigateToAddParkingLot: () -> Unit = {},
     onNavigateToZoneDetail: (String) -> Unit = {},
     onNavigateToEditZone: (String) -> Unit = {},
+    onNavigateToEditVehicle: (String) -> Unit = {},
     onStartParkingService: () -> Unit = {},
     onStopParkingService: () -> Unit = {}
 ) {
@@ -141,6 +142,16 @@ fun HomeScreen(
                     selectedVehicle = state.selectedVehicle,
                     onVehicleSelected = { vehicle ->
                         viewModel.processIntent(HomeContract.HomeIntent.SelectVehicle(vehicle))
+                    },
+                    onRequestVehicleAction = { vehicle, action ->
+                        when (action) {
+                            VehicleAction.Edit -> {
+                                onNavigateToEditVehicle(vehicle.id)
+                            }
+                            VehicleAction.Delete -> {
+                                viewModel.processIntent(HomeContract.HomeIntent.DeleteVehicle(vehicle))
+                            }
+                        }
                     },
                     isExpanded = state.isVehicleSelectorExpanded,
                     onToggleExpand = {

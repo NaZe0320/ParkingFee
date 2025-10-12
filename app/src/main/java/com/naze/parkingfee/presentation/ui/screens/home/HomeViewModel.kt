@@ -88,6 +88,7 @@ class HomeViewModel @Inject constructor(
             is HomeContract.HomeIntent.SelectVehicle -> selectVehicle(intent.vehicle)
             is HomeContract.HomeIntent.RequestZoneAction -> handleZoneAction(intent.zone, intent.action)
             is HomeContract.HomeIntent.DeleteZone -> deleteZone(intent.zoneId)
+            is HomeContract.HomeIntent.DeleteVehicle -> deleteVehicle(intent.vehicle)
             is HomeContract.HomeIntent.ToggleStatusCard -> toggleStatusCard()
             is HomeContract.HomeIntent.ToggleVehicleSelector -> toggleVehicleSelector()
             is HomeContract.HomeIntent.ToggleParkingZoneSelector -> toggleParkingZoneSelector()
@@ -340,11 +341,44 @@ class HomeViewModel @Inject constructor(
     }
     
     /**
+     * 차량을 삭제합니다.
+     */
+    private fun deleteVehicle(vehicle: com.naze.parkingfee.domain.model.vehicle.Vehicle) {
+        viewModelScope.launch {
+            try {
+                vehicleRepository.deleteVehicle(vehicle.id)
+                
+                // 현재 선택된 차량이 삭제된 차량이면 선택 해제
+                val currentVehicle = _state.value.selectedVehicle
+                if (currentVehicle?.id == vehicle.id) {
+                    selectedVehicleRepository.setSelectedVehicleId(null)
+                    _state.update { it.copy(selectedVehicle = null) }
+                }
+                
+                // 차량 목록 새로고침
+                refreshParkingInfo()
+                _effect.emit(HomeContract.HomeEffect.ShowToast("차량이 삭제되었습니다."))
+            } catch (e: Exception) {
+                _effect.emit(HomeContract.HomeEffect.ShowToast("삭제 중 오류가 발생했습니다: ${e.message}"))
+            }
+        }
+    }
+    
+    /**
      * 차량을 선택합니다.
      */
     private fun selectVehicle(vehicle: com.naze.parkingfee.domain.model.vehicle.Vehicle) {
         viewModelScope.launch {
             try {
+                val currentVehicle = _state.value.selectedVehicle
+                
+                // 이미 선택된 차량을 다시 클릭하면 선택 해제
+                if (currentVehicle?.id == vehicle.id) {
+                    selectedVehicleRepository.setSelectedVehicleId(null)
+                    _state.update { it.copy(selectedVehicle = null) }
+                    return@launch
+                }
+                
                 // 선택된 차량을 저장
                 selectedVehicleRepository.setSelectedVehicleId(vehicle.id)
                 

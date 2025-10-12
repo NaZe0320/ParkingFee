@@ -18,6 +18,7 @@ object ParkingLotListContract {
         // 네비게이션
         object NavigateToAddParkingLot : ParkingLotListIntent()
         data class NavigateToEditParkingLot(val zoneId: String) : ParkingLotListIntent()
+        data class NavigateToDetailParkingLot(val zoneId: String) : ParkingLotListIntent()
         
         // 주차장 관리
         data class SelectParkingLot(val zoneId: String) : ParkingLotListIntent()
@@ -36,7 +37,7 @@ object ParkingLotListContract {
         val selectedParkingLotId: String? = null,
         val isLoading: Boolean = false,
         val errorMessage: String? = null,
-        val sortOrder: SortOrder = SortOrder.NAME
+        val sortOrder: SortOrder = SortOrder.FAVORITE
     )
 
     /**
@@ -46,6 +47,7 @@ object ParkingLotListContract {
         data class ShowToast(val message: String) : ParkingLotListEffect()
         object NavigateToAddParkingLot : ParkingLotListEffect()
         data class NavigateToEditParkingLot(val zoneId: String) : ParkingLotListEffect()
+        data class NavigateToDetailParkingLot(val zoneId: String) : ParkingLotListEffect()
         data class ShowDeleteConfirmation(val zoneId: String, val zoneName: String) : ParkingLotListEffect()
     }
 

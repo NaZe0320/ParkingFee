@@ -23,8 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.naze.parkingfee.domain.model.ParkingZone
-import com.naze.parkingfee.presentation.ui.screens.home.components.ZoneItem
 import com.naze.parkingfee.presentation.ui.screens.home.components.ZoneAction
+import com.naze.parkingfee.presentation.ui.screens.parkinglots.list.components.ParkingLotItem
 
 
 /**
@@ -89,12 +89,21 @@ fun ParkingZoneSelector(
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                zones.forEach { zone ->
-                    ZoneItem(
-                        zone = zone,
+                val sortedZones = zones.sortedWith(
+                    compareByDescending<ParkingZone> { it.isFavorite }
+                        .thenBy { it.name }
+                )
+                sortedZones.forEach { zone ->
+                    ParkingLotItem(
+                        parkingLot = zone,
                         isSelected = selectedZone?.id == zone.id,
-                        onZoneSelected = onZoneSelected,
-                        onRequestZoneAction = onRequestZoneAction
+                        onSelectClick = { onZoneSelected(zone) },
+                        onEditClick = { onRequestZoneAction(zone, ZoneAction.Edit) },
+                        onDeleteClick = { onRequestZoneAction(zone, ZoneAction.Delete) },
+                        onDetailClick = { onRequestZoneAction(zone, ZoneAction.Detail) },
+                        onFavoriteClick = {}, // 홈 화면에서는 사용 안함
+                        showFavoriteButton = false, // 즐겨찾기 버튼 숨김
+                        showMenuButton = true // 더보기 버튼 표시
                     )
                 }
             }

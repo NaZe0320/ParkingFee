@@ -66,6 +66,11 @@ class ParkingLotListViewModel @Inject constructor(
                     _effect.emit(ParkingLotListContract.ParkingLotListEffect.NavigateToEditParkingLot(intent.zoneId))
                 }
             }
+            is ParkingLotListContract.ParkingLotListIntent.NavigateToDetailParkingLot -> {
+                viewModelScope.launch {
+                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.NavigateToDetailParkingLot(intent.zoneId))
+                }
+            }
             is ParkingLotListContract.ParkingLotListIntent.SelectParkingLot -> {
                 selectParkingLot(intent.zoneId)
             }

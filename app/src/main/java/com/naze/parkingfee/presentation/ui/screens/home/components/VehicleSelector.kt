@@ -18,7 +18,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.naze.parkingfee.domain.model.vehicle.Vehicle
-import com.naze.parkingfee.presentation.ui.screens.home.components.VehicleItem
+import com.naze.parkingfee.presentation.ui.screens.vehicles.list.components.VehicleItem
+
+/**
+ * 차량 액션 타입
+ */
+enum class VehicleAction {
+    Edit, Delete
+}
 
 /**
  * 차량 선택 컴포넌트
@@ -28,6 +35,7 @@ fun VehicleSelector(
     vehicles: List<Vehicle>,
     selectedVehicle: Vehicle?,
     onVehicleSelected: (Vehicle) -> Unit,
+    onRequestVehicleAction: (Vehicle, VehicleAction) -> Unit = { _, _ -> },
     isExpanded: Boolean = true,
     onToggleExpand: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -88,7 +96,10 @@ fun VehicleSelector(
                     VehicleItem(
                         vehicle = vehicle,
                         isSelected = selectedVehicle?.id == vehicle.id,
-                        onVehicleSelected = onVehicleSelected
+                        onSelectClick = { onVehicleSelected(vehicle) },
+                        onEditClick = { onRequestVehicleAction(vehicle, VehicleAction.Edit) },
+                        onDeleteClick = { onRequestVehicleAction(vehicle, VehicleAction.Delete) },
+                        showMenuButton = true // 더보기 버튼 표시
                     )
                 }
             }

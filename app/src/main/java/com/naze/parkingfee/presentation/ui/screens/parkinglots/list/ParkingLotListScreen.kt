@@ -29,7 +29,8 @@ import com.naze.parkingfee.presentation.ui.screens.parkinglots.list.components.P
 fun ParkingLotListScreen(
     viewModel: ParkingLotListViewModel = hiltViewModel(),
     onNavigateToAddParkingLot: () -> Unit = {},
-    onNavigateToEditParkingLot: (zoneId: String) -> Unit = {}
+    onNavigateToEditParkingLot: (zoneId: String) -> Unit = {},
+    onNavigateToDetailParkingLot: (zoneId: String) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
@@ -52,6 +53,9 @@ fun ParkingLotListScreen(
                 }
                 is ParkingLotListContract.ParkingLotListEffect.NavigateToEditParkingLot -> {
                     onNavigateToEditParkingLot(currentEffect.zoneId)
+                }
+                is ParkingLotListContract.ParkingLotListEffect.NavigateToDetailParkingLot -> {
+                    onNavigateToDetailParkingLot(currentEffect.zoneId)
                 }
                 is ParkingLotListContract.ParkingLotListEffect.ShowDeleteConfirmation -> {
                     parkingLotToDelete = Pair(currentEffect.zoneId, currentEffect.zoneName)
@@ -157,9 +161,14 @@ fun ParkingLotListScreen(
                             onDeleteClick = { 
                                 viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.DeleteParkingLot(parkingLot.id))
                             },
+                            onDetailClick = {
+                                viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.NavigateToDetailParkingLot(parkingLot.id))
+                            },
                             onFavoriteClick = {
                                 viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.ToggleFavorite(parkingLot.id))
-                            }
+                            },
+                            showFavoriteButton = true,
+                            showMenuButton = true
                         )
                     }
                 }

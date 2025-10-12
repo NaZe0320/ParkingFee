@@ -3,6 +3,7 @@ package com.naze.parkingfee.presentation.ui.screens.parkinglots.list.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -26,14 +27,20 @@ fun ParkingLotItem(
     onSelectClick: () -> Unit,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    onFavoriteClick: () -> Unit
+    onDetailClick: () -> Unit,
+    onFavoriteClick: () -> Unit,
+    showFavoriteButton: Boolean = true,
+    showMenuButton: Boolean = true
 ) {
     var showMenu by remember { mutableStateOf(false) }
     
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSelectClick() },
+            .combinedClickable(
+                onClick = { onSelectClick() },
+                onLongClick = { if (showMenuButton) showMenu = true }
+            ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) {
@@ -155,60 +162,71 @@ fun ParkingLotItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // 즐겨찾기 버튼
-                IconButton(
-                    onClick = onFavoriteClick,
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        if (parkingLot.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                        contentDescription = if (parkingLot.isFavorite) "즐겨찾기 해제" else "즐겨찾기",
-                        tint = if (parkingLot.isFavorite) {
-                            MaterialTheme.colorScheme.primary
-                        } else if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
-                }
-                
-                // 더보기 메뉴 버튼
-                Box {
+                // 즐겨찾기 버튼 (조건부 표시)
+                if (showFavoriteButton) {
                     IconButton(
-                        onClick = { showMenu = true },
+                        onClick = onFavoriteClick,
                         modifier = Modifier.size(24.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "더보기",
-                            tint = if (isSelected) {
+                            if (parkingLot.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
+                            contentDescription = if (parkingLot.isFavorite) "즐겨찾기 해제" else "즐겨찾기",
+                            tint = if (parkingLot.isFavorite) {
+                                MaterialTheme.colorScheme.primary
+                            } else if (isSelected) {
                                 MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                            modifier = Modifier.size(18.dp)
+                            }
                         )
                     }
-                    
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("편집") },
-                            onClick = {
-                                showMenu = false
-                                onEditClick()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("삭제") },
-                            onClick = {
-                                showMenu = false
-                                onDeleteClick()
-                            }
-                        )
+                }
+                
+                // 더보기 메뉴 버튼 (조건부 표시)
+                if (showMenuButton) {
+                    Box {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "더보기",
+                                tint = if (isSelected) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("상세") },
+                                onClick = {
+                                    showMenu = false
+                                    onDetailClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("편집") },
+                                onClick = {
+                                    showMenu = false
+                                    onEditClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("삭제") },
+                                onClick = {
+                                    showMenu = false
+                                    onDeleteClick()
+                                }
+                            )
+                        }
                     }
                 }
             }
