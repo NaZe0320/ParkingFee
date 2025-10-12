@@ -1,14 +1,11 @@
 package com.naze.parkingfee.presentation.ui.screens.history
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -256,7 +253,7 @@ private fun HistoryItem(
             
             // 날짜/시간 정보
             Text(
-                text = history.getFormattedStartDate(),
+                text = history.getFormattedDate(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color(0xFF666666) // 회색 텍스트
             )
