@@ -26,14 +26,4 @@ interface ParkingHistoryRepository {
      * 특정 주차 기록 삭제
      */
     suspend fun deleteParkingHistory(id: String)
-    
-    /**
-     * 모든 주차 기록 삭제
-     */
-    suspend fun deleteAllParkingHistories()
-    
-    /**
-     * 특정 구역의 주차 기록 조회
-     */
-    fun getParkingHistoriesByZoneId(zoneId: String): Flow<List<ParkingHistory>>
 }

@@ -35,13 +35,4 @@ class ParkingHistoryRepositoryImpl @Inject constructor(
     override suspend fun deleteParkingHistory(id: String) {
         parkingHistoryDao.deleteParkingHistoryById(id)
     }
-    
-    override suspend fun deleteAllParkingHistories() {
-        parkingHistoryDao.deleteAllParkingHistories()
-    }
-    
-    override fun getParkingHistoriesByZoneId(zoneId: String): Flow<List<ParkingHistory>> {
-        return parkingHistoryDao.getParkingHistoriesByZoneId(zoneId)
-            .map { entities -> ParkingHistoryMapper.toDomainList(entities) }
-    }
 }
