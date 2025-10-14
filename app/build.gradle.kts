@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.dagger.hilt.android")
     id("kotlin-kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -42,6 +43,12 @@ android {
 }
 
 dependencies {
+    // Firebase BOM
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    
+    // Firebase Firestore
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48")
     implementation(libs.androidx.ui)
