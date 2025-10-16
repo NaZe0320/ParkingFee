@@ -2,6 +2,8 @@ package com.naze.parkingfee.presentation.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.naze.parkingfee.data.datasource.local.blockstore.BlockStoreDataSource
+import com.naze.parkingfee.domain.usecase.DeleteUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +20,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    // UseCase 주입 예정
+    private val deleteUserUseCase: DeleteUserUseCase,
+    private val blockStoreDataSource: BlockStoreDataSource
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsContract.SettingsState())
@@ -39,6 +42,8 @@ class SettingsViewModel @Inject constructor(
             is SettingsContract.SettingsIntent.NavigateToVehicleManagement -> navigateToVehicleManagement()
             is SettingsContract.SettingsIntent.NavigateToParkingLotManagement -> navigateToParkingLotManagement()
             is SettingsContract.SettingsIntent.NavigateBack -> navigateBack()
+            is SettingsContract.SettingsIntent.ShowDeleteUserDialog -> showDeleteUserDialog()
+            is SettingsContract.SettingsIntent.DeleteUser -> deleteUser()
         }
     }
 
@@ -46,13 +51,25 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             
-            // 설정 로드 로직
-            _state.update { 
-                it.copy(
-                    isLoading = false,
-                    notificationEnabled = true,
-                    autoStopEnabled = false
-                )
+            try {
+                // 사용자 ID 조회
+                val userId = blockStoreDataSource.getOrCreateUserId()
+                
+                _state.update { 
+                    it.copy(
+                        isLoading = false,
+                        notificationEnabled = true,
+                        autoStopEnabled = false,
+                        userId = userId
+                    )
+                }
+            } catch (exception: Exception) {
+                _state.update { 
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "설정 로드 실패: ${exception.message}"
+                    )
+                }
             }
         }
     }
@@ -86,6 +103,40 @@ class SettingsViewModel @Inject constructor(
     private fun navigateToParkingLotManagement() {
         viewModelScope.launch {
             _effect.emit(SettingsContract.SettingsEffect.NavigateToParkingLotManagement)
+        }
+    }
+
+    private fun showDeleteUserDialog() {
+        viewModelScope.launch {
+            _state.update { it.copy(showDeleteDialog = true) }
+        }
+    }
+
+    private fun deleteUser() {
+        viewModelScope.launch {
+            _state.update { it.copy(isDeleting = true) }
+            
+            try {
+                val result = deleteUserUseCase.execute()
+                if (result.isSuccess) {
+                    _effect.emit(SettingsContract.SettingsEffect.UserDeleted)
+                    _effect.emit(SettingsContract.SettingsEffect.ShowToast("계정이 삭제되었습니다."))
+                } else {
+                    _state.update { 
+                        it.copy(
+                            isDeleting = false,
+                            errorMessage = "계정 삭제 실패: ${result.exceptionOrNull()?.message}"
+                        )
+                    }
+                }
+            } catch (exception: Exception) {
+                _state.update { 
+                    it.copy(
+                        isDeleting = false,
+                        errorMessage = "계정 삭제 중 오류 발생: ${exception.message}"
+                    )
+                }
+            }
         }
     }
 }

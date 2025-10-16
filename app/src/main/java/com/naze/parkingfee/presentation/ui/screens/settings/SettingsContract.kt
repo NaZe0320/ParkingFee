@@ -12,13 +12,18 @@ object SettingsContract {
         object NavigateToVehicleManagement : SettingsIntent()
         object NavigateToParkingLotManagement : SettingsIntent()
         object NavigateBack : SettingsIntent()
+        object ShowDeleteUserDialog : SettingsIntent()
+        object DeleteUser : SettingsIntent()
     }
 
     data class SettingsState(
         val isLoading: Boolean = false,
         val notificationEnabled: Boolean = true,
         val autoStopEnabled: Boolean = false,
-        val errorMessage: String? = null
+        val errorMessage: String? = null,
+        val userId: String? = null,
+        val showDeleteDialog: Boolean = false,
+        val isDeleting: Boolean = false
     )
 
     sealed class SettingsEffect {
@@ -26,5 +31,6 @@ object SettingsContract {
         object NavigateBack : SettingsEffect()
         object NavigateToVehicleManagement : SettingsEffect()
         object NavigateToParkingLotManagement : SettingsEffect()
+        object UserDeleted : SettingsEffect()
     }
 }

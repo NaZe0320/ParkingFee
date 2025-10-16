@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
-        
+
         setContent {
             ParkingFeeTheme {
                 Surface(
@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-    
+
     override fun onStart() {
         super.onStart()
         // 앱 복귀 시 활성 세션과 알림 동기화

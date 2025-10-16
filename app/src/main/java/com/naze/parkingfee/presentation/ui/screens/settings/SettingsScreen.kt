@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,6 +42,10 @@ fun SettingsScreen(
                 }
                 is SettingsContract.SettingsEffect.NavigateToParkingLotManagement -> {
                     onNavigateToParkingLotManagement()
+                }
+                is SettingsContract.SettingsEffect.UserDeleted -> {
+                    // 사용자 삭제 완료 - 앱 재시작 또는 로그인 화면으로 이동
+                    onNavigateBack()
                 }
             }
         }
@@ -261,5 +266,86 @@ fun SettingsScreen(
                 )
             }
         }
+
+        // 하단 영역
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // UUID 표시 (좌측 하단)
+            state.userId?.let { userId ->
+                Text(
+                    text = "ID: ${userId}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start
+                )
+            }
+
+            // 탈퇴 버튼 (빨간색)
+            TextButton(
+                onClick = { viewModel.processIntent(SettingsContract.SettingsIntent.ShowDeleteUserDialog) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text(
+                    text = "계정 탈퇴",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
+
+    // 탈퇴 확인 다이얼로그
+    if (state.showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                viewModel.processIntent(SettingsContract.SettingsIntent.LoadSettings)
+            },
+            title = {
+                Text(
+                    text = "계정 탈퇴",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "정말로 계정을 탈퇴하시겠습니까?\n\n탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { viewModel.processIntent(SettingsContract.SettingsIntent.DeleteUser) },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    ),
+                    enabled = !state.isDeleting
+                ) {
+                    if (state.isDeleting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("탈퇴")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { 
+                        viewModel.processIntent(SettingsContract.SettingsIntent.LoadSettings)
+                    }
+                ) {
+                    Text("취소")
+                }
+            }
+        )
     }
 }
