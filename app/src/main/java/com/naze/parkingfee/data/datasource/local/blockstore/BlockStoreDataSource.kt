@@ -75,6 +75,7 @@ class BlockStoreDataSource @Inject constructor(
         val newUserIdBytes = newUserId.toByteArray(Charsets.UTF_8)
 
         val storeRequest = StoreBytesData.Builder()
+            .setShouldBackupToCloud(true)
             .setBytes(newUserIdBytes)
             .setKey(USER_ID_KEY)
             .build()
