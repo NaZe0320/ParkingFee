@@ -8,6 +8,7 @@ import com.naze.parkingfee.data.datasource.local.entity.ParkingSessionEntity
 import com.naze.parkingfee.data.mapper.ParkingZoneMapper
 import com.naze.parkingfee.data.mapper.ParkingSessionMapper
 import com.naze.parkingfee.utils.FeeCalculator
+import com.naze.parkingfee.utils.UuidUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -160,6 +161,6 @@ class ParkingRepositoryImpl @Inject constructor(
     }
 
     private fun generateSessionId(): String {
-        return "session_${System.currentTimeMillis()}_${(1000..9999).random()}"
+        return UuidUtils.generateUUID()
     }
 }

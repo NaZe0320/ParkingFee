@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
+import com.naze.parkingfee.utils.UuidUtils
 import javax.inject.Inject
 
 /**
@@ -241,7 +241,7 @@ class AddParkingLotViewModel @Inject constructor(
                     val nextSequenceNumber = existingZones.size + 1
 
                     val parkingZone = ParkingZone(
-                        id = UUID.randomUUID().toString(),
+                        id = UuidUtils.generateUUID(),
                         name = if (currentState.parkingLotName.isBlank()) "주차장$nextSequenceNumber" else currentState.parkingLotName,
                         hourlyRate = calculateHourlyRate(currentState),
                         maxCapacity = 100,

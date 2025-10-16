@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.UUID
+import com.naze.parkingfee.utils.UuidUtils
 import javax.inject.Inject
 
 /**
@@ -219,7 +219,7 @@ class AddVehicleViewModel @Inject constructor(
         } else null
         
         return Vehicle(
-            id = currentState.vehicleId ?: UUID.randomUUID().toString(),
+            id = currentState.vehicleId ?: UuidUtils.generateUUID(),
             name = vehicleName,
             plateNumber = currentState.plateNumber.takeIf { it.isNotBlank() },
             discountEligibilities = VehicleDiscountEligibilities(

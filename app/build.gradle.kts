@@ -94,4 +94,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Block Store (Play Services)
+    implementation("com.google.android.gms:play-services-auth-blockstore:16.4.0")
 }
