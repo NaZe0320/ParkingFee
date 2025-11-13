@@ -58,7 +58,6 @@ object HomeContract {
         data class NavigateTo(val route: String) : HomeEffect()
         data class NavigateToZoneDetail(val zoneId: String) : HomeEffect()
         data class NavigateToEditZone(val zoneId: String) : HomeEffect()
-        data class ShowDialog(val title: String, val message: String) : HomeEffect()
         data class ShowDeleteConfirmDialog(val zoneId: String, val zoneName: String) : HomeEffect()
         data class ShowParkingCompleteDialog(
             val zoneName: String,

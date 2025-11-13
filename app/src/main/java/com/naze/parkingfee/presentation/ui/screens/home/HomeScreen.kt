@@ -75,9 +75,6 @@ fun HomeScreen(
                 is HomeContract.HomeEffect.NavigateToEditZone -> {
                     onNavigateToEditZone(currentEffect.zoneId)
                 }
-                is HomeContract.HomeEffect.ShowDialog -> {
-                    // Dialog 표시 로직
-                }
                 is HomeContract.HomeEffect.ShowDeleteConfirmDialog -> {
                     pendingDeleteZoneId = currentEffect.zoneId
                     pendingDeleteZoneName = currentEffect.zoneName
