@@ -13,12 +13,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.naze.parkingfee.domain.model.ParkingZone
+import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.screens.parkinglots.list.components.ParkingLotItem
 
 /**
@@ -34,6 +36,7 @@ fun ParkingLotListScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
     
     // ViewModel init에서 자동 로드되므로 별도 새로고침 불필요
     
@@ -46,7 +49,7 @@ fun ParkingLotListScreen(
         effect?.let { currentEffect ->
             when (currentEffect) {
                 is ParkingLotListContract.ParkingLotListEffect.ShowToast -> {
-                    // Toast 표시 로직
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is ParkingLotListContract.ParkingLotListEffect.NavigateToAddParkingLot -> {
                     onNavigateToAddParkingLot()

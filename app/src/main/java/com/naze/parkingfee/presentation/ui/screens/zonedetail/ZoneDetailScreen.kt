@@ -11,10 +11,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
 
 /**
@@ -31,6 +33,7 @@ fun ZoneDetailScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
     
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -44,7 +47,7 @@ fun ZoneDetailScreen(
         effect?.let { currentEffect ->
             when (currentEffect) {
                 is ZoneDetailContract.ZoneDetailEffect.ShowToast -> {
-                    // Toast 표시 로직
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is ZoneDetailContract.ZoneDetailEffect.NavigateToEdit -> {
                     onNavigateToEdit(currentEffect.zoneId)

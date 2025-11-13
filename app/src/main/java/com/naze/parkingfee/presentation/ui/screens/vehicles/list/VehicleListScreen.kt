@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -25,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.screens.vehicles.list.components.VehicleItem
 
 /**
@@ -40,6 +42,7 @@ fun VehicleListScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
     
     // 화면이 다시 포커스될 때 자동 새로고침
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -63,7 +66,7 @@ fun VehicleListScreen(
         effect?.let { currentEffect ->
             when (currentEffect) {
                 is VehicleListContract.VehicleListEffect.ShowToast -> {
-                    // Toast 표시 로직
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is VehicleListContract.VehicleListEffect.NavigateBack -> {
                     onNavigateBack()

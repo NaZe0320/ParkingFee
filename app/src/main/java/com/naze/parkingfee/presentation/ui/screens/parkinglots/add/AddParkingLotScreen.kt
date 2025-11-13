@@ -8,9 +8,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.screens.parkinglots.add.components.*
 
 /**
@@ -27,6 +29,7 @@ fun AddParkingLotScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
 
     // 편집 모드 초기화
     LaunchedEffect(zoneId) {
@@ -42,7 +45,7 @@ fun AddParkingLotScreen(
         effect?.let { currentEffect ->
             when (currentEffect) {
                 is AddParkingLotContract.AddParkingLotEffect.ShowToast -> {
-                    // Toast 표시 로직 (Snackbar 등)
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is AddParkingLotContract.AddParkingLotEffect.NavigateTo -> {
                     when (currentEffect.route) {

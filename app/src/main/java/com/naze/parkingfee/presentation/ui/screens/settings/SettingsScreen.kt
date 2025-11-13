@@ -8,10 +8,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.naze.parkingfee.infrastructure.notification.ToastManager
 
 /**
  * 설정 화면
@@ -26,12 +28,13 @@ fun SettingsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
 
     LaunchedEffect(effect) {
         effect?.let { currentEffect ->
             when (currentEffect) {
                 is SettingsContract.SettingsEffect.ShowToast -> {
-                    // Toast 표시
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is SettingsContract.SettingsEffect.NavigateBack -> {
                     onNavigateBack()

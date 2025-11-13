@@ -7,9 +7,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.screens.settings.vehicles.add.components.*
 
 /**
@@ -25,6 +27,7 @@ fun AddVehicleScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
     
     // 편집 모드 초기화
     LaunchedEffect(vehicleId) {
@@ -40,7 +43,7 @@ fun AddVehicleScreen(
         effect?.let { currentEffect ->
             when (currentEffect) {
                 is AddVehicleContract.AddVehicleEffect.ShowToast -> {
-                    // Toast 표시 로직
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is AddVehicleContract.AddVehicleEffect.NavigateBack -> {
                     onNavigateBack()

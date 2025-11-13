@@ -10,12 +10,14 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.screens.home.components.*
 import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
 
@@ -37,6 +39,7 @@ fun HomeScreen(
     onStopParkingService: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     // 삭제 확인 다이얼로그 상태
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -57,7 +60,7 @@ fun HomeScreen(
         viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is HomeContract.HomeEffect.ShowToast -> {
-                    // Toast 표시 로직 (Snackbar 등)
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is HomeContract.HomeEffect.NavigateTo -> {
                     when (currentEffect.route) {

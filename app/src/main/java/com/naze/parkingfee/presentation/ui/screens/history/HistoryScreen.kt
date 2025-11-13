@@ -13,12 +13,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.naze.parkingfee.domain.model.ParkingHistory
+import com.naze.parkingfee.infrastructure.notification.ToastManager
 
 /**
  * 주차 기록 화면
@@ -31,6 +33,7 @@ fun HistoryScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
     
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
@@ -41,7 +44,7 @@ fun HistoryScreen(
         effect?.let { currentEffect ->
             when (currentEffect) {
                 is HistoryContract.HistoryEffect.ShowToast -> {
-                    // Toast 표시 로직
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is HistoryContract.HistoryEffect.NavigateBack -> {
                     onNavigateBack()
