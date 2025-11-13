@@ -102,8 +102,10 @@ fun ParkingFeeTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
+            // Edge-to-Edge를 사용하되 상태 바를 불투명하게 설정
+            WindowCompat.setDecorFitsSystemWindows(window, false)
             window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 
