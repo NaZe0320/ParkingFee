@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.naze.parkingfee.domain.model.ParkingSession
+import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.utils.TimeUtils
 import com.naze.parkingfee.utils.FeeResult
 
@@ -34,7 +35,9 @@ fun ParkingStatusCard(
     zoneName: String? = null,
     isExpanded: Boolean = true,
     onToggleExpand: () -> Unit = {},
-    controlButtons: @Composable () -> Unit = {},
+    selectedZone: ParkingZone? = null,
+    onStartParking: (String) -> Unit = {},
+    onStopParking: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -93,21 +96,66 @@ fun ParkingStatusCard(
                     )
                 }
                 
-                // 접기/펼치기 버튼
-                IconButton(
-                    onClick = onToggleExpand,
-                    modifier = Modifier.size(32.dp)
+                // 접힌 상태일 때 시작/정지 버튼과 확장 버튼
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = if (isExpanded) "접기" else "펼치기",
-                        modifier = Modifier.size(20.dp),
-                        tint = if (isActive) {
-                            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                    // 접힌 상태일 때만 작은 시작/정지 버튼 표시
+                    if (!isExpanded) {
+                        FilledTonalButton(
+                            onClick = {
+                                if (!isActive) {
+                                    selectedZone?.let { zone ->
+                                        onStartParking(zone.id)
+                                    }
+                                } else {
+                                    session?.let { s ->
+                                        onStopParking(s.id)
+                                    }
+                                }
+                            },
+                                enabled = if (!isActive) selectedZone != null else session != null,
+                            modifier = Modifier.width(56.dp).height(32.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = if (isActive) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                }
+                            ),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = if (isActive) "종료" else "시작",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isActive) {
+                                    MaterialTheme.colorScheme.onError
+                                } else {
+                                    MaterialTheme.colorScheme.onPrimary
+                                }
+                            )
                         }
-                    )
+                    }
+                    
+                    // 접기/펼치기 버튼
+                    IconButton(
+                        onClick = onToggleExpand,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = if (isExpanded) "접기" else "펼치기",
+                            modifier = Modifier.size(20.dp),
+                            tint = if (isActive) {
+                                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    }
                 }
             }
             
@@ -291,7 +339,13 @@ fun ParkingStatusCard(
                 
                 // 제어 버튼들
                 Spacer(modifier = Modifier.height(20.dp))
-                controlButtons()
+                ParkingControlButtons(
+                    isParkingActive = isActive,
+                    selectedZone = selectedZone,
+                    activeSession = session,
+                    onStartParking = onStartParking,
+                    onStopParking = onStopParking
+                )
             }
         }
     }

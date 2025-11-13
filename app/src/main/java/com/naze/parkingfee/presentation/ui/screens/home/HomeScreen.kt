@@ -119,18 +119,12 @@ fun HomeScreen(
             onToggleExpand = {
                 viewModel.processIntent(HomeContract.HomeIntent.ToggleStatusCard)
             },
-            controlButtons = {
-                ParkingControlButtons(
-                    isParkingActive = state.isParkingActive,
-                    selectedZone = state.currentZone,
-                    activeSession = state.activeParkingSession,
-                    onStartParking = { zoneId ->
-                        viewModel.processIntent(HomeContract.HomeIntent.StartParking(zoneId))
-                    },
-                    onStopParking = { sessionId ->
-                        viewModel.processIntent(HomeContract.HomeIntent.StopParking(sessionId))
-                    }
-                )
+            selectedZone = state.currentZone,
+            onStartParking = { zoneId ->
+                viewModel.processIntent(HomeContract.HomeIntent.StartParking(zoneId))
+            },
+            onStopParking = { sessionId ->
+                viewModel.processIntent(HomeContract.HomeIntent.StopParking(sessionId))
             }
         )
 
