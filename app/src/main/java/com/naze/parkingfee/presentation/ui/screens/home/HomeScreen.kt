@@ -37,7 +37,6 @@ fun HomeScreen(
     onStopParkingService: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
 
     // 삭제 확인 다이얼로그 상태
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -53,9 +52,9 @@ fun HomeScreen(
         viewModel.processIntent(HomeContract.HomeIntent.RefreshParkingInfo)
     }
 
-    // Effect 처리
-    LaunchedEffect(effect) {
-        effect?.let { currentEffect ->
+    // Effect 처리 - SharedFlow를 직접 collect
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is HomeContract.HomeEffect.ShowToast -> {
                     // Toast 표시 로직 (Snackbar 등)
