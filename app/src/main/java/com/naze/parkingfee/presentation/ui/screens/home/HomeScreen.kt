@@ -95,12 +95,16 @@ fun HomeScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize()
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
         // 고정 영역 - 주차 상태 카드
         ParkingStatusCard(
             isActive = state.isParkingActive,
@@ -132,8 +136,14 @@ fun HomeScreen(
 
         // 스크롤 가능 영역
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(
+                top = 0.dp,
+                start = 0.dp,
+                end = 0.dp,
+                bottom = 16.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // 차량 선택 섹션
             item {
@@ -190,8 +200,8 @@ fun HomeScreen(
                 }
             }
         }
+        }
     }
-
 
     // 삭제 확인 다이얼로그
     DeleteConfirmDialog(

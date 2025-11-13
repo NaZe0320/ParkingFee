@@ -57,7 +57,7 @@ fun NavigationHost(
         NavHost(
             navController = navController,
             startDestination = "home",
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier
         ) {
             composable("home") {
                 HomeScreen(

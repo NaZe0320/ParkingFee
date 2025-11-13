@@ -46,12 +46,16 @@ fun SettingsScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize()
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
         // 헤더
         Text(
             text = "설정",
@@ -260,6 +264,7 @@ fun SettingsScreen(
                     modifier = Modifier.size(20.dp)
                 )
             }
+        }
         }
     }
 }

@@ -82,12 +82,16 @@ fun VehicleListScreen(
         }
     }
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize()
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
         // 헤더와 추가 버튼
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -157,6 +161,12 @@ fun VehicleListScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        top = 0.dp,
+                        start = 0.dp,
+                        end = 0.dp,
+                        bottom = 16.dp
+                    ),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(state.vehicles) { vehicle ->
@@ -193,6 +203,7 @@ fun VehicleListScreen(
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
+        }
         }
     }
     

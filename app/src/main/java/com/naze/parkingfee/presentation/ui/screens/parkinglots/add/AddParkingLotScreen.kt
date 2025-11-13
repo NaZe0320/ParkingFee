@@ -3,6 +3,8 @@ package com.naze.parkingfee.presentation.ui.screens.parkinglots.add
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -64,20 +66,36 @@ fun AddParkingLotScreen(
         }
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        // OCR 진입 버튼
-        item {
-            OcrEntryButton(
-                onOcrClick = {
-                    viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.OpenOcrScreen)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("주차장 추가") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로가기")
+                    }
                 }
             )
         }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                top = paddingValues.calculateTopPadding() + 16.dp,
+                start = 16.dp,
+                end = 16.dp,
+                bottom = paddingValues.calculateBottomPadding() + 16.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+        // OCR 진입 버튼
+        // item {
+        //     OcrEntryButton(
+        //         onOcrClick = {
+        //             viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.OpenOcrScreen)
+        //         }
+        //     )
+        // }
 
         // 주차장 기본 정보
         item {
@@ -197,6 +215,7 @@ fun AddParkingLotScreen(
                     )
                 }
             }
+        }
         }
     }
 }
