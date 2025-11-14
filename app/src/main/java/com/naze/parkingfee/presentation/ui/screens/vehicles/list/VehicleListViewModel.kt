@@ -63,7 +63,7 @@ class VehicleListViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             
             try {
-                val vehicles = getVehiclesUseCase()
+                val vehicles = getVehiclesUseCase.execute()
                 _state.update { 
                     it.copy(
                         isLoading = false,
@@ -115,7 +115,7 @@ class VehicleListViewModel @Inject constructor(
     fun confirmDeleteVehicle(vehicleId: String) {
         viewModelScope.launch {
             try {
-                val result = deleteVehicleUseCase(vehicleId)
+                val result = deleteVehicleUseCase.execute(vehicleId)
                 if (result.isSuccess) {
                     _effect.emit(VehicleListContract.VehicleListEffect.ShowToast("차량이 삭제되었습니다."))
                     loadVehicles() // 목록 새로고침

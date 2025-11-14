@@ -106,9 +106,9 @@ class AddVehicleViewModel @Inject constructor(
                 val vehicle = createVehicleFromState()
                 
                 val result = if (_state.value.isEditMode) {
-                    updateVehicleUseCase(vehicle)
+                    updateVehicleUseCase.execute(vehicle)
                 } else {
-                    addVehicleUseCase(vehicle)
+                    addVehicleUseCase.execute(vehicle)
                 }
                 
                 if (result.isSuccess) {
