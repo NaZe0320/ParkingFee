@@ -2,8 +2,8 @@ package com.naze.parkingfee.presentation.ui.screens.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.naze.parkingfee.domain.usecase.GetParkingHistoriesUseCase
-import com.naze.parkingfee.domain.usecase.DeleteParkingHistoryUseCase
+import com.naze.parkingfee.domain.usecase.parkinghistory.GetParkingHistoryUseCase
+import com.naze.parkingfee.domain.usecase.parkinghistory.DeleteParkingHistoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +20,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
-    private val getParkingHistoriesUseCase: GetParkingHistoriesUseCase,
+    private val getParkingHistoryUseCase: GetParkingHistoryUseCase,
     private val deleteParkingHistoryUseCase: DeleteParkingHistoryUseCase
 ) : ViewModel() {
 
@@ -51,7 +51,7 @@ class HistoryViewModel @Inject constructor(
             try {
                 _state.update { it.copy(isLoading = true, errorMessage = null) }
                 
-                getParkingHistoriesUseCase.execute().collect { histories ->
+                getParkingHistoryUseCase.execute().collect { histories ->
                     _state.update { 
                         it.copy(
                             isLoading = false,

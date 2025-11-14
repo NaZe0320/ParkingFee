@@ -6,8 +6,8 @@ import com.naze.parkingfee.domain.common.discount.DiscountEligibility
 import com.naze.parkingfee.domain.common.discount.VehicleDiscountEligibilities
 import com.naze.parkingfee.domain.model.vehicle.Vehicle
 import com.naze.parkingfee.domain.repository.VehicleRepository
-import com.naze.parkingfee.domain.usecase.GetSelectedVehicleIdUseCase
-import com.naze.parkingfee.domain.usecase.SetSelectedVehicleIdUseCase
+import com.naze.parkingfee.domain.usecase.selectedvehicle.GetSelectedVehicleIdUseCase
+import com.naze.parkingfee.domain.usecase.selectedvehicle.SetSelectedVehicleIdUseCase
 import com.naze.parkingfee.domain.usecase.vehicle.AddVehicleUseCase
 import com.naze.parkingfee.domain.usecase.vehicle.UpdateVehicleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

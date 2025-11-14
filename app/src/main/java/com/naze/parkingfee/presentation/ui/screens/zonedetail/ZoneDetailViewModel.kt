@@ -2,8 +2,8 @@ package com.naze.parkingfee.presentation.ui.screens.zonedetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.naze.parkingfee.domain.usecase.GetParkingZoneByIdUseCase
-import com.naze.parkingfee.domain.usecase.DeleteParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZoneByIdUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.DeleteParkingZoneUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -116,7 +116,7 @@ class ZoneDetailViewModel @Inject constructor(
     fun confirmDeleteZone(zoneId: String) {
         viewModelScope.launch {
             try {
-                deleteParkingZoneUseCase.invoke(zoneId)
+                deleteParkingZoneUseCase.execute(zoneId)
                 _effect.emit(ZoneDetailContract.ZoneDetailEffect.ShowToast("구역이 삭제되었습니다."))
                 _effect.emit(ZoneDetailContract.ZoneDetailEffect.NavigateToHome)
             } catch (e: Exception) {

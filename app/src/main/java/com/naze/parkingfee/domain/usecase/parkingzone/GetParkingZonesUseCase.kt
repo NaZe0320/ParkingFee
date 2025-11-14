@@ -1,4 +1,4 @@
-package com.naze.parkingfee.domain.usecase
+package com.naze.parkingfee.domain.usecase.parkingzone
 
 import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.domain.repository.ParkingRepository
@@ -10,9 +10,8 @@ import javax.inject.Inject
 class GetParkingZonesUseCase @Inject constructor(
     private val parkingRepository: ParkingRepository
 ) {
-    suspend operator fun invoke(): List<ParkingZone> {
+    suspend fun execute(): List<ParkingZone> {
         return parkingRepository.getParkingZones()
     }
-    
-    suspend fun execute(): List<ParkingZone> = invoke()
 }
+

@@ -1,4 +1,4 @@
-package com.naze.parkingfee.domain.usecase
+package com.naze.parkingfee.domain.usecase.parkingsession
 
 import com.naze.parkingfee.domain.model.ParkingSession
 import com.naze.parkingfee.domain.model.ParkingHistory
@@ -21,7 +21,7 @@ class StopParkingUseCase @Inject constructor(
     private val selectedVehicleRepository: SelectedVehicleRepository,
     private val vehicleRepository: VehicleRepository
 ) {
-    suspend operator fun invoke(sessionId: String): ParkingSession {
+    suspend fun execute(sessionId: String): ParkingSession {
         val session = parkingRepository.stopParkingSession(sessionId)
         
         // 주차 기록 저장
@@ -29,8 +29,6 @@ class StopParkingUseCase @Inject constructor(
         
         return session
     }
-    
-    suspend fun execute(sessionId: String): ParkingSession = invoke(sessionId)
     
     private suspend fun saveParkingHistory(session: ParkingSession) {
         try {
@@ -84,3 +82,4 @@ class StopParkingUseCase @Inject constructor(
         }
     }
 }
+

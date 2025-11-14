@@ -2,16 +2,16 @@ package com.naze.parkingfee.presentation.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.naze.parkingfee.domain.usecase.StartParkingUseCase
-import com.naze.parkingfee.domain.usecase.StopParkingUseCase
-import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
-import com.naze.parkingfee.domain.usecase.GetActiveParkingSessionUseCase
-import com.naze.parkingfee.domain.usecase.DeleteParkingZoneUseCase
-import com.naze.parkingfee.domain.usecase.UpdateParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.parkingsession.StartParkingUseCase
+import com.naze.parkingfee.domain.usecase.parkingsession.StopParkingUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZonesUseCase
+import com.naze.parkingfee.domain.usecase.parkingsession.GetActiveParkingSessionUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.DeleteParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.UpdateParkingZoneUseCase
 import com.naze.parkingfee.presentation.ui.screens.home.components.ZoneAction
 import com.naze.parkingfee.utils.TimeUtils
 import com.naze.parkingfee.utils.FeeCalculator
-import com.naze.parkingfee.domain.usecase.GetSelectedVehicleIdUseCase
+import com.naze.parkingfee.domain.usecase.selectedvehicle.GetSelectedVehicleIdUseCase
 import com.naze.parkingfee.domain.usecase.vehicle.GetVehiclesUseCase
 import com.naze.parkingfee.domain.repository.VehicleRepository
 import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
@@ -113,7 +113,7 @@ class HomeViewModel @Inject constructor(
                 val activeSession = getActiveParkingSessionUseCase.execute()
 
                 // 차량 목록 조회
-                val vehicles = getVehiclesUseCase.invoke()
+                val vehicles = getVehiclesUseCase.execute()
                 
                 // 선택된 차량 로드
                 val selectedVehicleId = getSelectedVehicleIdUseCase.execute().first()
@@ -323,7 +323,7 @@ class HomeViewModel @Inject constructor(
                     return@launch
                 }
                 
-                deleteParkingZoneUseCase.invoke(zoneId)
+                deleteParkingZoneUseCase.execute(zoneId)
                 
                 // 현재 선택된 구역이 삭제된 구역이면 선택 해제
                 val currentZone = _state.value.currentZone

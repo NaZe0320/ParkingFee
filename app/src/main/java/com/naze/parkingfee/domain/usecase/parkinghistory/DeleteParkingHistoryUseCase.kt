@@ -1,4 +1,4 @@
-package com.naze.parkingfee.domain.usecase
+package com.naze.parkingfee.domain.usecase.parkinghistory
 
 import com.naze.parkingfee.domain.repository.ParkingHistoryRepository
 import javax.inject.Inject
@@ -7,9 +7,10 @@ import javax.inject.Inject
  * 주차 기록 삭제 UseCase
  */
 class DeleteParkingHistoryUseCase @Inject constructor(
-    private val repository: ParkingHistoryRepository
+    private val historyRepository: ParkingHistoryRepository
 ) {
     suspend fun execute(historyId: String) {
-        repository.deleteParkingHistory(historyId)
+        historyRepository.deleteParkingHistory(historyId)
     }
 }
+

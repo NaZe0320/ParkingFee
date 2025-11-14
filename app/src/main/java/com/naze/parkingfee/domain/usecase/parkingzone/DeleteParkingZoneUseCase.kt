@@ -1,4 +1,4 @@
-package com.naze.parkingfee.domain.usecase
+package com.naze.parkingfee.domain.usecase.parkingzone
 
 import com.naze.parkingfee.domain.repository.ParkingRepository
 import javax.inject.Inject
@@ -9,13 +9,8 @@ import javax.inject.Inject
 class DeleteParkingZoneUseCase @Inject constructor(
     private val parkingRepository: ParkingRepository
 ) {
-    
-    /**
-     * 주차 구역을 삭제합니다.
-     * @param zoneId 주차 구역 ID
-     * @return 삭제 성공 여부
-     */
-    suspend operator fun invoke(zoneId: String): Boolean {
+    suspend fun execute(zoneId: String): Boolean {
         return parkingRepository.deleteParkingZone(zoneId)
     }
 }
+

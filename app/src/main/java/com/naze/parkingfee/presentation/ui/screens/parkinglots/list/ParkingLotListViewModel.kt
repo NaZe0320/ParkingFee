@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.domain.repository.ParkingRepository
-import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
-import com.naze.parkingfee.domain.usecase.DeleteParkingZoneUseCase
-import com.naze.parkingfee.domain.usecase.ToggleParkingZoneFavoriteUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZonesUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.DeleteParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.ToggleParkingZoneFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -157,7 +157,7 @@ class ParkingLotListViewModel @Inject constructor(
     fun confirmDeleteParkingLot(zoneId: String) {
         viewModelScope.launch {
             try {
-                val success = deleteParkingZoneUseCase.invoke(zoneId)
+                val success = deleteParkingZoneUseCase.execute(zoneId)
                 if (success) {
                     _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast("주차장이 삭제되었습니다."))
                     loadParkingLots() // 목록 새로고침
@@ -178,7 +178,7 @@ class ParkingLotListViewModel @Inject constructor(
     private fun toggleFavorite(zoneId: String) {
         viewModelScope.launch {
             try {
-                val success = toggleParkingZoneFavoriteUseCase.invoke(zoneId)
+                val success = toggleParkingZoneFavoriteUseCase.execute(zoneId)
                 if (success) {
                     loadParkingLots() // 목록 새로고침
                 } else {

@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.naze.parkingfee.domain.usecase.vehicle.DeleteVehicleUseCase
 import com.naze.parkingfee.domain.usecase.vehicle.GetVehiclesUseCase
-import com.naze.parkingfee.domain.usecase.GetSelectedVehicleIdUseCase
-import com.naze.parkingfee.domain.usecase.SetSelectedVehicleIdUseCase
+import com.naze.parkingfee.domain.usecase.selectedvehicle.GetSelectedVehicleIdUseCase
+import com.naze.parkingfee.domain.usecase.selectedvehicle.SetSelectedVehicleIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

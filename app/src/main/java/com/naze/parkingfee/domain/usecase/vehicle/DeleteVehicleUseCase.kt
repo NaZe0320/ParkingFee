@@ -4,12 +4,12 @@ import com.naze.parkingfee.domain.repository.VehicleRepository
 import javax.inject.Inject
 
 /**
- * 차량 삭제 유즈케이스
+ * 차량 삭제 UseCase
  */
 class DeleteVehicleUseCase @Inject constructor(
     private val vehicleRepository: VehicleRepository
 ) {
-    suspend operator fun invoke(vehicleId: String): Result<Unit> {
+    suspend fun execute(vehicleId: String): Result<Unit> {
         return vehicleRepository.deleteVehicle(vehicleId)
     }
 }

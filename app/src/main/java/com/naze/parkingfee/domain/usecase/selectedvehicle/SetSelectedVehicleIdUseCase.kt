@@ -1,19 +1,16 @@
-package com.naze.parkingfee.domain.usecase
+package com.naze.parkingfee.domain.usecase.selectedvehicle
 
 import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
 import javax.inject.Inject
 
 /**
- * 선택된 차량 ID를 설정하는 UseCase
+ * 선택된 차량 ID 설정 UseCase
  */
 class SetSelectedVehicleIdUseCase @Inject constructor(
     private val selectedVehicleRepository: SelectedVehicleRepository
 ) {
-    
-    /**
-     * 선택된 차량 ID를 설정합니다.
-     */
     suspend fun execute(vehicleId: String?) {
         selectedVehicleRepository.setSelectedVehicleId(vehicleId)
     }
 }
+

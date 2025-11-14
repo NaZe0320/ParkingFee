@@ -8,10 +8,10 @@ import com.naze.parkingfee.domain.model.BasicFeeRule
 import com.naze.parkingfee.domain.model.AdditionalFeeRule
 import com.naze.parkingfee.domain.model.DailyMaxFeeRule
 import com.naze.parkingfee.domain.model.CustomFeeRule
-import com.naze.parkingfee.domain.usecase.AddParkingZoneUseCase
-import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
-import com.naze.parkingfee.domain.usecase.GetParkingZoneByIdUseCase
-import com.naze.parkingfee.domain.usecase.UpdateParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.AddParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZonesUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZoneByIdUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.UpdateParkingZoneUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

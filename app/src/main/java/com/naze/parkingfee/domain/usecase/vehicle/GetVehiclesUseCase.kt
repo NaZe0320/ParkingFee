@@ -5,12 +5,12 @@ import com.naze.parkingfee.domain.repository.VehicleRepository
 import javax.inject.Inject
 
 /**
- * 모든 차량 조회 유즈케이스
+ * 모든 차량 조회 UseCase
  */
 class GetVehiclesUseCase @Inject constructor(
     private val vehicleRepository: VehicleRepository
 ) {
-    suspend operator fun invoke(): List<Vehicle> {
+    suspend fun execute(): List<Vehicle> {
         return vehicleRepository.getAllVehicles()
     }
 }
