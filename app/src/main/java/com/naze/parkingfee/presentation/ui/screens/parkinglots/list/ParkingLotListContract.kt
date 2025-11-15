@@ -12,9 +12,6 @@ object ParkingLotListContract {
      * 사용자 액션을 나타내는 Intent
      */
     sealed class ParkingLotListIntent {
-        // 초기화
-        object LoadParkingLots : ParkingLotListIntent()
-        
         // 네비게이션
         object NavigateToAddParkingLot : ParkingLotListIntent()
         data class NavigateToEditParkingLot(val zoneId: String) : ParkingLotListIntent()
