@@ -107,7 +107,7 @@ class AddParkingLotViewModel @Inject constructor(
      * 기본 요금 시간 업데이트
      */
     private fun updateBasicFeeDuration(minutes: Int) {
-        if (minutes > 0) {
+        if (minutes >= 0) {
             _state.update { it.copy(basicFeeDuration = minutes) }
         }
     }
@@ -125,7 +125,7 @@ class AddParkingLotViewModel @Inject constructor(
      * 추가 요금 간격 업데이트
      */
     private fun updateAdditionalFeeInterval(minutes: Int) {
-        if (minutes > 0) {
+        if (minutes >= 0) {
             _state.update { it.copy(additionalFeeInterval = minutes) }
         }
     }

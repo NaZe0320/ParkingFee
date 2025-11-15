@@ -80,7 +80,8 @@ fun DailyMaxFeeRuleCard(
                     OutlinedTextField(
                         value = maxFeeAmount.toString(),
                         onValueChange = { value ->
-                            value.toIntOrNull()?.let { onFeeChange(it) }
+                            val intValue = value.toIntOrNull() ?: 0
+                            onFeeChange(intValue)
                         },
                         placeholder = {
                             Text(

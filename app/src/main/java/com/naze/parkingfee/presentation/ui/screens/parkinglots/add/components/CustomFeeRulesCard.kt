@@ -179,9 +179,8 @@ private fun CustomFeeRuleItem(
                     OutlinedTextField(
                         value = rule.minMinutes.toString(),
                         onValueChange = { value ->
-                            value.toIntOrNull()?.let { minMinutes ->
-                                onUpdate(minMinutes, rule.maxMinutes, rule.fee)
-                            }
+                            val minMinutes = value.toIntOrNull() ?: 0
+                            onUpdate(minMinutes, rule.maxMinutes, rule.fee)
                         },
                         placeholder = { Text("0") },
                         modifier = Modifier.fillMaxWidth(),
@@ -250,9 +249,8 @@ private fun CustomFeeRuleItem(
                     OutlinedTextField(
                         value = rule.fee.toString(),
                         onValueChange = { value ->
-                            value.toIntOrNull()?.let { fee ->
-                                onUpdate(rule.minMinutes, rule.maxMinutes, fee)
-                            }
+                            val fee = value.toIntOrNull() ?: 0
+                            onUpdate(rule.minMinutes, rule.maxMinutes, fee)
                         },
                         placeholder = { Text("0") },
                         modifier = Modifier.fillMaxWidth(),

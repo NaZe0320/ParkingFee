@@ -64,7 +64,8 @@ fun BasicFeeRuleCard(
                     OutlinedTextField(
                         value = durationMinutes.toString(),
                         onValueChange = { value ->
-                            value.toIntOrNull()?.let { onDurationChange(it) }
+                            val intValue = value.toIntOrNull() ?: 0
+                            onDurationChange(intValue)
                         },
                         placeholder = {
                             Text(
@@ -112,7 +113,8 @@ fun BasicFeeRuleCard(
                     OutlinedTextField(
                         value = feeAmount.toString(),
                         onValueChange = { value ->
-                            value.toIntOrNull()?.let { onFeeChange(it) }
+                            val intValue = value.toIntOrNull() ?: 0
+                            onFeeChange(intValue)
                         },
                         placeholder = {
                             Text(
