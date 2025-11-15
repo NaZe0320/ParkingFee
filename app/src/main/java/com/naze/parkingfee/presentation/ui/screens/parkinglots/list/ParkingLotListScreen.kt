@@ -35,7 +35,6 @@ fun ParkingLotListScreen(
     onNavigateToDetailParkingLot: (zoneId: String) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
     val context = LocalContext.current
     
     // ViewModel init에서 자동 로드되므로 별도 새로고침 불필요
@@ -44,9 +43,9 @@ fun ParkingLotListScreen(
     var parkingLotToDelete by remember { mutableStateOf<Pair<String, String>?>(null) }
     var showSortMenu by remember { mutableStateOf(false) }
     
-    // Effect 처리
-    LaunchedEffect(effect) {
-        effect?.let { currentEffect ->
+    // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is ParkingLotListContract.ParkingLotListEffect.ShowToast -> {
                     ToastManager.show(context, currentEffect.message)

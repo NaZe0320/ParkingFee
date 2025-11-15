@@ -32,7 +32,6 @@ fun ZoneDetailScreen(
     onNavigateToHome: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
     val context = LocalContext.current
     
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -42,9 +41,9 @@ fun ZoneDetailScreen(
         viewModel.setZoneId(zoneId)
     }
 
-    // Effect 처리
-    LaunchedEffect(effect) {
-        effect?.let { currentEffect ->
+    // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is ZoneDetailContract.ZoneDetailEffect.ShowToast -> {
                     ToastManager.show(context, currentEffect.message)

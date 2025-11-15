@@ -26,7 +26,6 @@ fun AddVehicleScreen(
     vehicleId: String? = null // 편집 모드를 위한 차량 ID
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
     val context = LocalContext.current
     
     // 편집 모드 초기화
@@ -38,9 +37,9 @@ fun AddVehicleScreen(
         }
     }
     
-    // Effect 처리
-    LaunchedEffect(effect) {
-        effect?.let { currentEffect ->
+    // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is AddVehicleContract.AddVehicleEffect.ShowToast -> {
                     ToastManager.show(context, currentEffect.message)

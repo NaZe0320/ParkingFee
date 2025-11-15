@@ -32,16 +32,15 @@ fun HistoryScreen(
     onNavigateBack: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
     val context = LocalContext.current
     
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
     var deleteHistoryId by remember { mutableStateOf<String?>(null) }
 
-    // Effect 처리
-    LaunchedEffect(effect) {
-        effect?.let { currentEffect ->
+    // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is HistoryContract.HistoryEffect.ShowToast -> {
                     ToastManager.show(context, currentEffect.message)
