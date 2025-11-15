@@ -86,14 +86,14 @@ fun AddVehicleScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-        // OCR 진입 버튼
-        item {
-            OcrEntryButton(
-                onOcrClick = {
-                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.OpenOcrScreen)
-                }
-            )
-        }
+        // // OCR 진입 버튼
+        // item {
+        //     OcrEntryButton(
+        //         onOcrClick = {
+        //             viewModel.processIntent(AddVehicleContract.AddVehicleIntent.OpenOcrScreen)
+        //         }
+        //     )
+        // }
         
         // 차량 이름 입력
         item {
