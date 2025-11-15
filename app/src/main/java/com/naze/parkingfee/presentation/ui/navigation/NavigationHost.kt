@@ -52,12 +52,14 @@ fun NavigationHost(
                     }
                 }
             )
-        }
+        },
     ) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = "home",
             modifier = Modifier
+                .padding(bottom = paddingValues.calculateBottomPadding())
+
         ) {
             composable("home") {
                 HomeScreen(

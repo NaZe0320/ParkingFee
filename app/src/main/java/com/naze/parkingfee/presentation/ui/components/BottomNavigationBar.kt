@@ -60,7 +60,6 @@ fun BottomNavigationBar(
     )
 
     Surface(
-        modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp
     ) {
@@ -72,12 +71,9 @@ fun BottomNavigationBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             navigationItems.forEach { item ->
-                val isSelected = currentRoute == item.route || 
-                               (item.route == "home" && currentRoute == "home") ||
-                               (item.route == "parkinglots/list" && currentRoute.startsWith("parkinglots/")) ||
-                               (item.route == "vehicles/list" && currentRoute.startsWith("vehicles/")) ||
-                               (item.route == "history" && currentRoute == "history") ||
-                               (item.route == "settings" && currentRoute == "settings")
+                val isSelected = currentRoute == item.route ||
+                        (item.route == "parkinglots/list" && currentRoute.startsWith("parkinglots/")) ||
+                        (item.route == "vehicles/list" && currentRoute.startsWith("vehicles/"))
 
                 Column(
                     modifier = Modifier
