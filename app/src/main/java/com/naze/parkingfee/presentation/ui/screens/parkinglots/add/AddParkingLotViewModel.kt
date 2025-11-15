@@ -9,7 +9,6 @@ import com.naze.parkingfee.domain.model.AdditionalFeeRule
 import com.naze.parkingfee.domain.model.DailyMaxFeeRule
 import com.naze.parkingfee.domain.model.CustomFeeRule
 import com.naze.parkingfee.domain.usecase.parkingzone.AddParkingZoneUseCase
-import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZonesUseCase
 import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZoneByIdUseCase
 import com.naze.parkingfee.domain.usecase.parkingzone.UpdateParkingZoneUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,7 +30,6 @@ import javax.inject.Inject
 @HiltViewModel
 class AddParkingLotViewModel @Inject constructor(
     private val addParkingZoneUseCase: AddParkingZoneUseCase,
-    private val getParkingZonesUseCase: GetParkingZonesUseCase,
     private val getParkingZoneByIdUseCase: GetParkingZoneByIdUseCase,
     private val updateParkingZoneUseCase: UpdateParkingZoneUseCase
 ) : ViewModel() {
@@ -201,7 +199,6 @@ class AddParkingLotViewModel @Inject constructor(
     private fun saveParkingLot() {
         val currentState = _state.value
 
-        print("ASDF2")
         // 재진입 방지 가드
         if (currentState.isSaving) {
             return
@@ -236,13 +233,10 @@ class AddParkingLotViewModel @Inject constructor(
                         throw Exception("편집할 구역을 찾을 수 없습니다.")
                     }
                 } else {
-                    // 추가 모드: 새 구역 생성
-                    val existingZones = getParkingZonesUseCase.execute()
-                    val nextSequenceNumber = existingZones.size + 1
-
+                    // 추가 모드: 새 구역 생성 (UUID 사용하므로 전체 목록 조회 불필요)
                     val parkingZone = ParkingZone(
                         id = UUID.randomUUID().toString(),
-                        name = if (currentState.parkingLotName.isBlank()) "주차장$nextSequenceNumber" else currentState.parkingLotName,
+                        name = if (currentState.parkingLotName.isBlank()) "주차장" else currentState.parkingLotName,
                         hourlyRate = calculateHourlyRate(currentState),
                         maxCapacity = 100,
                         currentOccupancy = 0,
@@ -260,12 +254,10 @@ class AddParkingLotViewModel @Inject constructor(
                     )
                 }
 
+                // Toast 메시지와 함께 즉시 뒤로가기 (Flow가 자동으로 목록을 업데이트)
                 _effect.emit(AddParkingLotContract.AddParkingLotEffect.ShowToast(
                     if (currentState.isEditMode) "주차장이 성공적으로 수정되었습니다." else "주차장이 성공적으로 추가되었습니다."
                 ))
-                
-                // 잠시 후 뒤로가기
-                kotlinx.coroutines.delay(1500)
                 _effect.emit(AddParkingLotContract.AddParkingLotEffect.NavigateBack)
 
             } catch (e: Exception) {

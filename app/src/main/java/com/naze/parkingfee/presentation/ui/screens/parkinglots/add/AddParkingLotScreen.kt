@@ -28,7 +28,6 @@ fun AddParkingLotScreen(
     zoneId: String? = null // 편집 모드를 위한 구역 ID
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
     val context = LocalContext.current
 
     // 편집 모드 초기화
@@ -40,9 +39,9 @@ fun AddParkingLotScreen(
         }
     }
 
-    // Effect 처리
-    LaunchedEffect(effect) {
-        effect?.let { currentEffect ->
+    // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is AddParkingLotContract.AddParkingLotEffect.ShowToast -> {
                     ToastManager.show(context, currentEffect.message)
@@ -56,7 +55,6 @@ fun AddParkingLotScreen(
                     // Dialog 표시 로직
                 }
                 is AddParkingLotContract.AddParkingLotEffect.NavigateBack -> {
-                    print("ASDF")
                     onNavigateBack()
                 }
                 is AddParkingLotContract.AddParkingLotEffect.OpenOcrScreen -> {
