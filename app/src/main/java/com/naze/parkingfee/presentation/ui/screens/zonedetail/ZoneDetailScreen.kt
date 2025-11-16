@@ -1,8 +1,8 @@
 package com.naze.parkingfee.presentation.ui.screens.zonedetail
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.naze.parkingfee.infrastructure.notification.ToastManager
@@ -94,72 +95,139 @@ fun ZoneDetailScreen(
                 }
             }
             state.zone != null -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(paddingValues)
-                        .padding(16.dp),
+                val zone = state.zone!!
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        top = paddingValues.calculateTopPadding() + 16.dp,
+                        start = 16.dp,
+                        end = 16.dp,
+                        bottom = paddingValues.calculateBottomPadding() + 16.dp
+                    ),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // 구역 기본 정보
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = "구역 정보",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold
+                    // 구역 기본 정보 카드
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                             )
-                            
-                            Spacer(modifier = Modifier.height(12.dp))
-                            
-                            InfoRow("구역명", state.zone!!.name)
-                            InfoRow("요금 정보", state.zone!!.getDisplayFeeInfo())
-                            InfoRow("최대 수용량", "${state.zone!!.maxCapacity}대")
-                            InfoRow("현재 주차", "${state.zone!!.currentOccupancy}대")
-                            InfoRow("가용 여부", if (state.zone!!.isAvailable) "가능" else "불가능")
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(
+                                            text = zone.name,
+                                            style = MaterialTheme.typography.headlineSmall,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = zone.getDisplayFeeInfo(),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+
+                                    if (zone.isPublic) {
+                                        AssistChip(
+                                            onClick = { },
+                                            label = {
+                                                Text(
+                                                    text = "공영",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                            },
+                                            enabled = false,
+                                            colors = AssistChipDefaults.assistChipColors(
+                                                disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                                disabledLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                            )
+                                        )
+                                    }
+                                }
+
+                                Divider(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                                )
+
+                                InfoRow("최대 수용량", "${zone.maxCapacity}대")
+                                InfoRow("현재 주차", "${zone.currentOccupancy}대")
+                                InfoRow("가용 여부", if (zone.isAvailable) "가능" else "불가능")
+                            }
                         }
                     }
 
                     // 요금 체계 상세 정보 (복잡한 요금 체계가 있는 경우)
-                    state.zone!!.feeStructure?.let { feeStructure ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp)
-                            ) {
-                                Text(
-                                    text = "요금 체계",
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold
+                    zone.feeStructure?.let { feeStructure ->
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surface
+                                ),
+                                shape = RoundedCornerShape(16.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                                border = BorderStroke(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                                 )
-                                
-                                Spacer(modifier = Modifier.height(12.dp))
-                                
-                                InfoRow("기본 요금", "${feeStructure.basicFee.fee}원 (${feeStructure.basicFee.durationMinutes}분)")
-                                InfoRow("추가 요금", "${feeStructure.additionalFee.fee}원 (${feeStructure.additionalFee.intervalMinutes}분마다)")
-                                
-                                feeStructure.dailyMaxFee?.let { dailyMax ->
-                                    InfoRow("일 최대 요금", "${dailyMax.maxFee}원")
-                                }
-                                
-                                if (feeStructure.customFeeRules.isNotEmpty()) {
-                                    Spacer(modifier = Modifier.height(8.dp))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
                                     Text(
-                                        text = "커스텀 요금 구간",
-                                        style = MaterialTheme.typography.titleMedium,
+                                        text = "요금 체계",
+                                        style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold
                                     )
-                                    feeStructure.customFeeRules.forEach { rule ->
-                                        val maxText = rule.maxMinutes?.let { "~${it}분" } ?: "이상"
-                                        InfoRow("", "${rule.minMinutes}분 ${maxText}: ${rule.fee}원")
+
+                                    InfoRow(
+                                        "기본 요금",
+                                        "${feeStructure.basicFee.fee}원 (${feeStructure.basicFee.durationMinutes}분)"
+                                    )
+                                    InfoRow(
+                                        "추가 요금",
+                                        "${feeStructure.additionalFee.fee}원 (${feeStructure.additionalFee.intervalMinutes}분마다)"
+                                    )
+
+                                    feeStructure.dailyMaxFee?.let { dailyMax ->
+                                        InfoRow("일 최대 요금", "${dailyMax.maxFee}원")
+                                    }
+
+                                    if (feeStructure.customFeeRules.isNotEmpty()) {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "커스텀 요금 구간",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        feeStructure.customFeeRules.forEach { rule ->
+                                            val maxText = rule.maxMinutes?.let { "~${it}분" } ?: "이상"
+                                            InfoRow(
+                                                label = "",
+                                                value = "${rule.minMinutes}분 $maxText: ${rule.fee}원"
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -167,15 +235,17 @@ fun ZoneDetailScreen(
                     }
 
                     // 선택하기 버튼
-                    Button(
-                        onClick = { viewModel.processIntent(ZoneDetailContract.ZoneDetailIntent.SelectZone) },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = state.zone!!.isAvailable
-                    ) {
-                        Text(
-                            text = if (state.zone!!.isAvailable) "이 구역 선택하기" else "현재 이용 불가",
-                            style = MaterialTheme.typography.titleMedium
-                        )
+                    item {
+                        Button(
+                            onClick = { viewModel.processIntent(ZoneDetailContract.ZoneDetailIntent.SelectZone) },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = zone.isAvailable
+                        ) {
+                            Text(
+                                text = if (zone.isAvailable) "이 구역 선택하기" else "현재 이용 불가",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
                     }
                 }
             }

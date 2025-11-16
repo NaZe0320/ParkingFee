@@ -163,24 +163,30 @@ fun ParkingLotListScreen(
                     items(state.parkingLots) { parkingLot ->
                         ParkingLotItem(
                             parkingLot = parkingLot,
-                            isSelected = state.selectedParkingLotId == parkingLot.id,
                             onSelectClick = {
-                                viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.SelectParkingLot(parkingLot.id))
-                            },
-                            onEditClick = { 
-                                viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.NavigateToEditParkingLot(parkingLot.id))
-                            },
-                            onDeleteClick = { 
-                                viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.DeleteParkingLot(parkingLot.id))
+                                // 아이템 클릭 시 선택 대신 상세 화면으로 이동
+                                viewModel.processIntent(
+                                    ParkingLotListContract.ParkingLotListIntent.NavigateToDetailParkingLot(
+                                        parkingLot.id
+                                    )
+                                )
                             },
                             onDetailClick = {
-                                viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.NavigateToDetailParkingLot(parkingLot.id))
+                                viewModel.processIntent(
+                                    ParkingLotListContract.ParkingLotListIntent.NavigateToDetailParkingLot(
+                                        parkingLot.id
+                                    )
+                                )
                             },
                             onFavoriteClick = {
-                                viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.ToggleFavorite(parkingLot.id))
+                                viewModel.processIntent(
+                                    ParkingLotListContract.ParkingLotListIntent.ToggleFavorite(
+                                        parkingLot.id
+                                    )
+                                )
                             },
                             showFavoriteButton = true,
-                            showMenuButton = true
+                            showMenuButton = false
                         )
                     }
                 }

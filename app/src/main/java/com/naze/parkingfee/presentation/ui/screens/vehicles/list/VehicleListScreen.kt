@@ -174,16 +174,19 @@ fun VehicleListScreen(
                     items(state.vehicles) { vehicle ->
                         VehicleItem(
                             vehicle = vehicle,
-                            isSelected = state.selectedVehicleId == vehicle.id,
-                            onSelectClick = { 
-                                viewModel.processIntent(VehicleListContract.VehicleListIntent.SelectVehicle(vehicle.id))
+                            isSelected = false,
+                            onSelectClick = {
+                                // 아이템 클릭 시 선택 대신 편집(상세) 화면으로 이동
+                                viewModel.processIntent(
+                                    VehicleListContract.VehicleListIntent.NavigateToEditVehicle(
+                                        vehicle.id
+                                    )
+                                )
                             },
-                            onEditClick = { 
-                                viewModel.processIntent(VehicleListContract.VehicleListIntent.NavigateToEditVehicle(vehicle.id))
-                            },
-                            onDeleteClick = { 
-                                viewModel.processIntent(VehicleListContract.VehicleListIntent.DeleteVehicle(vehicle.id))
-                            }
+                            // 목록 화면에서는 편집/삭제 액션을 제공하지 않으므로 noop 처리
+                            onEditClick = {},
+                            onDeleteClick = {},
+                            showMenuButton = false
                         )
                     }
                 }

@@ -100,8 +100,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
+                .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
         // 고정 영역 - 주차 상태 카드
@@ -124,7 +123,9 @@ fun HomeScreen(
             },
             onStopParking = { sessionId ->
                 viewModel.processIntent(HomeContract.HomeIntent.StopParking(sessionId))
-            }
+            },
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 16.dp)
         )
 
         // 스크롤 가능 영역
@@ -146,16 +147,6 @@ fun HomeScreen(
                     onVehicleSelected = { vehicle ->
                         viewModel.processIntent(HomeContract.HomeIntent.SelectVehicle(vehicle))
                     },
-                    onRequestVehicleAction = { vehicle, action ->
-                        when (action) {
-                            VehicleAction.Edit -> {
-                                onNavigateToEditVehicle(vehicle.id)
-                            }
-                            VehicleAction.Delete -> {
-                                viewModel.processIntent(HomeContract.HomeIntent.DeleteVehicle(vehicle))
-                            }
-                        }
-                    },
                     isExpanded = state.isVehicleSelectorExpanded,
                     onToggleExpand = {
                         viewModel.processIntent(HomeContract.HomeIntent.ToggleVehicleSelector)
@@ -171,9 +162,6 @@ fun HomeScreen(
                     onZoneSelected = { zone ->
                         viewModel.processIntent(HomeContract.HomeIntent.SelectZone(zone))
                     },
-                    onRequestZoneAction = { zone, action ->
-                        viewModel.processIntent(HomeContract.HomeIntent.RequestZoneAction(zone, action))
-                    },
                     isExpanded = state.isParkingZoneSelectorExpanded,
                     onToggleExpand = {
                         viewModel.processIntent(HomeContract.HomeIntent.ToggleParkingZoneSelector)
@@ -188,7 +176,8 @@ fun HomeScreen(
                         message = state.errorMessage,
                         onDismiss = {
                             viewModel.processIntent(HomeContract.HomeIntent.RefreshParkingInfo)
-                        }
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
             }
