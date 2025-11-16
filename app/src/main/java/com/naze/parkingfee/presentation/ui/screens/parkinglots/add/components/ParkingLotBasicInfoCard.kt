@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 fun ParkingLotBasicInfoCard(
     parkingLotName: String,
     onNameChange: (String) -> Unit,
+    nameError: String? = null,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -49,7 +50,12 @@ fun ParkingLotBasicInfoCard(
                 
                 OutlinedTextField(
                     value = parkingLotName,
-                    onValueChange = onNameChange,
+                    onValueChange = { newValue ->
+                        // 20자 제한
+                        if (newValue.length <= 20) {
+                            onNameChange(newValue)
+                        }
+                    },
                     placeholder = {
                         Text(
                             text = "강남역 주차장",
@@ -63,16 +69,41 @@ fun ParkingLotBasicInfoCard(
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                         errorBorderColor = MaterialTheme.colorScheme.error
                     ),
+                    isError = nameError != null,
                     singleLine = true
                 )
                 
-                // 힌트 텍스트
-                Text(
-                    text = "비워두면 기본 이름(주차장1, 주차장2...)이 사용됩니다",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+                // 글자수 카운터 및 에러 메시지/힌트
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // 에러 메시지 또는 힌트 텍스트
+                    if (nameError != null) {
+                        Text(
+                            text = nameError,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.weight(1f)
+                        )
+                    } else {
+                        Text(
+                            text = "비워두면 기본 이름(주차장1, 주차장2...)이 사용됩니다",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    
+                    // 글자수 카운터
+                    Text(
+                        text = "${parkingLotName.length}/20",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
             }
         }
     }

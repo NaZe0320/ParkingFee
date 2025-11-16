@@ -105,6 +105,7 @@ fun AddParkingLotScreen(
                 onNameChange = { name ->
                     viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.UpdateParkingLotName(name))
                 },
+                nameError = state.validationErrors["parkingLotName"]
             )
         }
 

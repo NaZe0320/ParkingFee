@@ -278,8 +278,10 @@ class AddParkingLotViewModel @Inject constructor(
     private fun validateForm(state: AddParkingLotContract.AddParkingLotState): Map<String, String> {
         val errors = mutableMapOf<String, String>()
 
-        // 주차장 이름 검사 (빈 문자열이면 기본 이름 사용, 입력했으면 그대로 사용)
-        // 별도 유효성 검사 불필요
+        // 주차장 이름 검사 (입력된 경우 20자 제한)
+        if (state.parkingLotName.isNotBlank() && state.parkingLotName.length > 20) {
+            errors["parkingLotName"] = "주차장 이름은 20자 이하여야 합니다."
+        }
 
         // 기본 요금 검사
         if (state.basicFeeDuration <= 0) {

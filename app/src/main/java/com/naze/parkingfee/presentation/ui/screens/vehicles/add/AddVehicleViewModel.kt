@@ -190,16 +190,36 @@ class AddVehicleViewModel @Inject constructor(
         val errors = mutableMapOf<String, String>()
         val currentState = _state.value
         
-        // 차량 이름은 선택사항이므로 검증하지 않음
+        // 차량 이름 검사 (입력된 경우 20자 제한)
+        if (currentState.vehicleName.isNotBlank() && currentState.vehicleName.length > 20) {
+            errors["vehicleName"] = "차량 이름은 20자 이하여야 합니다."
+        }
         
         // 번호판 검증 (선택사항이지만 입력된 경우 형식 검증)
+        // 형식: 숫자(2~3자리) + 한글 완성형(1자리) + 숫자(4자리)
         if (currentState.plateNumber.isNotBlank()) {
-            if (currentState.plateNumber.length < 7) {
-                errors["plateNumber"] = "번호판을 올바르게 입력하세요 (예: 12가3456)"
+            val plateNumber = currentState.plateNumber
+            if (!isValidPlateNumberFormat(plateNumber)) {
+                errors["plateNumber"] = "번호판 형식이 올바르지 않습니다 (예: 12가3456, 123가3456)"
             }
         }
         
         return errors
+    }
+    
+    /**
+     * 번호판 형식 검증
+     * 형식: 숫자(2~3자리) + 한글 완성형(1자리) + 숫자(4자리)
+     * 예: "12가3456", "123가3456"
+     */
+    private fun isValidPlateNumberFormat(plateNumber: String): Boolean {
+        if (plateNumber.length < 7 || plateNumber.length > 8) {
+            return false
+        }
+        
+        // 정규식 패턴: 숫자 2~3자리 + 한글 완성형 1자리 + 숫자 4자리
+        val pattern = Regex("^\\d{2,3}[가-힣]\\d{4}$")
+        return pattern.matches(plateNumber)
     }
     
     private suspend fun createVehicleFromState(): Vehicle {
