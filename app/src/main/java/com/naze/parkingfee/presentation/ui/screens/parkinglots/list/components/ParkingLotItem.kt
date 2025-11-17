@@ -166,7 +166,9 @@ fun ParkingLotItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // TODO: 즐겨찾기 기능 - 나중에 추가 예정
                 // 즐겨찾기 버튼 (조건부 표시)
+                /*
                 if (showFavoriteButton) {
                     IconButton(
                         onClick = onFavoriteClick,
@@ -185,6 +187,7 @@ fun ParkingLotItem(
                         )
                     }
                 }
+                */
                 
                 // 더보기 메뉴 버튼 (조건부 표시)
                 if (showMenuButton) {

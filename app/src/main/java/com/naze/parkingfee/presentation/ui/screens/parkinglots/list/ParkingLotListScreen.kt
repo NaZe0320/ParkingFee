@@ -41,7 +41,8 @@ fun ParkingLotListScreen(
     
     var showDeleteDialog by remember { mutableStateOf(false) }
     var parkingLotToDelete by remember { mutableStateOf<Pair<String, String>?>(null) }
-    var showSortMenu by remember { mutableStateOf(false) }
+    // 정렬 메뉴 제거 - 최근 사용순으로 고정
+    // var showSortMenu by remember { mutableStateOf(false) }
     
     // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
     LaunchedEffect(Unit) {
@@ -90,32 +91,18 @@ fun ParkingLotListScreen(
                 color = MaterialTheme.colorScheme.onSurface
             )
             
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // 정렬 버튼 제거 - 최근 사용순으로 고정
+            // 추가 버튼만 표시
+            Button(
+                onClick = { viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.NavigateToAddParkingLot) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                // 정렬 버튼
-                IconButton(
-                    onClick = { showSortMenu = true }
-                ) {
-                    Icon(
-                        Icons.Default.Sort,
-                        contentDescription = "정렬",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                
-                // 추가 버튼
-                Button(
-                    onClick = { viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.NavigateToAddParkingLot) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "주차장 추가", modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("추가", style = MaterialTheme.typography.bodyMedium)
-                }
+                Icon(Icons.Default.Add, contentDescription = "주차장 추가", modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("추가", style = MaterialTheme.typography.bodyMedium)
             }
         }
         
@@ -179,13 +166,9 @@ fun ParkingLotListScreen(
                                 )
                             },
                             onFavoriteClick = {
-                                viewModel.processIntent(
-                                    ParkingLotListContract.ParkingLotListIntent.ToggleFavorite(
-                                        parkingLot.id
-                                    )
-                                )
+                                // 즐겨찾기 기능 제거됨
                             },
-                            showFavoriteButton = true,
+                            showFavoriteButton = false, // 즐겨찾기 버튼 숨김
                             showMenuButton = false
                         )
                     }
@@ -212,6 +195,8 @@ fun ParkingLotListScreen(
         }
     }
     
+    // TODO: 정렬 메뉴 - 최근 사용순으로 고정, 필요시 추가
+    /*
     // 정렬 메뉴
     DropdownMenu(
         expanded = showSortMenu,
@@ -240,6 +225,7 @@ fun ParkingLotListScreen(
             )
         }
     }
+    */
     
     // 삭제 확인 다이얼로그
     if (showDeleteDialog && parkingLotToDelete != null) {

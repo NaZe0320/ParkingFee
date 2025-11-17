@@ -11,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,7 @@ fun ParkingZoneSelector(
     modifier: Modifier = Modifier
 ) {
     var showMoreDialog by remember { mutableStateOf(false) }
+    var lastDisplayedZoneIds by remember { mutableStateOf<Set<String>>(emptySet()) }
 
     Column(
         modifier = modifier.fillMaxWidth()
@@ -92,14 +94,32 @@ fun ParkingZoneSelector(
                 )
             } else {
                 val selectedId = selectedZone?.id
-                val sortedZones: List<ParkingZone> = remember(zones, selectedId) {
-                    zones.sortedWith(
-                        compareByDescending<ParkingZone> { it.id == selectedId }
-                            .thenByDescending { it.isFavorite }
-                            .thenBy { it.name }
-                    )
+                
+                // 표시할 주차장 결정: Dialog에서 선택되었는지 체크
+                val displayZones = remember(zones, selectedId, lastDisplayedZoneIds) {
+                    val firstFiveZones = zones.take(5)
+                    val firstFiveIds = firstFiveZones.map { it.id }.toSet()
+                    
+                    // Dialog에서 선택된 경우: 선택된 주차장이 기존 5개에 없었다면
+                    if (selectedId != null && selectedId !in firstFiveIds && selectedId in zones.map { it.id }) {
+                        val selectedZoneObj = zones.find { it.id == selectedId }
+                        if (selectedZoneObj != null) {
+                            // 선택된 주차장을 맨 앞에, 나머지 4개를 뒤에
+                            listOf(selectedZoneObj) + zones.filter { it.id != selectedId }.take(4)
+                        } else {
+                            firstFiveZones
+                        }
+                    } else {
+                        // 기존 5개 유지
+                        firstFiveZones
+                    }
                 }
-                val displayZones = sortedZones.take(5)
+                
+                // 현재 표시된 주차장 ID 업데이트
+                LaunchedEffect(displayZones) {
+                    lastDisplayedZoneIds = displayZones.map { it.id }.toSet()
+                }
+                
                 val remainingCount = (zones.size - displayZones.size).coerceAtLeast(0)
 
                 LazyRow(

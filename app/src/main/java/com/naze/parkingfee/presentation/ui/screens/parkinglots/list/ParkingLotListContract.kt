@@ -34,7 +34,7 @@ object ParkingLotListContract {
         val selectedParkingLotId: String? = null,
         val isLoading: Boolean = false,
         val errorMessage: String? = null,
-        val sortOrder: SortOrder = SortOrder.FAVORITE
+        val sortOrder: SortOrder = SortOrder.RECENT // 최근 사용순으로 고정
     )
 
     /**

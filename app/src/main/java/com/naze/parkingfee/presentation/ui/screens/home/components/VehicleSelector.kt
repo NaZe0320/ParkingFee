@@ -90,14 +90,8 @@ fun VehicleSelector(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             } else {
-                val selectedId = selectedVehicle?.id
-                val sortedVehicles: List<Vehicle> = remember(vehicles, selectedId) {
-                    vehicles.sortedWith(
-                        compareByDescending<Vehicle> { it.id == selectedId }
-                            .thenBy { it.displayName }
-                    )
-                }
-                val displayVehicles = sortedVehicles.take(3)
+                // 기존 순서 유지, 최대 3개만 표시
+                val displayVehicles = vehicles.take(3)
 
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),

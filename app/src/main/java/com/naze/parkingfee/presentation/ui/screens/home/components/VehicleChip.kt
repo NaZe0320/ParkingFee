@@ -64,7 +64,7 @@ fun VehicleChip(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(vertical = 10.dp, horizontal = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             // 차량 아이콘
