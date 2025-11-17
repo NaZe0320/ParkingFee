@@ -1,5 +1,7 @@
 package com.naze.parkingfee.data.mapper
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.domain.model.FeeStructure
 import com.naze.parkingfee.domain.model.BasicFeeRule
@@ -12,7 +14,11 @@ import javax.inject.Inject
 /**
  * ParkingZone Entity와 Domain Model 간의 매핑
  */
-class ParkingZoneMapper @Inject constructor() {
+class ParkingZoneMapper @Inject constructor(
+    private val gson: Gson
+) {
+
+    private val customFeeRulesType = object : TypeToken<List<CustomFeeRule>>() {}.type
     
     fun mapToDomain(entity: ParkingZoneEntity): ParkingZone {
         val feeStructure = if (entity.basicFeeDuration != null && entity.basicFeeAmount != null) {
@@ -70,12 +76,22 @@ class ParkingZoneMapper @Inject constructor() {
     }
     
     private fun parseCustomFeeRules(json: String?): List<CustomFeeRule> {
-        // 간단한 구현 - 실제로는 JSON 파싱 라이브러리 사용
-        return emptyList()
+        if (json.isNullOrBlank()) {
+            return emptyList()
+        }
+
+        return runCatching {
+            gson.fromJson<List<CustomFeeRule>>(json, customFeeRulesType)
+        }.getOrElse { emptyList() } ?: emptyList()
     }
     
     private fun serializeCustomFeeRules(rules: List<CustomFeeRule>?): String? {
-        // 간단한 구현 - 실제로는 JSON 직렬화 라이브러리 사용
-        return null
+        if (rules.isNullOrEmpty()) {
+            return null
+        }
+
+        return runCatching {
+            gson.toJson(rules, customFeeRulesType)
+        }.getOrNull()
     }
 }

@@ -169,9 +169,6 @@ fun ZoneDetailScreen(
                                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
                                 )
 
-                                InfoRow("최대 수용량", "${zone.maxCapacity}대")
-                                InfoRow("현재 주차", "${zone.currentOccupancy}대")
-                                InfoRow("가용 여부", if (zone.isAvailable) "가능" else "불가능")
                             }
                         }
                     }
