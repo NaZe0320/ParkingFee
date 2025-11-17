@@ -87,7 +87,7 @@ fun VehicleSelector(
                     text = "등록된 차량이 없습니다",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             } else {
                 val selectedId = selectedVehicle?.id
