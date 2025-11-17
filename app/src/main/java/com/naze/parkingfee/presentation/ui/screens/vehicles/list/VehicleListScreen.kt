@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.naze.parkingfee.infrastructure.notification.ToastManager
+import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
 import com.naze.parkingfee.presentation.ui.screens.vehicles.list.components.VehicleItem
 
 /**
@@ -217,36 +218,22 @@ fun VehicleListScreen(
     }
     
     // 삭제 확인 다이얼로그
-    if (showDeleteDialog && vehicleToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { 
+    if (vehicleToDelete != null) {
+        DeleteConfirmDialog(
+            visible = showDeleteDialog,
+            title = "차량 삭제",
+            itemName = vehicleToDelete!!.second,
+            message = "이 차량을 삭제하시겠습니까?",
+            onConfirm = {
+                vehicleToDelete?.let { (vehicleId, _) ->
+                    viewModel.confirmDeleteVehicle(vehicleId)
+                }
                 showDeleteDialog = false
                 vehicleToDelete = null
             },
-            title = { Text("차량 삭제") },
-            text = { Text("'${vehicleToDelete?.second}' 차량을 삭제하시겠습니까?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        vehicleToDelete?.let { (vehicleId, _) ->
-                            viewModel.confirmDeleteVehicle(vehicleId)
-                        }
-                        showDeleteDialog = false
-                        vehicleToDelete = null
-                    }
-                ) {
-                    Text("삭제")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        vehicleToDelete = null
-                    }
-                ) {
-                    Text("취소")
-                }
+            onDismiss = {
+                showDeleteDialog = false
+                vehicleToDelete = null
             }
         )
     }

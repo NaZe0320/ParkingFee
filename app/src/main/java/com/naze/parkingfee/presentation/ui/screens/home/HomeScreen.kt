@@ -186,20 +186,28 @@ fun HomeScreen(
     }
 
     // 삭제 확인 다이얼로그
-    DeleteConfirmDialog(
-        visible = showDeleteDialog,
-        message = "정말로 ${pendingDeleteZoneName ?: "이"} 구역을 삭제하시겠습니까?",
-        onConfirm = {
-            val id = pendingDeleteZoneId
-            showDeleteDialog = false
-            pendingDeleteZoneId = null
-            pendingDeleteZoneName = null
-            if (id != null) {
-                viewModel.processIntent(HomeContract.HomeIntent.DeleteZone(id))
+    if (pendingDeleteZoneName != null) {
+        DeleteConfirmDialog(
+            visible = showDeleteDialog,
+            title = "주차장 삭제",
+            itemName = pendingDeleteZoneName!!,
+            message = "이 주차장을 삭제하시겠습니까?",
+            onConfirm = {
+                val id = pendingDeleteZoneId
+                showDeleteDialog = false
+                pendingDeleteZoneId = null
+                pendingDeleteZoneName = null
+                if (id != null) {
+                    viewModel.processIntent(HomeContract.HomeIntent.DeleteZone(id))
+                }
+            },
+            onDismiss = {
+                showDeleteDialog = false
+                pendingDeleteZoneId = null
+                pendingDeleteZoneName = null
             }
-        },
-        onDismiss = { showDeleteDialog = false }
-    )
+        )
+    }
     
     // 주차 완료 다이얼로그
     if (showParkingCompleteDialog && parkingCompleteInfo != null) {

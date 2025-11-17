@@ -128,7 +128,7 @@ fun VehicleDetailScreen(
                                     fontWeight = FontWeight.Bold
                                 )
 
-                                Divider(
+                                HorizontalDivider(
                                     modifier = Modifier.fillMaxWidth(),
                                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
                                 )
@@ -213,15 +213,19 @@ fun VehicleDetailScreen(
     }
 
     // 삭제 확인 다이얼로그
-    DeleteConfirmDialog(
-        visible = showDeleteDialog,
-        message = "정말로 이 차량을 삭제하시겠습니까?",
-        onConfirm = {
-            showDeleteDialog = false
-            viewModel.confirmDeleteVehicle(vehicleId)
-        },
-        onDismiss = { showDeleteDialog = false }
-    )
+    if (state.vehicle != null) {
+        DeleteConfirmDialog(
+            visible = showDeleteDialog,
+            title = "차량 삭제",
+            itemName = state.vehicle!!.displayName,
+            message = "이 차량을 삭제하시겠습니까?",
+            onConfirm = {
+                showDeleteDialog = false
+                viewModel.confirmDeleteVehicle(vehicleId)
+            },
+            onDismiss = { showDeleteDialog = false }
+        )
+    }
 }
 
 @Composable

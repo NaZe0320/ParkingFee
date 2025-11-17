@@ -164,7 +164,7 @@ fun ZoneDetailScreen(
                                     }
                                 }
 
-                                Divider(
+                                HorizontalDivider(
                                     modifier = Modifier.fillMaxWidth(),
                                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
                                 )
@@ -259,15 +259,19 @@ fun ZoneDetailScreen(
     }
 
     // 삭제 확인 다이얼로그
-    DeleteConfirmDialog(
-        visible = showDeleteDialog,
-        message = "정말로 이 구역을 삭제하시겠습니까?",
-        onConfirm = {
-            showDeleteDialog = false
-            viewModel.confirmDeleteZone(zoneId)
-        },
-        onDismiss = { showDeleteDialog = false }
-    )
+    if (state.zone != null) {
+        DeleteConfirmDialog(
+            visible = showDeleteDialog,
+            title = "주차장 삭제",
+            itemName = state.zone!!.name,
+            message = "이 주차장을 삭제하시겠습니까?",
+            onConfirm = {
+                showDeleteDialog = false
+                viewModel.confirmDeleteZone(zoneId)
+            },
+            onDismiss = { showDeleteDialog = false }
+        )
+    }
 }
 
 @Composable

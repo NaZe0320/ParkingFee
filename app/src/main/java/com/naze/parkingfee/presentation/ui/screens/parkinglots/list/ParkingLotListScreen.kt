@@ -21,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.infrastructure.notification.ToastManager
+import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
 import com.naze.parkingfee.presentation.ui.screens.parkinglots.list.components.ParkingLotItem
 
 /**
@@ -228,36 +229,22 @@ fun ParkingLotListScreen(
     */
     
     // 삭제 확인 다이얼로그
-    if (showDeleteDialog && parkingLotToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { 
+    if (parkingLotToDelete != null) {
+        DeleteConfirmDialog(
+            visible = showDeleteDialog,
+            title = "주차장 삭제",
+            itemName = parkingLotToDelete!!.second,
+            message = "이 주차장을 삭제하시겠습니까?",
+            onConfirm = {
+                parkingLotToDelete?.let { (zoneId, _) ->
+                    viewModel.confirmDeleteParkingLot(zoneId)
+                }
                 showDeleteDialog = false
                 parkingLotToDelete = null
             },
-            title = { Text("주차장 삭제") },
-            text = { Text("'${parkingLotToDelete?.second}' 주차장을 삭제하시겠습니까?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        parkingLotToDelete?.let { (zoneId, _) ->
-                            viewModel.confirmDeleteParkingLot(zoneId)
-                        }
-                        showDeleteDialog = false
-                        parkingLotToDelete = null
-                    }
-                ) {
-                    Text("삭제")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        parkingLotToDelete = null
-                    }
-                ) {
-                    Text("취소")
-                }
+            onDismiss = {
+                showDeleteDialog = false
+                parkingLotToDelete = null
             }
         )
     }
