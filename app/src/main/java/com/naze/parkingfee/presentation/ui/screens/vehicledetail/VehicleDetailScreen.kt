@@ -1,4 +1,4 @@
-package com.naze.parkingfee.presentation.ui.screens.zonedetail
+package com.naze.parkingfee.presentation.ui.screens.vehicledetail
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -21,45 +21,41 @@ import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
 
 /**
- * 주차 구역 상세 화면
+ * 차량 상세 화면
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ZoneDetailScreen(
-    zoneId: String,
-    viewModel: ZoneDetailViewModel = hiltViewModel(),
+fun VehicleDetailScreen(
+    vehicleId: String,
+    viewModel: VehicleDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
-    onNavigateToEdit: (String) -> Unit = {},
-    onNavigateToHome: () -> Unit = {}
+    onNavigateToEdit: (String) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // 구역 ID 설정
-    LaunchedEffect(zoneId) {
-        viewModel.setZoneId(zoneId)
+    // 차량 ID 설정
+    LaunchedEffect(vehicleId) {
+        viewModel.setVehicleId(vehicleId)
     }
 
     // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
     LaunchedEffect(Unit) {
         viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
-                is ZoneDetailContract.ZoneDetailEffect.ShowToast -> {
+                is VehicleDetailContract.VehicleDetailEffect.ShowToast -> {
                     ToastManager.show(context, currentEffect.message)
                 }
-                is ZoneDetailContract.ZoneDetailEffect.NavigateToEdit -> {
-                    onNavigateToEdit(currentEffect.zoneId)
+                is VehicleDetailContract.VehicleDetailEffect.NavigateToEdit -> {
+                    onNavigateToEdit(currentEffect.vehicleId)
                 }
-                is ZoneDetailContract.ZoneDetailEffect.NavigateBack -> {
+                is VehicleDetailContract.VehicleDetailEffect.NavigateBack -> {
                     onNavigateBack()
                 }
-                is ZoneDetailContract.ZoneDetailEffect.ShowDeleteConfirmDialog -> {
+                is VehicleDetailContract.VehicleDetailEffect.ShowDeleteConfirmDialog -> {
                     showDeleteDialog = true
-                }
-                is ZoneDetailContract.ZoneDetailEffect.NavigateToHome -> {
-                    onNavigateToHome()
                 }
             }
         }
@@ -68,17 +64,17 @@ fun ZoneDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("구역 상세") },
+                title = { Text("차량 상세") },
                 navigationIcon = {
-                    IconButton(onClick = { viewModel.processIntent(ZoneDetailContract.ZoneDetailIntent.NavigateBack) }) {
+                    IconButton(onClick = { viewModel.processIntent(VehicleDetailContract.VehicleDetailIntent.NavigateBack) }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로가기")
                     }
                 },
                 actions = {
-                    TextButton(onClick = { viewModel.processIntent(ZoneDetailContract.ZoneDetailIntent.NavigateToEdit) }) {
+                    TextButton(onClick = { viewModel.processIntent(VehicleDetailContract.VehicleDetailIntent.NavigateToEdit) }) {
                         Text("편집")
                     }
-                    TextButton(onClick = { viewModel.processIntent(ZoneDetailContract.ZoneDetailIntent.DeleteZone) }) {
+                    TextButton(onClick = { viewModel.processIntent(VehicleDetailContract.VehicleDetailIntent.DeleteVehicle) }) {
                         Text("삭제")
                     }
                 }
@@ -94,8 +90,8 @@ fun ZoneDetailScreen(
                     CircularProgressIndicator()
                 }
             }
-            state.zone != null -> {
-                val zone = state.zone!!
+            state.vehicle != null -> {
+                val vehicle = state.vehicle!!
 
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -107,7 +103,7 @@ fun ZoneDetailScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // 구역 기본 정보 카드
+                    // 차량 기본 정보 카드
                     item {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -125,59 +121,31 @@ fun ZoneDetailScreen(
                                 modifier = Modifier.padding(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(
-                                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Text(
-                                            text = zone.name,
-                                            style = MaterialTheme.typography.headlineSmall,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = zone.getDisplayFeeInfo(),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-
-                                    if (zone.isPublic) {
-                                        AssistChip(
-                                            onClick = { },
-                                            label = {
-                                                Text(
-                                                    text = "공영",
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    fontWeight = FontWeight.Medium
-                                                )
-                                            },
-                                            enabled = false,
-                                            colors = AssistChipDefaults.assistChipColors(
-                                                disabledContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                                disabledLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                            )
-                                        )
-                                    }
-                                }
+                                // 차량 이름
+                                Text(
+                                    text = vehicle.displayName,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
 
                                 Divider(
                                     modifier = Modifier.fillMaxWidth(),
                                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
                                 )
 
-                                InfoRow("최대 수용량", "${zone.maxCapacity}대")
-                                InfoRow("현재 주차", "${zone.currentOccupancy}대")
-                                InfoRow("가용 여부", if (zone.isAvailable) "가능" else "불가능")
+                                // 번호판
+                                InfoRow("번호판", vehicle.displayPlateNumber)
+                                
+                                // 차량 이름 (번호판과 다른 경우에만 표시)
+                                if (vehicle.name != null && vehicle.name != vehicle.plateNumber) {
+                                    InfoRow("차량 이름", vehicle.name)
+                                }
                             }
                         }
                     }
 
-                    // 요금 체계 상세 정보 (복잡한 요금 체계가 있는 경우)
-                    zone.feeStructure?.let { feeStructure ->
+                    // 할인 자격 카드
+                    if (vehicle.hasDiscount) {
                         item {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
@@ -196,38 +164,24 @@ fun ZoneDetailScreen(
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     Text(
-                                        text = "요금 체계",
+                                        text = "할인 자격",
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold
                                     )
 
-                                    InfoRow(
-                                        "기본 요금",
-                                        "${feeStructure.basicFee.fee}원 (${feeStructure.basicFee.durationMinutes}분)"
-                                    )
-                                    InfoRow(
-                                        "추가 요금",
-                                        "${feeStructure.additionalFee.fee}원 (${feeStructure.additionalFee.intervalMinutes}분마다)"
-                                    )
-
-                                    feeStructure.dailyMaxFee?.let { dailyMax ->
-                                        InfoRow("일 최대 요금", "${dailyMax.maxFee}원")
+                                    // 경차 할인
+                                    if (vehicle.discountEligibilities.compactCar.enabled) {
+                                        DiscountChip("경차")
                                     }
-
-                                    if (feeStructure.customFeeRules.isNotEmpty()) {
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = "커스텀 요금 구간",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        feeStructure.customFeeRules.forEach { rule ->
-                                            val maxText = rule.maxMinutes?.let { "~${it}분" } ?: "이상"
-                                            InfoRow(
-                                                label = "",
-                                                value = "${rule.minMinutes}분 $maxText: ${rule.fee}원"
-                                            )
-                                        }
+                                    
+                                    // 국가유공자 할인
+                                    if (vehicle.discountEligibilities.nationalMerit.enabled) {
+                                        DiscountChip("국가유공자")
+                                    }
+                                    
+                                    // 장애인 할인
+                                    if (vehicle.discountEligibilities.disabled.enabled) {
+                                        DiscountChip("장애인")
                                     }
                                 }
                             }
@@ -249,7 +203,7 @@ fun ZoneDetailScreen(
                             color = MaterialTheme.colorScheme.error
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { viewModel.processIntent(ZoneDetailContract.ZoneDetailIntent.LoadZone) }) {
+                        Button(onClick = { viewModel.processIntent(VehicleDetailContract.VehicleDetailIntent.LoadVehicle) }) {
                             Text("다시 시도")
                         }
                     }
@@ -261,10 +215,10 @@ fun ZoneDetailScreen(
     // 삭제 확인 다이얼로그
     DeleteConfirmDialog(
         visible = showDeleteDialog,
-        message = "정말로 이 구역을 삭제하시겠습니까?",
+        message = "정말로 이 차량을 삭제하시겠습니까?",
         onConfirm = {
             showDeleteDialog = false
-            viewModel.confirmDeleteZone(zoneId)
+            viewModel.confirmDeleteVehicle(vehicleId)
         },
         onDismiss = { showDeleteDialog = false }
     )
@@ -294,3 +248,27 @@ private fun InfoRow(
         )
     }
 }
+
+@Composable
+private fun DiscountChip(
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    AssistChip(
+        onClick = { },
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Medium
+            )
+        },
+        enabled = false,
+        colors = AssistChipDefaults.assistChipColors(
+            disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            disabledLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+        ),
+        modifier = modifier
+    )
+}
+

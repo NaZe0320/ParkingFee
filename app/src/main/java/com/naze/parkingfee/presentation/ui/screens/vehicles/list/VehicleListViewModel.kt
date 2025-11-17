@@ -53,6 +53,7 @@ class VehicleListViewModel @Inject constructor(
             is VehicleListContract.VehicleListIntent.NavigateToAddVehicle -> navigateToAddVehicle()
             is VehicleListContract.VehicleListIntent.DeleteVehicle -> deleteVehicle(intent.vehicleId)
             is VehicleListContract.VehicleListIntent.NavigateToEditVehicle -> navigateToEditVehicle(intent.vehicleId)
+            is VehicleListContract.VehicleListIntent.NavigateToDetailVehicle -> navigateToDetailVehicle(intent.vehicleId)
             is VehicleListContract.VehicleListIntent.SelectVehicle -> selectVehicle(intent.vehicleId)
             is VehicleListContract.VehicleListIntent.NavigateBack -> navigateBack()
         }
@@ -91,6 +92,12 @@ class VehicleListViewModel @Inject constructor(
     private fun navigateToEditVehicle(vehicleId: String) {
         viewModelScope.launch {
             _effect.emit(VehicleListContract.VehicleListEffect.NavigateToEditVehicle(vehicleId))
+        }
+    }
+    
+    private fun navigateToDetailVehicle(vehicleId: String) {
+        viewModelScope.launch {
+            _effect.emit(VehicleListContract.VehicleListEffect.NavigateToDetailVehicle(vehicleId))
         }
     }
     

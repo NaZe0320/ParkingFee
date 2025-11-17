@@ -38,7 +38,8 @@ fun VehicleListScreen(
     viewModel: VehicleListViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
     onNavigateToAddVehicle: () -> Unit = {},
-    onNavigateToEditVehicle: (vehicleId: String) -> Unit = {}
+    onNavigateToEditVehicle: (vehicleId: String) -> Unit = {},
+    onNavigateToDetailVehicle: (vehicleId: String) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -75,6 +76,9 @@ fun VehicleListScreen(
                 }
                 is VehicleListContract.VehicleListEffect.NavigateToEditVehicle -> {
                     onNavigateToEditVehicle(currentEffect.vehicleId)
+                }
+                is VehicleListContract.VehicleListEffect.NavigateToDetailVehicle -> {
+                    onNavigateToDetailVehicle(currentEffect.vehicleId)
                 }
                 is VehicleListContract.VehicleListEffect.ShowDeleteConfirmation -> {
                     vehicleToDelete = Pair(currentEffect.vehicleId, currentEffect.vehicleName)
@@ -176,9 +180,9 @@ fun VehicleListScreen(
                             vehicle = vehicle,
                             isSelected = false,
                             onSelectClick = {
-                                // 아이템 클릭 시 선택 대신 편집(상세) 화면으로 이동
+                                // 아이템 클릭 시 상세 화면으로 이동
                                 viewModel.processIntent(
-                                    VehicleListContract.VehicleListIntent.NavigateToEditVehicle(
+                                    VehicleListContract.VehicleListIntent.NavigateToDetailVehicle(
                                         vehicle.id
                                     )
                                 )

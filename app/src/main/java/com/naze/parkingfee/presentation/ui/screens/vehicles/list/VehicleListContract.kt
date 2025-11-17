@@ -10,6 +10,7 @@ object VehicleListContract {
         object NavigateToAddVehicle : VehicleListIntent()
         data class DeleteVehicle(val vehicleId: String) : VehicleListIntent()
         data class NavigateToEditVehicle(val vehicleId: String) : VehicleListIntent()
+        data class NavigateToDetailVehicle(val vehicleId: String) : VehicleListIntent()
         data class SelectVehicle(val vehicleId: String) : VehicleListIntent()
         object NavigateBack : VehicleListIntent()
     }
@@ -27,6 +28,7 @@ object VehicleListContract {
         object NavigateBack : VehicleListEffect()
         object NavigateToAddVehicle : VehicleListEffect()
         data class NavigateToEditVehicle(val vehicleId: String) : VehicleListEffect()
+        data class NavigateToDetailVehicle(val vehicleId: String) : VehicleListEffect()
         data class ShowDeleteConfirmation(val vehicleId: String, val vehicleName: String) : VehicleListEffect()
     }
 }

@@ -78,7 +78,7 @@ fun ParkingLotListScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-        // 헤더와 추가 버튼
+        // 헤더와 추가   버튼
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

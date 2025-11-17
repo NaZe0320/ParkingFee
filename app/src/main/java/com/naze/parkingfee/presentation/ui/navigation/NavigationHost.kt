@@ -20,6 +20,7 @@ import com.naze.parkingfee.presentation.ui.screens.settings.vehicles.add.AddVehi
 import com.naze.parkingfee.presentation.ui.screens.parkinglots.add.AddParkingLotScreen
 import com.naze.parkingfee.presentation.ui.screens.settings.parkinglots.list.ParkingLotListScreen
 import com.naze.parkingfee.presentation.ui.screens.zonedetail.ZoneDetailScreen
+import com.naze.parkingfee.presentation.ui.screens.vehicledetail.VehicleDetailScreen
 import com.naze.parkingfee.presentation.ui.screens.history.HistoryScreen
 
 /**
@@ -169,6 +170,9 @@ fun NavigationHost(
                     },
                     onNavigateToEditVehicle = { vehicleId ->
                         navController.navigate("vehicles/add?vehicleId=$vehicleId")
+                    },
+                    onNavigateToDetailVehicle = { vehicleId ->
+                        navController.navigate("vehicle_detail/$vehicleId")
                     }
                 )
             }
@@ -187,6 +191,19 @@ fun NavigationHost(
                     },
                     onNavigateToOcr = {
                         // OCR 화면으로 이동 (추후 구현)
+                    }
+                )
+            }
+            
+            composable("vehicle_detail/{vehicleId}") { backStackEntry ->
+                val vehicleId = backStackEntry.arguments?.getString("vehicleId") ?: ""
+                VehicleDetailScreen(
+                    vehicleId = vehicleId,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToEdit = { editVehicleId ->
+                        navController.navigate("vehicles/add?vehicleId=$editVehicleId")
                     }
                 )
             }
