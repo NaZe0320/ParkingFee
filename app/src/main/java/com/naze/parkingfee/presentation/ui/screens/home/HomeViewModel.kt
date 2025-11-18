@@ -399,8 +399,6 @@ class HomeViewModel @Inject constructor(
                         }
                     }
                 }
-                
-                _effect.emit(HomeContract.HomeEffect.ShowToast("${vehicle.displayName}이(가) 선택되었습니다."))
             } catch (e: Exception) {
                 _effect.emit(HomeContract.HomeEffect.ShowToast("차량 선택 중 오류가 발생했습니다: ${e.message}"))
             }
