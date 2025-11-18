@@ -23,7 +23,7 @@ import androidx.compose.ui.window.DialogProperties
 fun DeleteConfirmDialog(
     visible: Boolean,
     title: String = "삭제",
-    itemName: String,
+    itemName: String? = null,
     message: String = "정말로 삭제하시겠습니까?",
     confirmText: String = "삭제",
     dismissText: String = "취소",
@@ -81,24 +81,26 @@ fun DeleteConfirmDialog(
                     textAlign = TextAlign.Center
                 )
 
-                // 삭제할 아이템 이름 강조
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = itemName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        textAlign = TextAlign.Center
-                    )
+                // 삭제할 아이템 이름 강조 (itemName이 있을 때만 표시)
+                if (!itemName.isNullOrBlank()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = itemName,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
 
                 // 메시지

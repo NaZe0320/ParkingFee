@@ -334,7 +334,7 @@ fun SettingsScreen(
     DeleteConfirmDialog(
         visible = state.showDeleteDialog,
         title = "계정 삭제",
-        itemName = "계정",
+        itemName = null,
         message = "계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.",
         confirmText = "삭제",
         dismissText = "취소",

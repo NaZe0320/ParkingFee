@@ -146,7 +146,7 @@ fun AddParkingLotScreen(
             )
         }
 
-        // 기본 요금 체계
+        // 최초 요금 체계
         item {
             BasicFeeRuleCard(
                 durationMinutes = state.basicFeeDuration,
@@ -162,7 +162,7 @@ fun AddParkingLotScreen(
             )
         }
 
-        // 추가 요금 체계
+        // 기본 요금 체계
         item {
             AdditionalFeeRuleCard(
                 intervalMinutes = state.additionalFeeInterval,

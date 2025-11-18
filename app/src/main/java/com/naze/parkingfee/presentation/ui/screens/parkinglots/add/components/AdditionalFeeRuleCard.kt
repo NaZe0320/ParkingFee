@@ -11,7 +11,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 /**
- * 추가 요금 체계 입력 컴포넌트
+ * 기본 요금 체계 입력 컴포넌트
  */
 @Composable
 fun AdditionalFeeRuleCard(
@@ -37,7 +37,7 @@ fun AdditionalFeeRuleCard(
         ) {
             // 제목
             Text(
-                text = "추가 요금",
+                text = "기본 요금",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
