@@ -159,6 +159,12 @@ class ParkingRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateParkingSession(session: ParkingSession): ParkingSession {
+        val entity = parkingSessionMapper.mapToEntity(session)
+        parkingDao.updateParkingSession(entity)
+        return session
+    }
+
     private fun generateSessionId(): String {
         return "session_${System.currentTimeMillis()}_${(1000..9999).random()}"
     }

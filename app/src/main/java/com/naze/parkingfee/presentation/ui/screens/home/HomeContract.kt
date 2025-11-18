@@ -28,6 +28,10 @@ object HomeContract {
         object ToggleStatusCard : HomeIntent()
         object ToggleVehicleSelector : HomeIntent()
         object ToggleParkingZoneSelector : HomeIntent()
+        data class AddFreeTime(val minutes: Int) : HomeIntent()
+        data class RemoveFreeTime(val minutes: Int) : HomeIntent()
+        data class AddAlarm(val targetAmount: Double, val minutesBefore: Int) : HomeIntent()
+        data class RemoveAlarm(val alarmId: String) : HomeIntent()
     }
 
     /**
@@ -47,7 +51,9 @@ object HomeContract {
         val isStatusCardExpanded: Boolean = true,
         val isVehicleSelectorExpanded: Boolean = true,
         val isParkingZoneSelectorExpanded: Boolean = true,
-        val activeZoneName: String? = null
+        val activeZoneName: String? = null,
+        val freeTimeMinutes: Int = 0,
+        val parkingAlarms: List<com.naze.parkingfee.domain.model.ParkingAlarm> = emptyList()
     )
 
     /**
@@ -69,5 +75,6 @@ object HomeContract {
         ) : HomeEffect()
         object RequestStartParkingService : HomeEffect()
         object RequestStopParkingService : HomeEffect()
+        object ShowAlarmScheduledToast : HomeEffect()
     }
 }

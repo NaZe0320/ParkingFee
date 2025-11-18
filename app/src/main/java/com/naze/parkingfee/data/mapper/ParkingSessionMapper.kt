@@ -16,7 +16,8 @@ class ParkingSessionMapper @Inject constructor() {
             startTime = entity.startTime,
             endTime = entity.endTime,
             totalFee = entity.totalFee,
-            isActive = entity.isActive
+            isActive = entity.isActive,
+            freeTimeMinutes = entity.freeTimeMinutes
         )
     }
     
@@ -27,7 +28,8 @@ class ParkingSessionMapper @Inject constructor() {
             startTime = domain.startTime,
             endTime = domain.endTime,
             totalFee = domain.totalFee,
-            isActive = domain.isActive
+            isActive = domain.isActive,
+            freeTimeMinutes = domain.freeTimeMinutes
         )
     }
 }

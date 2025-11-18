@@ -15,6 +15,13 @@ import com.naze.parkingfee.domain.usecase.selectedvehicle.GetSelectedVehicleIdUs
 import com.naze.parkingfee.domain.usecase.vehicle.GetVehiclesUseCase
 import com.naze.parkingfee.domain.repository.VehicleRepository
 import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
+import com.naze.parkingfee.domain.usecase.parkingsession.UpdateFreeTimeUseCase
+import com.naze.parkingfee.domain.usecase.alarm.AddParkingAlarmUseCase
+import com.naze.parkingfee.domain.usecase.alarm.DeleteParkingAlarmUseCase
+import com.naze.parkingfee.domain.usecase.alarm.GetParkingAlarmsUseCase
+import com.naze.parkingfee.domain.usecase.alarm.DeleteAlarmsForSessionUseCase
+import com.naze.parkingfee.domain.model.ParkingAlarm
+import com.naze.parkingfee.infrastructure.alarm.AlarmScheduler
 import kotlinx.coroutines.flow.first
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,7 +53,13 @@ class HomeViewModel @Inject constructor(
     private val getVehiclesUseCase: GetVehiclesUseCase,
     private val vehicleRepository: VehicleRepository,
     private val selectedVehicleRepository: SelectedVehicleRepository,
-    private val parkingRepository: com.naze.parkingfee.domain.repository.ParkingRepository
+    private val parkingRepository: com.naze.parkingfee.domain.repository.ParkingRepository,
+    private val updateFreeTimeUseCase: UpdateFreeTimeUseCase,
+    private val addParkingAlarmUseCase: AddParkingAlarmUseCase,
+    private val deleteParkingAlarmUseCase: DeleteParkingAlarmUseCase,
+    private val getParkingAlarmsUseCase: GetParkingAlarmsUseCase,
+    private val deleteAlarmsForSessionUseCase: DeleteAlarmsForSessionUseCase,
+    private val alarmScheduler: AlarmScheduler
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeContract.HomeState())
@@ -92,6 +105,10 @@ class HomeViewModel @Inject constructor(
             is HomeContract.HomeIntent.ToggleStatusCard -> toggleStatusCard()
             is HomeContract.HomeIntent.ToggleVehicleSelector -> toggleVehicleSelector()
             is HomeContract.HomeIntent.ToggleParkingZoneSelector -> toggleParkingZoneSelector()
+            is HomeContract.HomeIntent.AddFreeTime -> addFreeTime(intent.minutes)
+            is HomeContract.HomeIntent.RemoveFreeTime -> removeFreeTime(intent.minutes)
+            is HomeContract.HomeIntent.AddAlarm -> addAlarm(intent.targetAmount, intent.minutesBefore)
+            is HomeContract.HomeIntent.RemoveAlarm -> removeAlarm(intent.alarmId)
         }
     }
 
@@ -119,6 +136,11 @@ class HomeViewModel @Inject constructor(
                 val selectedVehicleId = getSelectedVehicleIdUseCase.execute().first()
                 val selectedVehicle = selectedVehicleId?.let { vehicleRepository.getVehicleById(it) }
 
+                // 알람 목록 조회 (활성 세션이 있는 경우)
+                val alarms = activeSession?.let { 
+                    getParkingAlarmsUseCase.execute(it.id)
+                } ?: emptyList()
+                
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -129,7 +151,9 @@ class HomeViewModel @Inject constructor(
                         isParkingActive = activeSession != null, // 실행 중인 세션이 있으면 true
                         activeZoneName = activeSession?.let { session ->
                             zones.firstOrNull { zone -> zone.id == session.zoneId }?.name
-                        }
+                        },
+                        freeTimeMinutes = activeSession?.freeTimeMinutes ?: 0,
+                        parkingAlarms = alarms
                     )
                 }
                 
@@ -187,6 +211,13 @@ class HomeViewModel @Inject constructor(
                 val session = stopParkingUseCase.execute(sessionId)
                 stopTicker()
                 
+                // 모든 알람 취소 및 삭제
+                val alarms = _state.value.parkingAlarms
+                alarms.forEach { alarm ->
+                    alarmScheduler.cancelAlarm(alarm.id)
+                }
+                deleteAlarmsForSessionUseCase.execute(sessionId)
+                
                 // 주차 완료 정보 수집
                 val zone = resolveZone(session.zoneId)
                 val zoneName = zone?.name ?: "알 수 없는 구역"
@@ -195,12 +226,13 @@ class HomeViewModel @Inject constructor(
                     if (v.hasPlateNumber) "${v.displayName}(${v.displayPlateNumber})" else v.displayName
                 }
                 
-                // 할인 적용된 요금 계산
-                val feeResult = FeeCalculator.calculateFeeForZoneResult(
+                // 할인 및 무료 시간 적용된 요금 계산
+                val feeResult = FeeCalculator.calculateFeeWithFreeTimeAndVehicleResult(
                     session.startTime,
                     session.endTime,
                     zone ?: return@launch,
-                    _state.value.selectedVehicle
+                    _state.value.selectedVehicle,
+                    session.freeTimeMinutes
                 )
                 
                 _state.update { 
@@ -209,7 +241,9 @@ class HomeViewModel @Inject constructor(
                         isParkingActive = false,
                         parkingFee = 0.0,
                         parkingDuration = "00:00",
-                        activeZoneName = null
+                        activeZoneName = null,
+                        freeTimeMinutes = 0,
+                        parkingAlarms = emptyList()
                     )
                 }
                 
@@ -448,8 +482,14 @@ class HomeViewModel @Inject constructor(
                     val duration = TimeUtils.formatDuration(now - session.startTime)
                     val zone = resolveZone(session.zoneId)
                     val fee = if (zone != null) {
-                        // 차량 선택 반영하여 할인 포함 계산
-                        FeeCalculator.calculateFeeForZone(session.startTime, now, zone, _state.value.selectedVehicle)
+                        // 차량 할인 및 무료 시간 반영하여 계산
+                        FeeCalculator.calculateFeeWithFreeTimeAndVehicle(
+                            session.startTime, 
+                            now, 
+                            zone, 
+                            _state.value.selectedVehicle,
+                            session.freeTimeMinutes
+                        )
                     } else {
                         0.0
                     }
@@ -480,6 +520,194 @@ class HomeViewModel @Inject constructor(
     private fun resolveZone(zoneId: String): com.naze.parkingfee.domain.model.ParkingZone? {
         return _state.value.currentZone?.takeIf { it.id == zoneId }
             ?: _state.value.availableZones.firstOrNull { it.id == zoneId }
+    }
+    
+    /**
+     * 무료 시간을 추가합니다.
+     */
+    private fun addFreeTime(minutes: Int) {
+        viewModelScope.launch {
+            try {
+                val session = _state.value.activeParkingSession ?: return@launch
+                val newFreeTime = session.freeTimeMinutes + minutes
+                
+                updateFreeTimeUseCase.execute(session.id, newFreeTime)
+                
+                val updatedSession = session.copy(freeTimeMinutes = newFreeTime)
+                _state.update {
+                    it.copy(
+                        activeParkingSession = updatedSession,
+                        freeTimeMinutes = newFreeTime
+                    )
+                }
+                
+                // 요금 재계산
+                recalculateFee()
+                
+                _effect.emit(HomeContract.HomeEffect.ShowToast("무료 시간 ${minutes}분이 추가되었습니다."))
+            } catch (e: Exception) {
+                _effect.emit(HomeContract.HomeEffect.ShowToast("무료 시간 추가 중 오류가 발생했습니다."))
+            }
+        }
+    }
+    
+    /**
+     * 무료 시간을 제거합니다.
+     */
+    private fun removeFreeTime(minutes: Int) {
+        viewModelScope.launch {
+            try {
+                val session = _state.value.activeParkingSession ?: return@launch
+                val newFreeTime = maxOf(0, session.freeTimeMinutes - minutes)
+                
+                updateFreeTimeUseCase.execute(session.id, newFreeTime)
+                
+                val updatedSession = session.copy(freeTimeMinutes = newFreeTime)
+                _state.update {
+                    it.copy(
+                        activeParkingSession = updatedSession,
+                        freeTimeMinutes = newFreeTime
+                    )
+                }
+                
+                // 요금 재계산
+                recalculateFee()
+                
+                _effect.emit(HomeContract.HomeEffect.ShowToast("무료 시간 ${minutes}분이 제거되었습니다."))
+            } catch (e: Exception) {
+                _effect.emit(HomeContract.HomeEffect.ShowToast("무료 시간 제거 중 오류가 발생했습니다."))
+            }
+        }
+    }
+    
+    /**
+     * 알람을 추가합니다.
+     */
+    private fun addAlarm(targetAmount: Double, minutesBefore: Int) {
+        viewModelScope.launch {
+            try {
+                val session = _state.value.activeParkingSession ?: return@launch
+                val zone = resolveZone(session.zoneId) ?: return@launch
+                
+                // 목표 금액에 도달하는 시간 계산
+                val targetTime = calculateTimeToReachAmount(
+                    session.startTime,
+                    targetAmount,
+                    zone,
+                    _state.value.selectedVehicle,
+                    session.freeTimeMinutes
+                )
+                
+                if (targetTime == null) {
+                    _effect.emit(HomeContract.HomeEffect.ShowToast("목표 금액에 도달할 수 없습니다."))
+                    return@launch
+                }
+                
+                // 알람 시간 = 목표 시간 - n분
+                val scheduledTime = targetTime - (minutesBefore * 60 * 1000L)
+                
+                if (scheduledTime <= System.currentTimeMillis()) {
+                    _effect.emit(HomeContract.HomeEffect.ShowToast("알람 시간이 이미 지났습니다."))
+                    return@launch
+                }
+                
+                // 알람 생성
+                val alarmId = "alarm_${System.currentTimeMillis()}_${(1000..9999).random()}"
+                val alarm = ParkingAlarm(
+                    id = alarmId,
+                    sessionId = session.id,
+                    targetAmount = targetAmount,
+                    minutesBefore = minutesBefore,
+                    scheduledTime = scheduledTime
+                )
+                
+                // 알람 저장 및 스케줄링
+                addParkingAlarmUseCase.execute(alarm)
+                alarmScheduler.scheduleAlarm(alarmId, scheduledTime, targetAmount, minutesBefore)
+                
+                // 상태 업데이트
+                val updatedAlarms = _state.value.parkingAlarms + alarm
+                _state.update { it.copy(parkingAlarms = updatedAlarms) }
+                
+                _effect.emit(HomeContract.HomeEffect.ShowToast("알람이 설정되었습니다."))
+            } catch (e: Exception) {
+                _effect.emit(HomeContract.HomeEffect.ShowToast("알람 설정 중 오류가 발생했습니다: ${e.message}"))
+            }
+        }
+    }
+    
+    /**
+     * 알람을 제거합니다.
+     */
+    private fun removeAlarm(alarmId: String) {
+        viewModelScope.launch {
+            try {
+                // 알람 취소 및 삭제
+                alarmScheduler.cancelAlarm(alarmId)
+                deleteParkingAlarmUseCase.execute(alarmId)
+                
+                // 상태 업데이트
+                val updatedAlarms = _state.value.parkingAlarms.filter { it.id != alarmId }
+                _state.update { it.copy(parkingAlarms = updatedAlarms) }
+                
+                _effect.emit(HomeContract.HomeEffect.ShowToast("알람이 삭제되었습니다."))
+            } catch (e: Exception) {
+                _effect.emit(HomeContract.HomeEffect.ShowToast("알람 삭제 중 오류가 발생했습니다."))
+            }
+        }
+    }
+    
+    /**
+     * 요금을 재계산합니다.
+     */
+    private fun recalculateFee() {
+        val session = _state.value.activeParkingSession ?: return
+        val zone = resolveZone(session.zoneId) ?: return
+        val now = TimeUtils.getCurrentTimestamp()
+        
+        val fee = FeeCalculator.calculateFeeWithFreeTimeAndVehicle(
+            session.startTime,
+            now,
+            zone,
+            _state.value.selectedVehicle,
+            session.freeTimeMinutes
+        )
+        
+        _state.update { it.copy(parkingFee = fee) }
+    }
+    
+    /**
+     * 목표 금액에 도달하는 시간을 계산합니다.
+     */
+    private fun calculateTimeToReachAmount(
+        startTime: Long,
+        targetAmount: Double,
+        zone: com.naze.parkingfee.domain.model.ParkingZone,
+        vehicle: com.naze.parkingfee.domain.model.vehicle.Vehicle?,
+        freeTimeMinutes: Int
+    ): Long? {
+        // 간단한 이분 탐색으로 목표 금액 도달 시간 찾기
+        var low = System.currentTimeMillis()
+        var high = startTime + (24 * 60 * 60 * 1000L) // 최대 24시간
+        
+        while (low < high) {
+            val mid = (low + high) / 2
+            val fee = FeeCalculator.calculateFeeWithFreeTimeAndVehicle(
+                startTime, mid, zone, vehicle, freeTimeMinutes
+            )
+            
+            if (fee < targetAmount) {
+                low = mid + 1
+            } else {
+                high = mid
+            }
+        }
+        
+        val finalFee = FeeCalculator.calculateFeeWithFreeTimeAndVehicle(
+            startTime, low, zone, vehicle, freeTimeMinutes
+        )
+        
+        return if (finalFee >= targetAmount) low else null
     }
     
     override fun onCleared() {

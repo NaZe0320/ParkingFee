@@ -9,7 +9,8 @@ data class ParkingSession(
     val startTime: Long,
     val endTime: Long? = null,
     val totalFee: Double = 0.0,
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
+    val freeTimeMinutes: Int = 0
 ) {
     val duration: Long
         get() = (endTime ?: System.currentTimeMillis()) - startTime

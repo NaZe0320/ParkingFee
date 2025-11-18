@@ -89,4 +89,9 @@ interface ParkingRepository {
      * 주차 세션을 실시간으로 관찰합니다.
      */
     fun observeParkingSessions(): Flow<List<ParkingSession>>
+    
+    /**
+     * 주차 세션을 업데이트합니다.
+     */
+    suspend fun updateParkingSession(session: ParkingSession): ParkingSession
 }

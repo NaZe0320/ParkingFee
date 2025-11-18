@@ -91,6 +91,9 @@ fun HomeScreen(
                     parkingCompleteInfo = currentEffect
                     showParkingCompleteDialog = true
                 }
+                is HomeContract.HomeEffect.ShowAlarmScheduledToast -> {
+                    ToastManager.show(context, "알람이 설정되었습니다.")
+                }
             }
         }
     }
@@ -140,34 +143,67 @@ fun HomeScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // 차량 선택 섹션
-            item {
-                VehicleSelector(
-                    vehicles = state.vehicles,
-                    selectedVehicle = state.selectedVehicle,
-                    onVehicleSelected = { vehicle ->
-                        viewModel.processIntent(HomeContract.HomeIntent.SelectVehicle(vehicle))
-                    },
-                    isExpanded = state.isVehicleSelectorExpanded,
-                    onToggleExpand = {
-                        viewModel.processIntent(HomeContract.HomeIntent.ToggleVehicleSelector)
-                    }
-                )
-            }
+            // 주차 중일 때는 차량/주차장 선택 대신 무료 시간과 알람 설정 표시
+            if (state.isParkingActive) {
+                // 무료 시간 선택 섹션
+                item {
+                    FreeTimeSelector(
+                        freeTimeMinutes = state.freeTimeMinutes,
+                        onAddFreeTime = { minutes ->
+                            viewModel.processIntent(HomeContract.HomeIntent.AddFreeTime(minutes))
+                        },
+                        onRemoveFreeTime = { minutes ->
+                            viewModel.processIntent(HomeContract.HomeIntent.RemoveFreeTime(minutes))
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+                
+                // 알람 설정 섹션
+                item {
+                    AlarmSettingSection(
+                        parkingAlarms = state.parkingAlarms,
+                        onAddAlarm = { targetAmount, minutesBefore ->
+                            viewModel.processIntent(
+                                HomeContract.HomeIntent.AddAlarm(targetAmount, minutesBefore)
+                            )
+                        },
+                        onRemoveAlarm = { alarmId ->
+                            viewModel.processIntent(HomeContract.HomeIntent.RemoveAlarm(alarmId))
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+            } else {
+                // 차량 선택 섹션 (주차 중이 아닐 때만)
+                item {
+                    VehicleSelector(
+                        vehicles = state.vehicles,
+                        selectedVehicle = state.selectedVehicle,
+                        onVehicleSelected = { vehicle ->
+                            viewModel.processIntent(HomeContract.HomeIntent.SelectVehicle(vehicle))
+                        },
+                        isExpanded = state.isVehicleSelectorExpanded,
+                        onToggleExpand = {
+                            viewModel.processIntent(HomeContract.HomeIntent.ToggleVehicleSelector)
+                        }
+                    )
+                }
 
-            // 주차장 선택 섹션
-            item {
-                ParkingZoneSelector(
-                    zones = state.availableZones,
-                    selectedZone = state.currentZone,
-                    onZoneSelected = { zone ->
-                        viewModel.processIntent(HomeContract.HomeIntent.SelectZone(zone))
-                    },
-                    isExpanded = state.isParkingZoneSelectorExpanded,
-                    onToggleExpand = {
-                        viewModel.processIntent(HomeContract.HomeIntent.ToggleParkingZoneSelector)
-                    }
-                )
+                // 주차장 선택 섹션 (주차 중이 아닐 때만)
+                item {
+                    ParkingZoneSelector(
+                        zones = state.availableZones,
+                        selectedZone = state.currentZone,
+                        onZoneSelected = { zone ->
+                            viewModel.processIntent(HomeContract.HomeIntent.SelectZone(zone))
+                        },
+                        isExpanded = state.isParkingZoneSelectorExpanded,
+                        onToggleExpand = {
+                            viewModel.processIntent(HomeContract.HomeIntent.ToggleParkingZoneSelector)
+                        }
+                    )
+                }
             }
 
             // 에러 메시지

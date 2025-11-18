@@ -218,4 +218,100 @@ object FeeCalculator {
         val discountAmount = originalFee * discountRate
         return originalFee - discountAmount
     }
+    
+    /**
+     * 무료 시간을 적용하여 주차 요금을 계산합니다.
+     * 
+     * @param startTime 주차 시작 시간 (밀리초)
+     * @param endTime 주차 종료 시간 (밀리초)
+     * @param zone 주차 구역
+     * @param freeTimeMinutes 무료 시간 (분)
+     * @return 계산된 주차 요금
+     */
+    fun calculateFeeWithFreeTime(
+        startTime: Long,
+        endTime: Long,
+        zone: ParkingZone,
+        freeTimeMinutes: Int
+    ): Double {
+        val totalDurationMillis = endTime - startTime
+        val freeTimeMillis = freeTimeMinutes * 60 * 1000L
+        
+        // 무료 시간이 총 주차 시간보다 길면 0원
+        if (freeTimeMillis >= totalDurationMillis) {
+            return 0.0
+        }
+        
+        // 무료 시간을 뺀 실제 과금 시간 계산
+        val billableDurationMillis = totalDurationMillis - freeTimeMillis
+        val adjustedEndTime = startTime + billableDurationMillis
+        
+        return calculateFeeForZone(startTime, adjustedEndTime, zone)
+    }
+    
+    /**
+     * 무료 시간과 차량 할인을 모두 적용하여 주차 요금을 계산합니다.
+     * 
+     * @param startTime 주차 시작 시간 (밀리초)
+     * @param endTime 주차 종료 시간 (밀리초)
+     * @param zone 주차 구역
+     * @param vehicle 차량 (선택사항)
+     * @param freeTimeMinutes 무료 시간 (분)
+     * @return 계산된 주차 요금 (할인 적용)
+     */
+    fun calculateFeeWithFreeTimeAndVehicle(
+        startTime: Long,
+        endTime: Long,
+        zone: ParkingZone,
+        vehicle: Vehicle?,
+        freeTimeMinutes: Int
+    ): Double {
+        val totalDurationMillis = endTime - startTime
+        val freeTimeMillis = freeTimeMinutes * 60 * 1000L
+        
+        // 무료 시간이 총 주차 시간보다 길면 0원
+        if (freeTimeMillis >= totalDurationMillis) {
+            return 0.0
+        }
+        
+        // 무료 시간을 뺀 실제 과금 시간 계산
+        val billableDurationMillis = totalDurationMillis - freeTimeMillis
+        val adjustedEndTime = startTime + billableDurationMillis
+        
+        // 차량 할인 적용
+        return calculateFeeForZone(startTime, adjustedEndTime, zone, vehicle)
+    }
+    
+    /**
+     * 무료 시간과 차량 할인을 모두 적용하여 주차 요금을 계산합니다 (할인 전/후 모두 반환).
+     * 
+     * @param startTime 주차 시작 시간 (밀리초)
+     * @param endTime 주차 종료 시간 (밀리초)
+     * @param zone 주차 구역
+     * @param vehicle 차량 (선택사항)
+     * @param freeTimeMinutes 무료 시간 (분)
+     * @return 계산된 주차 요금 결과 (할인 전/후)
+     */
+    fun calculateFeeWithFreeTimeAndVehicleResult(
+        startTime: Long,
+        endTime: Long,
+        zone: ParkingZone,
+        vehicle: Vehicle?,
+        freeTimeMinutes: Int
+    ): FeeResult {
+        val totalDurationMillis = endTime - startTime
+        val freeTimeMillis = freeTimeMinutes * 60 * 1000L
+        
+        // 무료 시간이 총 주차 시간보다 길면 0원
+        if (freeTimeMillis >= totalDurationMillis) {
+            return FeeResult(original = 0.0, discounted = 0.0)
+        }
+        
+        // 무료 시간을 뺀 실제 과금 시간 계산
+        val billableDurationMillis = totalDurationMillis - freeTimeMillis
+        val adjustedEndTime = startTime + billableDurationMillis
+        
+        // 차량 할인 적용
+        return calculateFeeForZoneResult(startTime, adjustedEndTime, zone, vehicle)
+    }
 }

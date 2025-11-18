@@ -9,10 +9,12 @@ import android.content.Context
 import com.naze.parkingfee.data.datasource.local.dao.ParkingDao
 import com.naze.parkingfee.data.datasource.local.dao.ParkingHistoryDao
 import com.naze.parkingfee.data.datasource.local.dao.VehicleDao
+import com.naze.parkingfee.data.datasource.local.dao.ParkingAlarmDao
 import com.naze.parkingfee.data.datasource.local.entity.ParkingZoneEntity
 import com.naze.parkingfee.data.datasource.local.entity.ParkingSessionEntity
 import com.naze.parkingfee.data.datasource.local.entity.ParkingHistoryEntity
 import com.naze.parkingfee.data.datasource.local.entity.VehicleEntity
+import com.naze.parkingfee.data.datasource.local.entity.ParkingAlarmEntity
 
 /**
  * 주차 관련 Room 데이터베이스
@@ -22,9 +24,10 @@ import com.naze.parkingfee.data.datasource.local.entity.VehicleEntity
         ParkingZoneEntity::class,
         ParkingSessionEntity::class,
         ParkingHistoryEntity::class,
-        VehicleEntity::class
+        VehicleEntity::class,
+        ParkingAlarmEntity::class
     ],
-    version = 1, // 초기화: 마이그레이션 없음
+    version = 2, // 알람 테이블 추가 및 무료 시간 필드 추가
     exportSchema = false
 )
 abstract class ParkingDatabase : RoomDatabase() {
@@ -32,6 +35,7 @@ abstract class ParkingDatabase : RoomDatabase() {
     abstract fun parkingDao(): ParkingDao
     abstract fun parkingHistoryDao(): ParkingHistoryDao
     abstract fun vehicleDao(): VehicleDao
+    abstract fun parkingAlarmDao(): ParkingAlarmDao
     
     companion object {
         @Volatile

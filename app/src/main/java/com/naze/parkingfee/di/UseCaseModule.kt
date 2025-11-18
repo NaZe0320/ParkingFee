@@ -4,6 +4,7 @@ import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.domain.repository.ParkingHistoryRepository
 import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
 import com.naze.parkingfee.domain.repository.VehicleRepository
+import com.naze.parkingfee.domain.repository.AlarmRepository
 import com.naze.parkingfee.domain.usecase.parkingzone.AddParkingZoneUseCase
 import com.naze.parkingfee.domain.usecase.parkingzone.DeleteParkingZoneUseCase
 import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZonesUseCase
@@ -16,6 +17,11 @@ import com.naze.parkingfee.domain.usecase.parkingsession.StopParkingUseCase
 import com.naze.parkingfee.domain.usecase.parkinghistory.SaveParkingHistoryUseCase
 import com.naze.parkingfee.domain.usecase.parkinghistory.GetParkingHistoryUseCase
 import com.naze.parkingfee.domain.usecase.parkinghistory.DeleteParkingHistoryUseCase
+import com.naze.parkingfee.domain.usecase.parkingsession.UpdateFreeTimeUseCase
+import com.naze.parkingfee.domain.usecase.alarm.AddParkingAlarmUseCase
+import com.naze.parkingfee.domain.usecase.alarm.DeleteParkingAlarmUseCase
+import com.naze.parkingfee.domain.usecase.alarm.GetParkingAlarmsUseCase
+import com.naze.parkingfee.domain.usecase.alarm.DeleteAlarmsForSessionUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -104,5 +110,35 @@ object UseCaseModule {
     @Singleton
     fun provideDeleteParkingHistoryUseCase(historyRepository: ParkingHistoryRepository): DeleteParkingHistoryUseCase {
         return DeleteParkingHistoryUseCase(historyRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateFreeTimeUseCase(parkingRepository: ParkingRepository): UpdateFreeTimeUseCase {
+        return UpdateFreeTimeUseCase(parkingRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddParkingAlarmUseCase(alarmRepository: AlarmRepository): AddParkingAlarmUseCase {
+        return AddParkingAlarmUseCase(alarmRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteParkingAlarmUseCase(alarmRepository: AlarmRepository): DeleteParkingAlarmUseCase {
+        return DeleteParkingAlarmUseCase(alarmRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetParkingAlarmsUseCase(alarmRepository: AlarmRepository): GetParkingAlarmsUseCase {
+        return GetParkingAlarmsUseCase(alarmRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteAlarmsForSessionUseCase(alarmRepository: AlarmRepository): DeleteAlarmsForSessionUseCase {
+        return DeleteAlarmsForSessionUseCase(alarmRepository)
     }
 }
