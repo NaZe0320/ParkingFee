@@ -1,13 +1,18 @@
 package com.naze.parkingfee.presentation.ui.screens.home.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -24,99 +29,138 @@ fun FreeTimeSelector(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // 제목
-            Text(
-                text = "무료 시간",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            
-            // 현재 무료 시간 표시
-            Text(
-                text = formatFreeTime(freeTimeMinutes),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            
-            // 10분 버튼
-            FreeTimeButton(
-                label = "10분",
-                onAdd = { onAddFreeTime(10) },
-                onRemove = { onRemoveFreeTime(10) },
-                enabled = freeTimeMinutes >= 10
-            )
-            
-            // 30분 버튼
-            FreeTimeButton(
-                label = "30분",
-                onAdd = { onAddFreeTime(30) },
-                onRemove = { onRemoveFreeTime(30) },
-                enabled = freeTimeMinutes >= 30
-            )
-            
-            // 1시간 버튼
-            FreeTimeButton(
-                label = "1시간",
-                onAdd = { onAddFreeTime(60) },
-                onRemove = { onRemoveFreeTime(60) },
-                enabled = freeTimeMinutes >= 60
-            )
-        }
-    }
-}
-
-@Composable
-private fun FreeTimeButton(
-    label: String,
-    onAdd: () -> Unit,
-    onRemove: () -> Unit,
-    enabled: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // 빼기 버튼
-            FilledTonalIconButton(
-                onClick = onRemove,
-                enabled = enabled
+            // 제목과 현재 시간
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.Remove,
-                    contentDescription = "$label 빼기"
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Schedule,
+                            contentDescription = "무료 시간",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                    
+                    Text(
+                        text = "무료 시간",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                
+                // 현재 무료 시간 표시
+                Text(
+                    text = formatFreeTime(freeTimeMinutes),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             
-            // 더하기 버튼
-            FilledTonalIconButton(
-                onClick = onAdd
+            // 버튼들을 가로로 배치: -1시간 | -10분 | +10분 | +1시간
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "$label 더하기"
-                )
+                // -1시간
+                FilledTonalButton(
+                    onClick = { onRemoveFreeTime(60) },
+                    enabled = freeTimeMinutes >= 60,
+                    modifier = Modifier.weight(1f).height(36.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                ) {
+                    Text(
+                        text = "-1h",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                
+                // -10분
+                FilledTonalButton(
+                    onClick = { onRemoveFreeTime(10) },
+                    enabled = freeTimeMinutes >= 10,
+                    modifier = Modifier.weight(1f).height(36.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                ) {
+                    Text(
+                        text = "-10m",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                
+                // +10분
+                FilledTonalButton(
+                    onClick = { onAddFreeTime(10) },
+                    modifier = Modifier.weight(1f).height(36.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Text(
+                        text = "+10m",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                
+                // +1시간
+                FilledTonalButton(
+                    onClick = { onAddFreeTime(60) },
+                    modifier = Modifier.weight(1f).height(36.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Text(
+                        text = "+1h",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }
