@@ -91,12 +91,6 @@ fun NavigationHost(
                 SettingsScreen(
                     onNavigateBack = {
                         navController.popBackStack()
-                    },
-                    onNavigateToVehicleManagement = {
-                        navController.navigate("vehicles/list")
-                    },
-                    onNavigateToParkingLotManagement = {
-                        navController.navigate("parkinglots/list")
                     }
                 )
             }

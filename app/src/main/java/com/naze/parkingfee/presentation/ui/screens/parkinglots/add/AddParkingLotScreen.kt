@@ -193,29 +193,29 @@ fun AddParkingLotScreen(
             )
         }
 
-        // 커스텀 요금 구간 (임시 비활성화)
-        // item {
-        //     CustomFeeRulesCard(
-        //         customFeeRules = state.customFeeRules,
-        //         onAddRule = {
-        //             viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.AddCustomFeeRule)
-        //         },
-        //         onRemoveRule = { index ->
-        //             viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.RemoveCustomFeeRule(index))
-        //         },
-        //         onUpdateRule = { index, minMinutes, maxMinutes, fee ->
-        //             viewModel.processIntent(
-        //                 AddParkingLotContract.AddParkingLotIntent.UpdateCustomFeeRule(
-        //                     index = index,
-        //                     minMinutes = minMinutes,
-        //                     maxMinutes = maxMinutes,
-        //                     fee = fee
-        //                 )
-        //             )
-        //         },
-        //         validationErrors = state.validationErrors
-        //     )
-        // }
+        // 커스텀 요금 구간
+        item {
+            CustomFeeRulesCard(
+                customFeeRules = state.customFeeRules,
+                onAddRule = {
+                    viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.AddCustomFeeRule)
+                },
+                onRemoveRule = { index ->
+                    viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.RemoveCustomFeeRule(index))
+                },
+                onUpdateRule = { index, minMinutes, maxMinutes, fee ->
+                    viewModel.processIntent(
+                        AddParkingLotContract.AddParkingLotIntent.UpdateCustomFeeRule(
+                            index = index,
+                            minMinutes = minMinutes,
+                            maxMinutes = maxMinutes,
+                            fee = fee
+                        )
+                    )
+                },
+                validationErrors = state.validationErrors
+            )
+        }
 
         // 에러 메시지 표시
         val errorMessage = state.errorMessage
