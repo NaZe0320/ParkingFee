@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.screens.home.components.*
 import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
+import com.naze.parkingfee.presentation.ui.components.ParkingCompleteDialog
 
 /**
  * 홈 화면
@@ -210,71 +211,18 @@ fun HomeScreen(
     }
     
     // 주차 완료 다이얼로그
-    if (showParkingCompleteDialog && parkingCompleteInfo != null) {
-        AlertDialog(
-            onDismissRequest = { 
+    if (parkingCompleteInfo != null) {
+        ParkingCompleteDialog(
+            visible = showParkingCompleteDialog,
+            zoneName = parkingCompleteInfo!!.zoneName,
+            duration = parkingCompleteInfo!!.duration,
+            vehicleDisplay = parkingCompleteInfo!!.vehicleDisplay,
+            finalFee = parkingCompleteInfo!!.finalFee,
+            originalFee = parkingCompleteInfo!!.originalFee,
+            hasDiscount = parkingCompleteInfo!!.hasDiscount,
+            onDismiss = {
                 showParkingCompleteDialog = false
                 parkingCompleteInfo = null
-            },
-            title = { 
-                Text(
-                    text = "주차 완료",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            },
-            text = {
-                Column {
-                    Text(
-                        text = "구역: ${parkingCompleteInfo!!.zoneName}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = "주차 시간: ${parkingCompleteInfo!!.duration}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    if (!parkingCompleteInfo!!.vehicleDisplay.isNullOrBlank()) {
-                        Text(
-                            text = "차량: ${parkingCompleteInfo!!.vehicleDisplay}",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    
-                    if (parkingCompleteInfo!!.hasDiscount && parkingCompleteInfo!!.originalFee != null) {
-                        Text(
-                            text = "요금: ${parkingCompleteInfo!!.originalFee!!.toInt()}원 → ${parkingCompleteInfo!!.finalFee.toInt()}원",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "50% 할인 적용",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        Text(
-                            text = "요금: ${parkingCompleteInfo!!.finalFee.toInt()}원",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showParkingCompleteDialog = false
-                        parkingCompleteInfo = null
-                    }
-                ) {
-                    Text("확인")
-                }
             }
         )
     }
