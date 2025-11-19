@@ -36,6 +36,9 @@ interface ParkingDao {
     @Query("DELETE FROM parking_zones WHERE id = :zoneId")
     suspend fun deleteParkingZoneById(zoneId: String)
     
+    @Query("SELECT COUNT(*) FROM parking_zones WHERE isActive = 1")
+    suspend fun getParkingZoneCount(): Int
+    
     // ParkingSession 관련 쿼리
     @Query("SELECT * FROM parking_sessions WHERE isActive = 1 ORDER BY startTime DESC")
     suspend fun getAllParkingSessions(): List<ParkingSessionEntity>

@@ -11,6 +11,7 @@ import com.naze.parkingfee.domain.model.CustomFeeRule
 import com.naze.parkingfee.domain.usecase.parkingzone.AddParkingZoneUseCase
 import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZoneByIdUseCase
 import com.naze.parkingfee.domain.usecase.parkingzone.UpdateParkingZoneUseCase
+import com.naze.parkingfee.domain.repository.ParkingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,7 +32,8 @@ import javax.inject.Inject
 class AddParkingLotViewModel @Inject constructor(
     private val addParkingZoneUseCase: AddParkingZoneUseCase,
     private val getParkingZoneByIdUseCase: GetParkingZoneByIdUseCase,
-    private val updateParkingZoneUseCase: UpdateParkingZoneUseCase
+    private val updateParkingZoneUseCase: UpdateParkingZoneUseCase,
+    private val parkingRepository: ParkingRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddParkingLotContract.AddParkingLotState())
@@ -233,10 +235,18 @@ class AddParkingLotViewModel @Inject constructor(
                         throw Exception("편집할 구역을 찾을 수 없습니다.")
                     }
                 } else {
-                    // 추가 모드: 새 구역 생성 (UUID 사용하므로 전체 목록 조회 불필요)
+                    // 추가 모드: 새 구역 생성
+                    // 주차장 이름이 비어있으면 기본 이름 생성
+                    val parkingLotName = if (currentState.parkingLotName.isNotBlank()) {
+                        currentState.parkingLotName
+                    } else {
+                        val zoneCount = parkingRepository.getParkingZoneCount()
+                        "주차장${zoneCount + 1}"
+                    }
+                    
                     val parkingZone = ParkingZone(
                         id = UUID.randomUUID().toString(),
-                        name = if (currentState.parkingLotName.isBlank()) "주차장" else currentState.parkingLotName,
+                        name = parkingLotName,
                         hourlyRate = calculateHourlyRate(currentState),
                         maxCapacity = 100,
                         currentOccupancy = 0,

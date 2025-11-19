@@ -19,7 +19,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.screens.home.components.*
-import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
 import com.naze.parkingfee.presentation.ui.components.ParkingCompleteDialog
 
 /**
@@ -33,19 +32,12 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToHistory: () -> Unit = {},
     onNavigateToAddParkingLot: () -> Unit = {},
-    onNavigateToZoneDetail: (String) -> Unit = {},
-    onNavigateToEditZone: (String) -> Unit = {},
     onNavigateToEditVehicle: (String) -> Unit = {},
     onStartParkingService: () -> Unit = {},
     onStopParkingService: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
-
-    // 삭제 확인 다이얼로그 상태
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var pendingDeleteZoneId by remember { mutableStateOf<String?>(null) }
-    var pendingDeleteZoneName by remember { mutableStateOf<String?>(null) }
     
     // 주차 완료 다이얼로그 상태
     var showParkingCompleteDialog by remember { mutableStateOf(false) }
@@ -69,17 +61,6 @@ fun HomeScreen(
                         "history" -> onNavigateToHistory()
                         "add_parking_lot" -> onNavigateToAddParkingLot()
                     }
-                }
-                is HomeContract.HomeEffect.NavigateToZoneDetail -> {
-                    onNavigateToZoneDetail(currentEffect.zoneId)
-                }
-                is HomeContract.HomeEffect.NavigateToEditZone -> {
-                    onNavigateToEditZone(currentEffect.zoneId)
-                }
-                is HomeContract.HomeEffect.ShowDeleteConfirmDialog -> {
-                    pendingDeleteZoneId = currentEffect.zoneId
-                    pendingDeleteZoneName = currentEffect.zoneName
-                    showDeleteDialog = true
                 }
                 is HomeContract.HomeEffect.RequestStartParkingService -> {
                     onStartParkingService()
@@ -220,30 +201,6 @@ fun HomeScreen(
             }
         }
         }
-    }
-
-    // 삭제 확인 다이얼로그
-    if (pendingDeleteZoneName != null) {
-        DeleteConfirmDialog(
-            visible = showDeleteDialog,
-            title = "주차장 삭제",
-            itemName = pendingDeleteZoneName!!,
-            message = "이 주차장을 삭제하시겠습니까?",
-            onConfirm = {
-                val id = pendingDeleteZoneId
-                showDeleteDialog = false
-                pendingDeleteZoneId = null
-                pendingDeleteZoneName = null
-                if (id != null) {
-                    viewModel.processIntent(HomeContract.HomeIntent.DeleteZone(id))
-                }
-            },
-            onDismiss = {
-                showDeleteDialog = false
-                pendingDeleteZoneId = null
-                pendingDeleteZoneName = null
-            }
-        )
     }
     
     // 주차 완료 다이얼로그

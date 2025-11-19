@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.domain.usecase.parkingzone.DeleteParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.DeleteZoneResult
 import com.naze.parkingfee.domain.usecase.parkingzone.ToggleParkingZoneFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -137,18 +138,19 @@ class ParkingLotListViewModel @Inject constructor(
      */
     fun confirmDeleteParkingLot(zoneId: String) {
         viewModelScope.launch {
-            try {
-                val success = deleteParkingZoneUseCase.execute(zoneId)
-                if (success) {
+            when (val result = deleteParkingZoneUseCase.execute(zoneId)) {
+                is DeleteZoneResult.Success -> {
                     _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast("주차장이 삭제되었습니다."))
                     // Flow가 자동으로 목록을 업데이트합니다
-                } else {
-                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast("주차장 삭제에 실패했습니다."))
                 }
-            } catch (e: Exception) {
-                _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast(
-                    e.message ?: "주차장 삭제에 실패했습니다."
-                ))
+                is DeleteZoneResult.ZoneInUse -> {
+                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast("현재 주차 중인 구역은 삭제할 수 없습니다."))
+                }
+                is DeleteZoneResult.Error -> {
+                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast(
+                        "주차장 삭제에 실패했습니다: ${result.message}"
+                    ))
+                }
             }
         }
     }

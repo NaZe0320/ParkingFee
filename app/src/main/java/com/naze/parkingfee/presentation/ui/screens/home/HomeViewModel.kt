@@ -6,9 +6,7 @@ import com.naze.parkingfee.domain.usecase.parkingsession.StartParkingUseCase
 import com.naze.parkingfee.domain.usecase.parkingsession.StopParkingUseCase
 import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZonesUseCase
 import com.naze.parkingfee.domain.usecase.parkingsession.GetActiveParkingSessionUseCase
-import com.naze.parkingfee.domain.usecase.parkingzone.DeleteParkingZoneUseCase
 import com.naze.parkingfee.domain.usecase.parkingzone.UpdateParkingZoneUseCase
-import com.naze.parkingfee.presentation.ui.screens.home.components.ZoneAction
 import com.naze.parkingfee.utils.TimeUtils
 import com.naze.parkingfee.utils.FeeCalculator
 import com.naze.parkingfee.domain.usecase.selectedvehicle.GetSelectedVehicleIdUseCase
@@ -48,7 +46,6 @@ class HomeViewModel @Inject constructor(
     private val getParkingZonesUseCase: GetParkingZonesUseCase,
     private val getActiveParkingSessionUseCase: GetActiveParkingSessionUseCase,
     private val updateParkingZoneUseCase: UpdateParkingZoneUseCase,
-    private val deleteParkingZoneUseCase: DeleteParkingZoneUseCase,
     private val getSelectedVehicleIdUseCase: GetSelectedVehicleIdUseCase,
     private val getVehiclesUseCase: GetVehiclesUseCase,
     private val vehicleRepository: VehicleRepository,
@@ -99,8 +96,6 @@ class HomeViewModel @Inject constructor(
             is HomeContract.HomeIntent.NavigateToAddParkingLot -> navigateToAddParkingLot()
             is HomeContract.HomeIntent.SelectZone -> selectZone(intent.zone)
             is HomeContract.HomeIntent.SelectVehicle -> selectVehicle(intent.vehicle)
-            is HomeContract.HomeIntent.RequestZoneAction -> handleZoneAction(intent.zone, intent.action)
-            is HomeContract.HomeIntent.DeleteZone -> deleteZone(intent.zoneId)
             is HomeContract.HomeIntent.DeleteVehicle -> deleteVehicle(intent.vehicle)
             is HomeContract.HomeIntent.ToggleStatusCard -> toggleStatusCard()
             is HomeContract.HomeIntent.ToggleVehicleSelector -> toggleVehicleSelector()
@@ -331,49 +326,6 @@ class HomeViewModel @Inject constructor(
         }
     }
     
-    private fun handleZoneAction(zone: com.naze.parkingfee.domain.model.ParkingZone, action: ZoneAction) {
-        viewModelScope.launch {
-            when (action) {
-                ZoneAction.Detail -> {
-                    _effect.emit(HomeContract.HomeEffect.NavigateToZoneDetail(zone.id))
-                }
-                ZoneAction.Edit -> {
-                    _effect.emit(HomeContract.HomeEffect.NavigateToEditZone(zone.id))
-                }
-                ZoneAction.Delete -> {
-                    _effect.emit(HomeContract.HomeEffect.ShowDeleteConfirmDialog(zone.id, zone.name))
-                }
-            }
-        }
-    }
-    
-    private fun deleteZone(zoneId: String) {
-        viewModelScope.launch {
-            try {
-                // 활성 세션이 있는지 확인
-                val activeSession = _state.value.activeParkingSession
-                if (activeSession?.zoneId == zoneId) {
-                    _effect.emit(HomeContract.HomeEffect.ShowToast("현재 주차 중인 구역은 삭제할 수 없습니다."))
-                    return@launch
-                }
-                
-                deleteParkingZoneUseCase.execute(zoneId)
-                
-                // 현재 선택된 구역이 삭제된 구역이면 선택 해제
-                val currentZone = _state.value.currentZone
-                if (currentZone?.id == zoneId) {
-                    _state.update { it.copy(currentZone = null) }
-                }
-                
-                // 구역 목록 새로고침
-                refreshParkingInfo()
-                _effect.emit(HomeContract.HomeEffect.ShowToast("주차 구역이 삭제되었습니다."))
-            } catch (e: Exception) {
-                _effect.emit(HomeContract.HomeEffect.ShowToast("삭제 중 오류가 발생했습니다: ${e.message}"))
-            }
-        }
-    }
-    
     /**
      * 차량을 삭제합니다.
      */
@@ -434,7 +386,7 @@ class HomeViewModel @Inject constructor(
                     }
                 }
                 
-                _effect.emit(HomeContract.HomeEffect.ShowToast("${vehicle.displayName}이(가) 선택되었습니다."))
+                //_effect.emit(HomeContract.HomeEffect.ShowToast("${vehicle.displayName}이(가) 선택되었습니다."))
             } catch (e: Exception) {
                 _effect.emit(HomeContract.HomeEffect.ShowToast("차량 선택 중 오류가 발생했습니다: ${e.message}"))
             }
@@ -544,9 +496,9 @@ class HomeViewModel @Inject constructor(
                 // 요금 재계산
                 recalculateFee()
                 
-                _effect.emit(HomeContract.HomeEffect.ShowToast("무료 시간 ${minutes}분이 추가되었습니다."))
+                //_effect.emit(HomeContract.HomeEffect.ShowToast("무료 시간 ${minutes}분이 추가되었습니다."))
             } catch (e: Exception) {
-                _effect.emit(HomeContract.HomeEffect.ShowToast("무료 시간 추가 중 오류가 발생했습니다."))
+                //_effect.emit(HomeContract.HomeEffect.ShowToast("무료 시간 추가 중 오류가 발생했습니다."))
             }
         }
     }
@@ -573,9 +525,9 @@ class HomeViewModel @Inject constructor(
                 // 요금 재계산
                 recalculateFee()
                 
-                _effect.emit(HomeContract.HomeEffect.ShowToast("무료 시간 ${minutes}분이 제거되었습니다."))
+                //_effect.emit(HomeContract.HomeEffect.ShowToast("무료 시간 ${minutes}분이 제거되었습니다."))
             } catch (e: Exception) {
-                _effect.emit(HomeContract.HomeEffect.ShowToast("무료 시간 제거 중 오류가 발생했습니다."))
+                //_effect.emit(HomeContract.HomeEffect.ShowToast("무료 시간 제거 중 오류가 발생했습니다."))
             }
         }
     }
@@ -631,7 +583,7 @@ class HomeViewModel @Inject constructor(
                 
                 _effect.emit(HomeContract.HomeEffect.ShowToast("알람이 설정되었습니다."))
             } catch (e: Exception) {
-                _effect.emit(HomeContract.HomeEffect.ShowToast("알람 설정 중 오류가 발생했습니다: ${e.message}"))
+                //_effect.emit(HomeContract.HomeEffect.ShowToast("알람 설정 중 오류가 발생했습니다: ${e.message}"))
             }
         }
     }
@@ -650,9 +602,9 @@ class HomeViewModel @Inject constructor(
                 val updatedAlarms = _state.value.parkingAlarms.filter { it.id != alarmId }
                 _state.update { it.copy(parkingAlarms = updatedAlarms) }
                 
-                _effect.emit(HomeContract.HomeEffect.ShowToast("알람이 삭제되었습니다."))
+                //_effect.emit(HomeContract.HomeEffect.ShowToast("알람이 삭제되었습니다."))
             } catch (e: Exception) {
-                _effect.emit(HomeContract.HomeEffect.ShowToast("알람 삭제 중 오류가 발생했습니다."))
+                //_effect.emit(HomeContract.HomeEffect.ShowToast("알람 삭제 중 오류가 발생했습니다."))
             }
         }
     }

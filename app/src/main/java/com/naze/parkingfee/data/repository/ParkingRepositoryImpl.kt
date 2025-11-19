@@ -92,6 +92,10 @@ class ParkingRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getParkingZoneCount(): Int {
+        return parkingDao.getParkingZoneCount()
+    }
+
     override suspend fun startParkingSession(zoneId: String): ParkingSession {
         val sessionId = generateSessionId()
         val startTime = System.currentTimeMillis()
