@@ -105,34 +105,24 @@ fun ParkingLotItem(
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = parkingLot.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        },
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = parkingLot.getDisplayFeeInfo(),
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = parkingLot.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
                             color = if (isSelected) {
-                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                MaterialTheme.colorScheme.onPrimaryContainer
                             } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            }
+                                MaterialTheme.colorScheme.onSurface
+                            },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
-
-                        // 공영 주차장 배지 (시간/요금 정보 옆에 표시)
+                        
+                        // 공영 주차장 배지
                         if (parkingLot.isPublic) {
                             Card(
                                 colors = CardDefaults.cardColors(
@@ -158,6 +148,19 @@ fun ParkingLotItem(
                             }
                         }
                     }
+                    
+                    // 요금 정보
+                    Text(
+                        text = parkingLot.getDisplayFeeInfo(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isSelected) {
+                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
             

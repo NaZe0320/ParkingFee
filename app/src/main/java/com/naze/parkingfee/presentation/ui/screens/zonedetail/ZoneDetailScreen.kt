@@ -138,11 +138,6 @@ fun ZoneDetailScreen(
                                             style = MaterialTheme.typography.headlineSmall,
                                             fontWeight = FontWeight.Bold
                                         )
-                                        Text(
-                                            text = zone.getDisplayFeeInfo(),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
                                     }
 
                                     if (zone.isPublic) {
@@ -163,12 +158,6 @@ fun ZoneDetailScreen(
                                         )
                                     }
                                 }
-
-                                HorizontalDivider(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
-                                )
-
                             }
                         }
                     }
@@ -199,11 +188,11 @@ fun ZoneDetailScreen(
                                     )
 
                                     InfoRow(
-                                        "기본 요금",
+                                        "최초 요금",
                                         "${feeStructure.basicFee.fee}원 (${feeStructure.basicFee.durationMinutes}분)"
                                     )
                                     InfoRow(
-                                        "추가 요금",
+                                        "기본 요금",
                                         "${feeStructure.additionalFee.fee}원 (${feeStructure.additionalFee.intervalMinutes}분마다)"
                                     )
 
