@@ -79,6 +79,12 @@ object FeeCalculator {
         val durationMillis = endTime - startTime
         val durationMinutes = durationMillis / (1000 * 60)
         
+        // 고급 모드: 커스텀 요금 구간이 있는 경우
+        if (feeStructure.customFeeRules.isNotEmpty()) {
+            return calculateFeeWithCustomRules(durationMinutes, feeStructure)
+        }
+        
+        // 단순 모드: 기본 요금 + 추가 요금
         // 기본 요금 적용
         var totalFee = feeStructure.basicFee.fee.toDouble()
         
@@ -88,6 +94,68 @@ object FeeCalculator {
             val additionalIntervals = (additionalMinutes + feeStructure.additionalFee.intervalMinutes - 1) / feeStructure.additionalFee.intervalMinutes
             val additionalFee = additionalIntervals * feeStructure.additionalFee.fee
             totalFee += additionalFee
+        }
+        
+        // 일 최대 요금 적용
+        feeStructure.dailyMaxFee?.let { dailyMax ->
+            totalFee = minOf(totalFee, dailyMax.maxFee.toDouble())
+        }
+        
+        return totalFee
+    }
+    
+    /**
+     * 커스텀 요금 구간을 사용하여 주차 요금을 계산합니다.
+     * 
+     * @param durationMinutes 주차 시간 (분)
+     * @param feeStructure 요금 체계
+     * @return 계산된 주차 요금
+     */
+    private fun calculateFeeWithCustomRules(durationMinutes: Long, feeStructure: FeeStructure): Double {
+        var totalFee = 0.0
+        var processedMinutes = 0L
+        
+        // 커스텀 요금 구간을 순서대로 적용
+        for (rule in feeStructure.customFeeRules) {
+            val ruleStartMinutes = rule.minMinutes.toLong()
+            val ruleEndMinutes = rule.maxMinutes?.toLong() ?: Long.MAX_VALUE
+            
+            // 이미 처리한 시간이 이 구간의 시작보다 작으면 이 구간은 아직 적용 안 됨
+            if (processedMinutes < ruleStartMinutes) {
+                // 이전 구간과 현재 구간 사이의 빈 공간이 있으면 건너뜀
+                if (durationMinutes <= ruleStartMinutes) {
+                    break
+                }
+            }
+            
+            // 이 구간에서 실제 과금되는 시간 계산
+            val actualStart = maxOf(processedMinutes, ruleStartMinutes)
+            val actualEnd = minOf(durationMinutes, ruleEndMinutes)
+            
+            if (actualEnd > actualStart) {
+                val applicableMinutes = actualEnd - actualStart
+                
+                // 단위 시간마다 요금 부과
+                val ruleFee = if (rule.isFixedFee) {
+                    // 고정 요금: 구간 전체에 일괄 적용
+                    rule.fee.toDouble()
+                } else if (rule.unitMinutes > applicableMinutes) {
+                    // 단위 시간이 구간 길이보다 크면 최소 1회 요금 부과 (고정 요금)
+                    rule.fee.toDouble()
+                } else {
+                    // 올림 처리하여 단위 시간마다 요금 부과
+                    val intervals = (applicableMinutes + rule.unitMinutes - 1) / rule.unitMinutes
+                    (intervals * rule.fee).toDouble()
+                }
+                totalFee += ruleFee
+                
+                processedMinutes = actualEnd
+            }
+            
+            // 모든 시간을 처리했으면 종료
+            if (processedMinutes >= durationMinutes) {
+                break
+            }
         }
         
         // 일 최대 요금 적용

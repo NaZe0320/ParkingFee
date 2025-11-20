@@ -6,12 +6,25 @@ import com.naze.parkingfee.domain.model.BasicFeeRule
 import com.naze.parkingfee.domain.model.AdditionalFeeRule
 import com.naze.parkingfee.domain.model.DailyMaxFeeRule
 import com.naze.parkingfee.domain.model.CustomFeeRule
+import java.util.UUID
 
 /**
  * 주차장 추가 화면의 MVI Contract
  * Intent, State, Effect를 정의합니다.
  */
 object AddParkingLotContract {
+
+    /**
+     * UI 상태 관리를 위한 데이터 클래스 (고급 설정용)
+     */
+    data class FeeRow(
+        val id: String = UUID.randomUUID().toString(),
+        val startTime: Int,         // 시작 시간 (분) - 자동 계산
+        val endTime: Int?,          // 종료 시간 (분) - null이면 '무제한/계속'
+        val unitMinutes: Int,       // 과금 단위 시간 (분)
+        val unitFee: Int,           // 단위 요금 (원)
+        val isFixedFee: Boolean = false // 고정 요금 여부 (true면 구간 전체에 고정 요금 적용)
+    )
 
     /**
      * 사용자 액션을 나타내는 Intent
@@ -59,6 +72,19 @@ object AddParkingLotContract {
         
         // 폼 초기화
         object ResetForm : AddParkingLotIntent()
+        
+        // 고급 모드 관련
+        data class ToggleAdvancedMode(val enabled: Boolean) : AddParkingLotIntent()
+        object AddFeeRow : AddParkingLotIntent()
+        data class RemoveFeeRow(val index: Int) : AddParkingLotIntent()
+        data class UpdateFeeRow(
+            val index: Int,
+            val startTime: Int? = null,
+            val endTime: Int? = null,
+            val unitMinutes: Int? = null,
+            val unitFee: Int? = null,
+            val isFixedFee: Boolean? = null
+        ) : AddParkingLotIntent()
     }
 
     /**
@@ -77,7 +103,11 @@ object AddParkingLotContract {
         val useDefaultName: Boolean = true,
         val isPublic: Boolean = false, // 공영 주차장 여부
         
-        // 기본 요금 체계
+        // 모드 설정
+        val isAdvancedMode: Boolean = false, // false: 단순 모드, true: 고급 모드
+        val advancedFeeRows: List<FeeRow> = emptyList(), // 고급 모드용 데이터
+        
+        // 기본 요금 체계 (단순 모드용)
         val basicFeeDuration: Int = 30, // 기본 30분
         val basicFeeAmount: Int = 1000, // 기본 1000원
         

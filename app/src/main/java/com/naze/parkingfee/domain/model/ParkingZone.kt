@@ -35,9 +35,19 @@ data class ParkingZone(
      */
     fun getDisplayFeeInfo(): String {
         return if (hasComplexFeeStructure) {
-            val basic = feeStructure!!.basicFee
-            val additional = feeStructure!!.additionalFee
-            "최초 ${basic.durationMinutes}분 ${basic.fee}원, 이후 ${additional.intervalMinutes}분당 ${additional.fee}원"
+            val structure = feeStructure!!
+            
+            // 고급 모드 (커스텀 요금 구간이 있는 경우)
+            if (structure.customFeeRules.isNotEmpty()) {
+                val firstRule = structure.customFeeRules.first()
+                val maxText = firstRule.maxMinutes?.let { "~${it}분" } ?: "이상"
+                "${firstRule.minMinutes}분$maxText: ${firstRule.fee}원"
+            } else {
+                // 단순 모드
+                val basic = structure.basicFee
+                val additional = structure.additionalFee
+                "${basic.durationMinutes}분 ${basic.fee}원 / ${additional.intervalMinutes}분당 ${additional.fee}원"
+            }
         } else {
             "${hourlyRate.toInt()}원/시간"
         }
@@ -78,10 +88,12 @@ data class DailyMaxFeeRule(
 )
 
 /**
- * 커스텀 요금 구간 (N분 초과 ~ M분 이하, X원)
+ * 커스텀 요금 구간 (N분 초과 ~ M분 이하, 매 X분마다 Y원 또는 고정 요금)
  */
 data class CustomFeeRule(
     val minMinutes: Int, // 최소 시간 (분)
     val maxMinutes: Int?, // 최대 시간 (분), null이면 무제한
-    val fee: Int // 요금 (원)
+    val unitMinutes: Int, // 과금 단위 시간 (분)
+    val fee: Int, // 단위 요금 (원)
+    val isFixedFee: Boolean = false // 고정 요금 여부 (true면 구간 전체에 고정 요금 적용)
 )
