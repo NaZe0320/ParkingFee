@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 캐시 디렉토리 - OCR용 임시 이미지 저장 -->
+    <cache-path name="ocr_images" path="." />
+</paths>
+
