@@ -187,33 +187,38 @@ fun ZoneDetailScreen(
                                         fontWeight = FontWeight.Bold
                                     )
 
-                                    InfoRow(
-                                        "최초 요금",
-                                        "${feeStructure.basicFee.fee}원 (${feeStructure.basicFee.durationMinutes}분)"
-                                    )
-                                    InfoRow(
-                                        "기본 요금",
-                                        "${feeStructure.additionalFee.fee}원 (${feeStructure.additionalFee.intervalMinutes}분마다)"
-                                    )
-
-                                    feeStructure.dailyMaxFee?.let { dailyMax ->
-                                        InfoRow("일 최대 요금", "${dailyMax.maxFee}원")
-                                    }
-
+                                    // 커스텀 요금 구간이 있으면 고급 모드로 표시
                                     if (feeStructure.customFeeRules.isNotEmpty()) {
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = "커스텀 요금 구간",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        feeStructure.customFeeRules.forEach { rule ->
+                                        // 고급 모드: 커스텀 요금 구간을 시간대별로 표시
+                                        feeStructure.customFeeRules.forEachIndexed { idx, rule ->
                                             val maxText = rule.maxMinutes?.let { "~${it}분" } ?: "이상"
+                                            val timeRange = "${rule.minMinutes}분$maxText"
+                                            val feeInfo = if (rule.isFixedFee) {
+                                                "${rule.fee}원 (고정 요금)"
+                                            } else {
+                                                "${rule.fee}원 (${rule.unitMinutes}분마다)"
+                                            }
+                                            
                                             InfoRow(
-                                                label = "",
-                                                value = "${rule.minMinutes}분 $maxText: ${rule.fee}원"
+                                                label = timeRange,
+                                                value = feeInfo
                                             )
                                         }
+                                    } else {
+                                        // 단순 모드: 최초 요금, 기본 요금 표시
+                                        InfoRow(
+                                            "최초 요금",
+                                            "${feeStructure.basicFee.fee}원 (${feeStructure.basicFee.durationMinutes}분)"
+                                        )
+                                        InfoRow(
+                                            "기본 요금",
+                                            "${feeStructure.additionalFee.fee}원 (${feeStructure.additionalFee.intervalMinutes}분마다)"
+                                        )
+                                    }
+
+                                    feeStructure.dailyMaxFee?.let { dailyMax ->
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        InfoRow("일 최대 요금", "${dailyMax.maxFee}원")
                                     }
                                 }
                             }

@@ -3,12 +3,15 @@ package com.naze.parkingfee.presentation.ui.screens.parkinglots.add
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -146,36 +149,132 @@ fun AddParkingLotScreen(
             )
         }
 
-        // 최초 요금 체계
+        // 모드 전환 스위치
         item {
-            BasicFeeRuleCard(
-                durationMinutes = state.basicFeeDuration,
-                feeAmount = state.basicFeeAmount,
-                onDurationChange = { minutes ->
-                    viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.UpdateBasicFeeDuration(minutes))
-                },
-                onFeeChange = { amount ->
-                    viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.UpdateBasicFeeAmount(amount))
-                },
-                durationError = state.validationErrors["basicFeeDuration"],
-                feeError = state.validationErrors["basicFeeAmount"]
-            )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "요금 상세 설정",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (state.isAdvancedMode) 
+                                "복잡한 시간대별 요금을 설정합니다." 
+                            else 
+                                "기본 요금 체계를 사용합니다.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                    Switch(
+                        checked = state.isAdvancedMode,
+                        onCheckedChange = { enabled ->
+                            viewModel.processIntent(
+                                AddParkingLotContract.AddParkingLotIntent.ToggleAdvancedMode(enabled)
+                            )
+                        }
+                    )
+                }
+            }
         }
 
-        // 기본 요금 체계
-        item {
-            AdditionalFeeRuleCard(
-                intervalMinutes = state.additionalFeeInterval,
-                feeAmount = state.additionalFeeAmount,
-                onIntervalChange = { minutes ->
-                    viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.UpdateAdditionalFeeInterval(minutes))
-                },
-                onFeeChange = { amount ->
-                    viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.UpdateAdditionalFeeAmount(amount))
-                },
-                intervalError = state.validationErrors["additionalFeeInterval"],
-                feeError = state.validationErrors["additionalFeeAmount"]
-            )
+        if (!state.isAdvancedMode) {
+            // === 단순 모드 UI ===
+            // 최초 요금 체계
+            item {
+                BasicFeeRuleCard(
+                    durationMinutes = state.basicFeeDuration,
+                    feeAmount = state.basicFeeAmount,
+                    onDurationChange = { minutes ->
+                        viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.UpdateBasicFeeDuration(minutes))
+                    },
+                    onFeeChange = { amount ->
+                        viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.UpdateBasicFeeAmount(amount))
+                    },
+                    durationError = state.validationErrors["basicFeeDuration"],
+                    feeError = state.validationErrors["basicFeeAmount"]
+                )
+            }
+
+            // 기본 요금 체계
+            item {
+                AdditionalFeeRuleCard(
+                    intervalMinutes = state.additionalFeeInterval,
+                    feeAmount = state.additionalFeeAmount,
+                    onIntervalChange = { minutes ->
+                        viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.UpdateAdditionalFeeInterval(minutes))
+                    },
+                    onFeeChange = { amount ->
+                        viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.UpdateAdditionalFeeAmount(amount))
+                    },
+                    intervalError = state.validationErrors["additionalFeeInterval"],
+                    feeError = state.validationErrors["additionalFeeAmount"]
+                )
+            }
+        } else {
+            // === 고급 모드 UI ===
+            // 요금 구간 리스트
+            itemsIndexed(state.advancedFeeRows) { index, row ->
+                    FeeRowItem(
+                        index = index,
+                        row = row,
+                        isLastItem = index == state.advancedFeeRows.lastIndex,
+                        onUpdate = { startTime, endTime, unitMinutes, unitFee, isFixedFee ->
+                            viewModel.processIntent(
+                                AddParkingLotContract.AddParkingLotIntent.UpdateFeeRow(
+                                    index = index,
+                                    startTime = startTime,
+                                    endTime = endTime,
+                                    unitMinutes = unitMinutes,
+                                    unitFee = unitFee,
+                                    isFixedFee = isFixedFee
+                                )
+                            )
+                        },
+                    onDelete = {
+                        viewModel.processIntent(
+                            AddParkingLotContract.AddParkingLotIntent.RemoveFeeRow(index)
+                        )
+                    }
+                )
+            }
+
+            // 구간 추가 버튼
+            item {
+                Button(
+                    onClick = {
+                        viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.AddFeeRow)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "구간 추가",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("구간 추가", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
         }
 
         // 일 최대 요금 체계
