@@ -11,8 +11,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 /**
- * 기본 요금 규칙 카드 컴포넌트
- * React 디자인의 기본 요금 입력 UI를 구현합니다.
+ * 최초 요금 규칙 카드 컴포넌트
+ * React 디자인의 최초 요금 입력 UI를 구현합니다.
  */
 @Composable
 fun BasicFeeRuleCard(
@@ -38,7 +38,7 @@ fun BasicFeeRuleCard(
         ) {
             // 제목
             Text(
-                text = "기본 요금",
+                text = "최초 요금",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -64,7 +64,8 @@ fun BasicFeeRuleCard(
                     OutlinedTextField(
                         value = durationMinutes.toString(),
                         onValueChange = { value ->
-                            value.toIntOrNull()?.let { onDurationChange(it) }
+                            val intValue = value.toIntOrNull() ?: 0
+                            onDurationChange(intValue)
                         },
                         placeholder = {
                             Text(
@@ -112,7 +113,8 @@ fun BasicFeeRuleCard(
                     OutlinedTextField(
                         value = feeAmount.toString(),
                         onValueChange = { value ->
-                            value.toIntOrNull()?.let { onFeeChange(it) }
+                            val intValue = value.toIntOrNull() ?: 0
+                            onFeeChange(intValue)
                         },
                         placeholder = {
                             Text(

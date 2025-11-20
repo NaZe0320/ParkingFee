@@ -4,6 +4,7 @@ import android.content.Context
 import com.naze.parkingfee.data.datasource.local.dao.ParkingDao
 import com.naze.parkingfee.data.datasource.local.dao.ParkingHistoryDao
 import com.naze.parkingfee.data.datasource.local.dao.VehicleDao
+import com.naze.parkingfee.data.datasource.local.dao.ParkingAlarmDao
 import com.naze.parkingfee.data.datasource.local.database.ParkingDatabase
 import com.naze.parkingfee.data.datasource.local.datastore.SelectedVehicleDataStore
 import dagger.Module
@@ -39,6 +40,11 @@ object DatabaseModule {
     @Provides
     fun provideVehicleDao(database: ParkingDatabase): VehicleDao {
         return database.vehicleDao()
+    }
+    
+    @Provides
+    fun provideParkingAlarmDao(database: ParkingDatabase): ParkingAlarmDao {
+        return database.parkingAlarmDao()
     }
     
     @Provides

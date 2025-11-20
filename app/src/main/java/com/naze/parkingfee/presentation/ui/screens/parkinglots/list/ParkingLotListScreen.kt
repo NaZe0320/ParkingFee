@@ -13,12 +13,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.naze.parkingfee.domain.model.ParkingZone
+import com.naze.parkingfee.infrastructure.notification.ToastManager
+import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
 import com.naze.parkingfee.presentation.ui.screens.parkinglots.list.components.ParkingLotItem
 
 /**
@@ -33,20 +36,21 @@ fun ParkingLotListScreen(
     onNavigateToDetailParkingLot: (zoneId: String) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
     
     // ViewModel init에서 자동 로드되므로 별도 새로고침 불필요
     
     var showDeleteDialog by remember { mutableStateOf(false) }
     var parkingLotToDelete by remember { mutableStateOf<Pair<String, String>?>(null) }
-    var showSortMenu by remember { mutableStateOf(false) }
+    // 정렬 메뉴 제거 - 최근 사용순으로 고정
+    // var showSortMenu by remember { mutableStateOf(false) }
     
-    // Effect 처리
-    LaunchedEffect(effect) {
-        effect?.let { currentEffect ->
+    // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is ParkingLotListContract.ParkingLotListEffect.ShowToast -> {
-                    // Toast 표시 로직
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is ParkingLotListContract.ParkingLotListEffect.NavigateToAddParkingLot -> {
                     onNavigateToAddParkingLot()
@@ -75,7 +79,7 @@ fun ParkingLotListScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-        // 헤더와 추가 버튼
+        // 헤더와 추가   버튼
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -88,32 +92,18 @@ fun ParkingLotListScreen(
                 color = MaterialTheme.colorScheme.onSurface
             )
             
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // 정렬 버튼 제거 - 최근 사용순으로 고정
+            // 추가 버튼만 표시
+            Button(
+                onClick = { viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.NavigateToAddParkingLot) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                // 정렬 버튼
-                IconButton(
-                    onClick = { showSortMenu = true }
-                ) {
-                    Icon(
-                        Icons.Default.Sort,
-                        contentDescription = "정렬",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                
-                // 추가 버튼
-                Button(
-                    onClick = { viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.NavigateToAddParkingLot) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "주차장 추가", modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("추가", style = MaterialTheme.typography.bodyMedium)
-                }
+                Icon(Icons.Default.Add, contentDescription = "주차장 추가", modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("추가", style = MaterialTheme.typography.bodyMedium)
             }
         }
         
@@ -161,24 +151,26 @@ fun ParkingLotListScreen(
                     items(state.parkingLots) { parkingLot ->
                         ParkingLotItem(
                             parkingLot = parkingLot,
-                            isSelected = state.selectedParkingLotId == parkingLot.id,
                             onSelectClick = {
-                                viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.SelectParkingLot(parkingLot.id))
-                            },
-                            onEditClick = { 
-                                viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.NavigateToEditParkingLot(parkingLot.id))
-                            },
-                            onDeleteClick = { 
-                                viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.DeleteParkingLot(parkingLot.id))
+                                // 아이템 클릭 시 선택 대신 상세 화면으로 이동
+                                viewModel.processIntent(
+                                    ParkingLotListContract.ParkingLotListIntent.NavigateToDetailParkingLot(
+                                        parkingLot.id
+                                    )
+                                )
                             },
                             onDetailClick = {
-                                viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.NavigateToDetailParkingLot(parkingLot.id))
+                                viewModel.processIntent(
+                                    ParkingLotListContract.ParkingLotListIntent.NavigateToDetailParkingLot(
+                                        parkingLot.id
+                                    )
+                                )
                             },
                             onFavoriteClick = {
-                                viewModel.processIntent(ParkingLotListContract.ParkingLotListIntent.ToggleFavorite(parkingLot.id))
+                                // 즐겨찾기 기능 제거됨
                             },
-                            showFavoriteButton = true,
-                            showMenuButton = true
+                            showFavoriteButton = false, // 즐겨찾기 버튼 숨김
+                            showMenuButton = false
                         )
                     }
                 }
@@ -204,6 +196,8 @@ fun ParkingLotListScreen(
         }
     }
     
+    // TODO: 정렬 메뉴 - 최근 사용순으로 고정, 필요시 추가
+    /*
     // 정렬 메뉴
     DropdownMenu(
         expanded = showSortMenu,
@@ -232,38 +226,25 @@ fun ParkingLotListScreen(
             )
         }
     }
+    */
     
     // 삭제 확인 다이얼로그
-    if (showDeleteDialog && parkingLotToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { 
+    if (parkingLotToDelete != null) {
+        DeleteConfirmDialog(
+            visible = showDeleteDialog,
+            title = "주차장 삭제",
+            itemName = parkingLotToDelete!!.second,
+            message = "이 주차장을 삭제하시겠습니까?",
+            onConfirm = {
+                parkingLotToDelete?.let { (zoneId, _) ->
+                    viewModel.confirmDeleteParkingLot(zoneId)
+                }
                 showDeleteDialog = false
                 parkingLotToDelete = null
             },
-            title = { Text("주차장 삭제") },
-            text = { Text("'${parkingLotToDelete?.second}' 주차장을 삭제하시겠습니까?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        parkingLotToDelete?.let { (zoneId, _) ->
-                            viewModel.confirmDeleteParkingLot(zoneId)
-                        }
-                        showDeleteDialog = false
-                        parkingLotToDelete = null
-                    }
-                ) {
-                    Text("삭제")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        parkingLotToDelete = null
-                    }
-                ) {
-                    Text("취소")
-                }
+            onDismiss = {
+                showDeleteDialog = false
+                parkingLotToDelete = null
             }
         )
     }

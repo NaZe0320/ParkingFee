@@ -1,41 +1,34 @@
 package com.naze.parkingfee.presentation.ui.screens.home.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.naze.parkingfee.domain.model.vehicle.Vehicle
-import com.naze.parkingfee.presentation.ui.screens.vehicles.list.components.VehicleItem
 
 /**
- * 차량 액션 타입
- */
-enum class VehicleAction {
-    Edit, Delete
-}
-
-/**
- * 차량 선택 컴포넌트
+ * 차량 선택 컴포넌트 (홈 화면용)
+ * - 최대 3개의 차량을 가로 스크롤로 표시
+ * - 선택된 차량을 항상 앞에 노출
  */
 @Composable
 fun VehicleSelector(
     vehicles: List<Vehicle>,
     selectedVehicle: Vehicle?,
     onVehicleSelected: (Vehicle) -> Unit,
-    onRequestVehicleAction: (Vehicle, VehicleAction) -> Unit = { _, _ -> },
     isExpanded: Boolean = true,
     onToggleExpand: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -48,7 +41,7 @@ fun VehicleSelector(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onToggleExpand() }
-                .padding(horizontal = 4.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -62,9 +55,9 @@ fun VehicleSelector(
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                
-                // 접혔을 때 선택된 차량 정보 표시
-                if (!isExpanded && selectedVehicle != null) {
+
+                // 선택된 차량 정보 표시 (항상 표시)
+                if (selectedVehicle != null) {
                     Text(
                         text = if (selectedVehicle.hasPlateNumber) {
                             "${selectedVehicle.displayName}(${selectedVehicle.displayPlateNumber})"
@@ -77,33 +70,43 @@ fun VehicleSelector(
                     )
                 }
             }
-            
+
             Icon(
                 imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                 contentDescription = if (isExpanded) "접기" else "펼치기",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        
+
         // 펼쳤을 때만 차량 목록 표시
         if (isExpanded) {
             Spacer(modifier = Modifier.height(8.dp))
-            
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                vehicles.forEach { vehicle ->
-                    VehicleItem(
-                        vehicle = vehicle,
-                        isSelected = selectedVehicle?.id == vehicle.id,
-                        onSelectClick = { onVehicleSelected(vehicle) },
-                        onEditClick = { onRequestVehicleAction(vehicle, VehicleAction.Edit) },
-                        onDeleteClick = { onRequestVehicleAction(vehicle, VehicleAction.Delete) },
-                        showMenuButton = true // 더보기 버튼 표시
-                    )
+
+            if (vehicles.isEmpty()) {
+                Text(
+                    text = "등록된 차량이 없습니다",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            } else {
+                // 기존 순서 유지, 최대 3개만 표시
+                val displayVehicles = vehicles.take(3)
+
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    items(displayVehicles) { vehicle ->
+                        VehicleChip(
+                            vehicle = vehicle,
+                            isSelected = selectedVehicle?.id == vehicle.id,
+                            onClick = { onVehicleSelected(vehicle) }
+                        )
+                    }
                 }
             }
         }
     }
 }
-

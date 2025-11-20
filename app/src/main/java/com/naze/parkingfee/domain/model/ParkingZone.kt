@@ -36,7 +36,8 @@ data class ParkingZone(
     fun getDisplayFeeInfo(): String {
         return if (hasComplexFeeStructure) {
             val basic = feeStructure!!.basicFee
-            "${basic.fee}원/${basic.durationMinutes}분"
+            val additional = feeStructure!!.additionalFee
+            "최초 ${basic.durationMinutes}분 ${basic.fee}원, 이후 ${additional.intervalMinutes}분당 ${additional.fee}원"
         } else {
             "${hourlyRate.toInt()}원/시간"
         }

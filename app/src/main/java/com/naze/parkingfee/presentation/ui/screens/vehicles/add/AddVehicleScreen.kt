@@ -4,12 +4,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.screens.settings.vehicles.add.components.*
 
 /**
@@ -24,7 +28,7 @@ fun AddVehicleScreen(
     vehicleId: String? = null // 편집 모드를 위한 차량 ID
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
     
     // 편집 모드 초기화
     LaunchedEffect(vehicleId) {
@@ -35,12 +39,12 @@ fun AddVehicleScreen(
         }
     }
     
-    // Effect 처리
-    LaunchedEffect(effect) {
-        effect?.let { currentEffect ->
+    // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is AddVehicleContract.AddVehicleEffect.ShowToast -> {
-                    // Toast 표시 로직
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is AddVehicleContract.AddVehicleEffect.NavigateBack -> {
                     onNavigateBack()
@@ -64,10 +68,35 @@ fun AddVehicleScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("차량 등록") },
+                title = { Text(if (vehicleId != null) "차량 수정" else "차량 등록") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로가기")
+                    }
+                },
+                actions = {
+                    Button(
+                        onClick = {
+                            viewModel.processIntent(AddVehicleContract.AddVehicleIntent.SaveVehicle)
+                        },
+                        enabled = !state.isSaving,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.padding(end = 12.dp)
+                    ) {
+                        if (state.isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Icon(Icons.Default.Check, contentDescription = "저장", modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("저장", style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
                 }
             )
@@ -83,14 +112,14 @@ fun AddVehicleScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-        // OCR 진입 버튼
-        item {
-            OcrEntryButton(
-                onOcrClick = {
-                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.OpenOcrScreen)
-                }
-            )
-        }
+        // // OCR 진입 버튼
+        // item {
+        //     OcrEntryButton(
+        //         onOcrClick = {
+        //             viewModel.processIntent(AddVehicleContract.AddVehicleIntent.OpenOcrScreen)
+        //         }
+        //     )
+        // }
         
         // 차량 이름 입력
         item {
@@ -128,16 +157,6 @@ fun AddVehicleScreen(
                 },
                 onDisabledChange = { enabled ->
                     viewModel.processIntent(AddVehicleContract.AddVehicleIntent.ToggleDisabledDiscount(enabled))
-                }
-            )
-        }
-        
-        // 저장 버튼
-        item {
-            SaveVehicleButton(
-                isSaving = state.isSaving,
-                onSaveClick = {
-                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.SaveVehicle)
                 }
             )
         }

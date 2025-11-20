@@ -8,10 +8,10 @@ import com.naze.parkingfee.domain.model.BasicFeeRule
 import com.naze.parkingfee.domain.model.AdditionalFeeRule
 import com.naze.parkingfee.domain.model.DailyMaxFeeRule
 import com.naze.parkingfee.domain.model.CustomFeeRule
-import com.naze.parkingfee.domain.usecase.AddParkingZoneUseCase
-import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
-import com.naze.parkingfee.domain.usecase.GetParkingZoneByIdUseCase
-import com.naze.parkingfee.domain.usecase.UpdateParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.AddParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZoneByIdUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.UpdateParkingZoneUseCase
+import com.naze.parkingfee.domain.repository.ParkingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,9 +31,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AddParkingLotViewModel @Inject constructor(
     private val addParkingZoneUseCase: AddParkingZoneUseCase,
-    private val getParkingZonesUseCase: GetParkingZonesUseCase,
     private val getParkingZoneByIdUseCase: GetParkingZoneByIdUseCase,
-    private val updateParkingZoneUseCase: UpdateParkingZoneUseCase
+    private val updateParkingZoneUseCase: UpdateParkingZoneUseCase,
+    private val parkingRepository: ParkingRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddParkingLotContract.AddParkingLotState())
@@ -107,7 +107,7 @@ class AddParkingLotViewModel @Inject constructor(
      * 기본 요금 시간 업데이트
      */
     private fun updateBasicFeeDuration(minutes: Int) {
-        if (minutes > 0) {
+        if (minutes >= 0) {
             _state.update { it.copy(basicFeeDuration = minutes) }
         }
     }
@@ -125,7 +125,7 @@ class AddParkingLotViewModel @Inject constructor(
      * 추가 요금 간격 업데이트
      */
     private fun updateAdditionalFeeInterval(minutes: Int) {
-        if (minutes > 0) {
+        if (minutes >= 0) {
             _state.update { it.copy(additionalFeeInterval = minutes) }
         }
     }
@@ -201,7 +201,6 @@ class AddParkingLotViewModel @Inject constructor(
     private fun saveParkingLot() {
         val currentState = _state.value
 
-        print("ASDF2")
         // 재진입 방지 가드
         if (currentState.isSaving) {
             return
@@ -237,12 +236,17 @@ class AddParkingLotViewModel @Inject constructor(
                     }
                 } else {
                     // 추가 모드: 새 구역 생성
-                    val existingZones = getParkingZonesUseCase.execute()
-                    val nextSequenceNumber = existingZones.size + 1
-
+                    // 주차장 이름이 비어있으면 기본 이름 생성
+                    val parkingLotName = if (currentState.parkingLotName.isNotBlank()) {
+                        currentState.parkingLotName
+                    } else {
+                        val zoneCount = parkingRepository.getParkingZoneCount()
+                        "주차장${zoneCount + 1}"
+                    }
+                    
                     val parkingZone = ParkingZone(
                         id = UUID.randomUUID().toString(),
-                        name = if (currentState.parkingLotName.isBlank()) "주차장$nextSequenceNumber" else currentState.parkingLotName,
+                        name = parkingLotName,
                         hourlyRate = calculateHourlyRate(currentState),
                         maxCapacity = 100,
                         currentOccupancy = 0,
@@ -260,12 +264,10 @@ class AddParkingLotViewModel @Inject constructor(
                     )
                 }
 
+                // Toast 메시지와 함께 즉시 뒤로가기 (Flow가 자동으로 목록을 업데이트)
                 _effect.emit(AddParkingLotContract.AddParkingLotEffect.ShowToast(
                     if (currentState.isEditMode) "주차장이 성공적으로 수정되었습니다." else "주차장이 성공적으로 추가되었습니다."
                 ))
-                
-                // 잠시 후 뒤로가기
-                kotlinx.coroutines.delay(1500)
                 _effect.emit(AddParkingLotContract.AddParkingLotEffect.NavigateBack)
 
             } catch (e: Exception) {
@@ -286,8 +288,10 @@ class AddParkingLotViewModel @Inject constructor(
     private fun validateForm(state: AddParkingLotContract.AddParkingLotState): Map<String, String> {
         val errors = mutableMapOf<String, String>()
 
-        // 주차장 이름 검사 (빈 문자열이면 기본 이름 사용, 입력했으면 그대로 사용)
-        // 별도 유효성 검사 불필요
+        // 주차장 이름 검사 (입력된 경우 20자 제한)
+        if (state.parkingLotName.isNotBlank() && state.parkingLotName.length > 20) {
+            errors["parkingLotName"] = "주차장 이름은 20자 이하여야 합니다."
+        }
 
         // 기본 요금 검사
         if (state.basicFeeDuration <= 0) {

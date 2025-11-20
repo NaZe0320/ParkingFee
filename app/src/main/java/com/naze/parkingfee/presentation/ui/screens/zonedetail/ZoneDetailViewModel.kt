@@ -2,8 +2,9 @@ package com.naze.parkingfee.presentation.ui.screens.zonedetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.naze.parkingfee.domain.usecase.GetParkingZoneByIdUseCase
-import com.naze.parkingfee.domain.usecase.DeleteParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZoneByIdUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.DeleteParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.DeleteZoneResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -115,12 +116,17 @@ class ZoneDetailViewModel @Inject constructor(
      */
     fun confirmDeleteZone(zoneId: String) {
         viewModelScope.launch {
-            try {
-                deleteParkingZoneUseCase.invoke(zoneId)
-                _effect.emit(ZoneDetailContract.ZoneDetailEffect.ShowToast("구역이 삭제되었습니다."))
-                _effect.emit(ZoneDetailContract.ZoneDetailEffect.NavigateToHome)
-            } catch (e: Exception) {
-                _effect.emit(ZoneDetailContract.ZoneDetailEffect.ShowToast("삭제 중 오류가 발생했습니다: ${e.message}"))
+            when (val result = deleteParkingZoneUseCase.execute(zoneId)) {
+                is DeleteZoneResult.Success -> {
+                    _effect.emit(ZoneDetailContract.ZoneDetailEffect.ShowToast("구역이 삭제되었습니다."))
+                    _effect.emit(ZoneDetailContract.ZoneDetailEffect.NavigateToHome)
+                }
+                is DeleteZoneResult.ZoneInUse -> {
+                    _effect.emit(ZoneDetailContract.ZoneDetailEffect.ShowToast("현재 주차 중인 구역은 삭제할 수 없습니다."))
+                }
+                is DeleteZoneResult.Error -> {
+                    _effect.emit(ZoneDetailContract.ZoneDetailEffect.ShowToast("삭제 중 오류가 발생했습니다: ${result.message}"))
+                }
             }
         }
     }

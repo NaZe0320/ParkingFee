@@ -5,12 +5,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.screens.parkinglots.add.components.*
 
 /**
@@ -26,7 +30,7 @@ fun AddParkingLotScreen(
     zoneId: String? = null // 편집 모드를 위한 구역 ID
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
 
     // 편집 모드 초기화
     LaunchedEffect(zoneId) {
@@ -37,12 +41,12 @@ fun AddParkingLotScreen(
         }
     }
 
-    // Effect 처리
-    LaunchedEffect(effect) {
-        effect?.let { currentEffect ->
+    // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is AddParkingLotContract.AddParkingLotEffect.ShowToast -> {
-                    // Toast 표시 로직 (Snackbar 등)
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is AddParkingLotContract.AddParkingLotEffect.NavigateTo -> {
                     when (currentEffect.route) {
@@ -53,7 +57,6 @@ fun AddParkingLotScreen(
                     // Dialog 표시 로직
                 }
                 is AddParkingLotContract.AddParkingLotEffect.NavigateBack -> {
-                    print("ASDF")
                     onNavigateBack()
                 }
                 is AddParkingLotContract.AddParkingLotEffect.OpenOcrScreen -> {
@@ -69,10 +72,35 @@ fun AddParkingLotScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("주차장 추가") },
+                title = { Text(if (zoneId != null) "주차장 수정" else "주차장 추가") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로가기")
+                    }
+                },
+                actions = {
+                    Button(
+                        onClick = {
+                            viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.SaveParkingLot)
+                        },
+                        enabled = !state.isSaving,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.padding(end = 12.dp)
+                    ) {
+                        if (state.isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Icon(Icons.Default.Check, contentDescription = "저장", modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("저장", style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
                 }
             )
@@ -104,6 +132,7 @@ fun AddParkingLotScreen(
                 onNameChange = { name ->
                     viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.UpdateParkingLotName(name))
                 },
+                nameError = state.validationErrors["parkingLotName"]
             )
         }
 
@@ -117,7 +146,7 @@ fun AddParkingLotScreen(
             )
         }
 
-        // 기본 요금 체계
+        // 최초 요금 체계
         item {
             BasicFeeRuleCard(
                 durationMinutes = state.basicFeeDuration,
@@ -133,7 +162,7 @@ fun AddParkingLotScreen(
             )
         }
 
-        // 추가 요금 체계
+        // 기본 요금 체계
         item {
             AdditionalFeeRuleCard(
                 intervalMinutes = state.additionalFeeInterval,
@@ -164,39 +193,29 @@ fun AddParkingLotScreen(
             )
         }
 
-        // 커스텀 요금 구간
-        item {
-            CustomFeeRulesCard(
-                customFeeRules = state.customFeeRules,
-                onAddRule = {
-                    viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.AddCustomFeeRule)
-                },
-                onRemoveRule = { index ->
-                    viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.RemoveCustomFeeRule(index))
-                },
-                onUpdateRule = { index, minMinutes, maxMinutes, fee ->
-                    viewModel.processIntent(
-                        AddParkingLotContract.AddParkingLotIntent.UpdateCustomFeeRule(
-                            index = index,
-                            minMinutes = minMinutes,
-                            maxMinutes = maxMinutes,
-                            fee = fee
-                        )
-                    )
-                },
-                validationErrors = state.validationErrors
-            )
-        }
-
-        // 저장 버튼
-        item {
-            SaveParkingLotButton(
-                isSaving = state.isSaving,
-                onSaveClick = {
-                    viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.SaveParkingLot)
-                }
-            )
-        }
+        // 커스텀 요금 구간 - 나중에 추가 예정
+        // item {
+        //     CustomFeeRulesCard(
+        //         customFeeRules = state.customFeeRules,
+        //         onAddRule = {
+        //             viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.AddCustomFeeRule)
+        //         },
+        //         onRemoveRule = { index ->
+        //             viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.RemoveCustomFeeRule(index))
+        //         },
+        //         onUpdateRule = { index, minMinutes, maxMinutes, fee ->
+        //             viewModel.processIntent(
+        //                 AddParkingLotContract.AddParkingLotIntent.UpdateCustomFeeRule(
+        //                     index = index,
+        //                     minMinutes = minMinutes,
+        //                     maxMinutes = maxMinutes,
+        //                     fee = fee
+        //                 )
+        //             )
+        //         },
+        //         validationErrors = state.validationErrors
+        //     )
+        // }
 
         // 에러 메시지 표시
         val errorMessage = state.errorMessage

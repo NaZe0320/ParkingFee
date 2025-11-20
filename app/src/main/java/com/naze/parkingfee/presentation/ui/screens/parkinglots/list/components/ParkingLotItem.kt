@@ -23,12 +23,12 @@ import com.naze.parkingfee.domain.model.ParkingZone
 @Composable
 fun ParkingLotItem(
     parkingLot: ParkingZone,
-    isSelected: Boolean,
+    isSelected: Boolean = false,
     onSelectClick: () -> Unit,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit,
-    onDetailClick: () -> Unit,
-    onFavoriteClick: () -> Unit,
+    onEditClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {},
+    onDetailClick: () -> Unit = {},
+    onFavoriteClick: () -> Unit = {},
     showFavoriteButton: Boolean = true,
     showMenuButton: Boolean = true
 ) {
@@ -105,19 +105,51 @@ fun ParkingLotItem(
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = parkingLot.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        },
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = parkingLot.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (isSelected) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        
+                        // 공영 주차장 배지
+                        if (parkingLot.isPublic) {
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isSelected) {
+                                        MaterialTheme.colorScheme.tertiary
+                                    } else {
+                                        MaterialTheme.colorScheme.tertiaryContainer
+                                    }
+                                ),
+                                shape = RoundedCornerShape(6.dp)
+                            ) {
+                                Text(
+                                    text = "공영",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Medium,
+                                    color = if (isSelected) {
+                                        MaterialTheme.colorScheme.onTertiary
+                                    } else {
+                                        MaterialTheme.colorScheme.onTertiaryContainer
+                                    },
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
                     
+                    // 요금 정보
                     Text(
                         text = parkingLot.getDisplayFeeInfo(),
                         style = MaterialTheme.typography.bodyMedium,
@@ -125,35 +157,10 @@ fun ParkingLotItem(
                             MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
-                        }
+                        },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                    
-                    // 공영 주차장 배지
-                    if (parkingLot.isPublic) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (isSelected) {
-                                    MaterialTheme.colorScheme.tertiary
-                                } else {
-                                    MaterialTheme.colorScheme.tertiaryContainer
-                                }
-                            ),
-                            shape = RoundedCornerShape(6.dp)
-                        ) {
-                            Text(
-                                text = "공영",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Medium,
-                                color = if (isSelected) {
-                                    MaterialTheme.colorScheme.onTertiary
-                                } else {
-                                    MaterialTheme.colorScheme.onTertiaryContainer
-                                },
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
-                    }
                 }
             }
             
@@ -162,7 +169,9 @@ fun ParkingLotItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // TODO: 즐겨찾기 기능 - 나중에 추가 예정
                 // 즐겨찾기 버튼 (조건부 표시)
+                /*
                 if (showFavoriteButton) {
                     IconButton(
                         onClick = onFavoriteClick,
@@ -181,6 +190,7 @@ fun ParkingLotItem(
                         )
                     }
                 }
+                */
                 
                 // 더보기 메뉴 버튼 (조건부 표시)
                 if (showMenuButton) {

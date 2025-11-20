@@ -13,12 +13,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.naze.parkingfee.domain.model.ParkingHistory
+import com.naze.parkingfee.infrastructure.notification.ToastManager
+import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
 
 /**
  * 주차 기록 화면
@@ -30,24 +33,26 @@ fun HistoryScreen(
     onNavigateBack: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
     
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
     var deleteHistoryId by remember { mutableStateOf<String?>(null) }
+    var deleteHistoryName by remember { mutableStateOf<String?>(null) }
 
-    // Effect 처리
-    LaunchedEffect(effect) {
-        effect?.let { currentEffect ->
+    // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is HistoryContract.HistoryEffect.ShowToast -> {
-                    // Toast 표시 로직
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is HistoryContract.HistoryEffect.NavigateBack -> {
                     onNavigateBack()
                 }
                 is HistoryContract.HistoryEffect.ShowDeleteConfirmDialog -> {
                     deleteHistoryId = currentEffect.historyId
+                    deleteHistoryName = state.histories.find { it.id == currentEffect.historyId }?.zoneNameSnapshot
                     showDeleteDialog = true
                 }
                 is HistoryContract.HistoryEffect.ShowDeleteAllConfirmDialog -> {
@@ -155,36 +160,25 @@ fun HistoryScreen(
     }
 
     // 개별 기록 삭제 확인 다이얼로그
-    if (showDeleteDialog && deleteHistoryId != null) {
-        AlertDialog(
-            onDismissRequest = { 
+    if (deleteHistoryName != null) {
+        DeleteConfirmDialog(
+            visible = showDeleteDialog,
+            title = "주차 기록 삭제",
+            itemName = deleteHistoryName!!,
+            message = "이 주차 기록을 삭제하시겠습니까?",
+            onConfirm = {
+                val id = deleteHistoryId
                 showDeleteDialog = false
                 deleteHistoryId = null
-            },
-            title = { Text("기록 삭제") },
-            text = { Text("정말로 이 주차 기록을 삭제하시겠습니까?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        deleteHistoryId?.let { id ->
-                            viewModel.confirmDeleteHistory(id)
-                        }
-                        deleteHistoryId = null
-                    }
-                ) {
-                    Text("삭제")
+                deleteHistoryName = null
+                if (id != null) {
+                    viewModel.confirmDeleteHistory(id)
                 }
             },
-            dismissButton = {
-                TextButton(
-                    onClick = { 
-                        showDeleteDialog = false
-                        deleteHistoryId = null
-                    }
-                ) {
-                    Text("취소")
-                }
+            onDismiss = {
+                showDeleteDialog = false
+                deleteHistoryId = null
+                deleteHistoryName = null
             }
         )
     }

@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -25,6 +26,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.naze.parkingfee.infrastructure.notification.ToastManager
+import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
 import com.naze.parkingfee.presentation.ui.screens.vehicles.list.components.VehicleItem
 
 /**
@@ -36,10 +39,11 @@ fun VehicleListScreen(
     viewModel: VehicleListViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
     onNavigateToAddVehicle: () -> Unit = {},
-    onNavigateToEditVehicle: (vehicleId: String) -> Unit = {}
+    onNavigateToEditVehicle: (vehicleId: String) -> Unit = {},
+    onNavigateToDetailVehicle: (vehicleId: String) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
     
     // 화면이 다시 포커스될 때 자동 새로고침
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -58,12 +62,12 @@ fun VehicleListScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var vehicleToDelete by remember { mutableStateOf<Pair<String, String>?>(null) }
     
-    // Effect 처리
-    LaunchedEffect(effect) {
-        effect?.let { currentEffect ->
+    // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is VehicleListContract.VehicleListEffect.ShowToast -> {
-                    // Toast 표시 로직
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is VehicleListContract.VehicleListEffect.NavigateBack -> {
                     onNavigateBack()
@@ -73,6 +77,9 @@ fun VehicleListScreen(
                 }
                 is VehicleListContract.VehicleListEffect.NavigateToEditVehicle -> {
                     onNavigateToEditVehicle(currentEffect.vehicleId)
+                }
+                is VehicleListContract.VehicleListEffect.NavigateToDetailVehicle -> {
+                    onNavigateToDetailVehicle(currentEffect.vehicleId)
                 }
                 is VehicleListContract.VehicleListEffect.ShowDeleteConfirmation -> {
                     vehicleToDelete = Pair(currentEffect.vehicleId, currentEffect.vehicleName)
@@ -172,16 +179,19 @@ fun VehicleListScreen(
                     items(state.vehicles) { vehicle ->
                         VehicleItem(
                             vehicle = vehicle,
-                            isSelected = state.selectedVehicleId == vehicle.id,
-                            onSelectClick = { 
-                                viewModel.processIntent(VehicleListContract.VehicleListIntent.SelectVehicle(vehicle.id))
+                            isSelected = false,
+                            onSelectClick = {
+                                // 아이템 클릭 시 상세 화면으로 이동
+                                viewModel.processIntent(
+                                    VehicleListContract.VehicleListIntent.NavigateToDetailVehicle(
+                                        vehicle.id
+                                    )
+                                )
                             },
-                            onEditClick = { 
-                                viewModel.processIntent(VehicleListContract.VehicleListIntent.NavigateToEditVehicle(vehicle.id))
-                            },
-                            onDeleteClick = { 
-                                viewModel.processIntent(VehicleListContract.VehicleListIntent.DeleteVehicle(vehicle.id))
-                            }
+                            // 목록 화면에서는 편집/삭제 액션을 제공하지 않으므로 noop 처리
+                            onEditClick = {},
+                            onDeleteClick = {},
+                            showMenuButton = false
                         )
                     }
                 }
@@ -208,36 +218,22 @@ fun VehicleListScreen(
     }
     
     // 삭제 확인 다이얼로그
-    if (showDeleteDialog && vehicleToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { 
+    if (vehicleToDelete != null) {
+        DeleteConfirmDialog(
+            visible = showDeleteDialog,
+            title = "차량 삭제",
+            itemName = vehicleToDelete!!.second,
+            message = "이 차량을 삭제하시겠습니까?",
+            onConfirm = {
+                vehicleToDelete?.let { (vehicleId, _) ->
+                    viewModel.confirmDeleteVehicle(vehicleId)
+                }
                 showDeleteDialog = false
                 vehicleToDelete = null
             },
-            title = { Text("차량 삭제") },
-            text = { Text("'${vehicleToDelete?.second}' 차량을 삭제하시겠습니까?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        vehicleToDelete?.let { (vehicleId, _) ->
-                            viewModel.confirmDeleteVehicle(vehicleId)
-                        }
-                        showDeleteDialog = false
-                        vehicleToDelete = null
-                    }
-                ) {
-                    Text("삭제")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        vehicleToDelete = null
-                    }
-                ) {
-                    Text("취소")
-                }
+            onDismiss = {
+                showDeleteDialog = false
+                vehicleToDelete = null
             }
         )
     }

@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.naze.parkingfee.domain.usecase.vehicle.DeleteVehicleUseCase
 import com.naze.parkingfee.domain.usecase.vehicle.GetVehiclesUseCase
-import com.naze.parkingfee.domain.usecase.GetSelectedVehicleIdUseCase
-import com.naze.parkingfee.domain.usecase.SetSelectedVehicleIdUseCase
+import com.naze.parkingfee.domain.usecase.selectedvehicle.GetSelectedVehicleIdUseCase
+import com.naze.parkingfee.domain.usecase.selectedvehicle.SetSelectedVehicleIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -53,6 +53,7 @@ class VehicleListViewModel @Inject constructor(
             is VehicleListContract.VehicleListIntent.NavigateToAddVehicle -> navigateToAddVehicle()
             is VehicleListContract.VehicleListIntent.DeleteVehicle -> deleteVehicle(intent.vehicleId)
             is VehicleListContract.VehicleListIntent.NavigateToEditVehicle -> navigateToEditVehicle(intent.vehicleId)
+            is VehicleListContract.VehicleListIntent.NavigateToDetailVehicle -> navigateToDetailVehicle(intent.vehicleId)
             is VehicleListContract.VehicleListIntent.SelectVehicle -> selectVehicle(intent.vehicleId)
             is VehicleListContract.VehicleListIntent.NavigateBack -> navigateBack()
         }
@@ -63,7 +64,7 @@ class VehicleListViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             
             try {
-                val vehicles = getVehiclesUseCase()
+                val vehicles = getVehiclesUseCase.execute()
                 _state.update { 
                     it.copy(
                         isLoading = false,
@@ -94,6 +95,12 @@ class VehicleListViewModel @Inject constructor(
         }
     }
     
+    private fun navigateToDetailVehicle(vehicleId: String) {
+        viewModelScope.launch {
+            _effect.emit(VehicleListContract.VehicleListEffect.NavigateToDetailVehicle(vehicleId))
+        }
+    }
+    
     private fun deleteVehicle(vehicleId: String) {
         viewModelScope.launch {
             try {
@@ -115,7 +122,7 @@ class VehicleListViewModel @Inject constructor(
     fun confirmDeleteVehicle(vehicleId: String) {
         viewModelScope.launch {
             try {
-                val result = deleteVehicleUseCase(vehicleId)
+                val result = deleteVehicleUseCase.execute(vehicleId)
                 if (result.isSuccess) {
                     _effect.emit(VehicleListContract.VehicleListEffect.ShowToast("차량이 삭제되었습니다."))
                     loadVehicles() // 목록 새로고침

@@ -61,6 +61,11 @@ interface ParkingRepository {
     suspend fun deleteParkingZone(zoneId: String): Boolean
     
     /**
+     * 주차 구역의 개수를 조회합니다.
+     */
+    suspend fun getParkingZoneCount(): Int
+    
+    /**
      * 주차 세션을 시작합니다.
      */
     suspend fun startParkingSession(zoneId: String): ParkingSession
@@ -89,4 +94,9 @@ interface ParkingRepository {
      * 주차 세션을 실시간으로 관찰합니다.
      */
     fun observeParkingSessions(): Flow<List<ParkingSession>>
+    
+    /**
+     * 주차 세션을 업데이트합니다.
+     */
+    suspend fun updateParkingSession(session: ParkingSession): ParkingSession
 }

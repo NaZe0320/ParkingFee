@@ -12,9 +12,6 @@ object ParkingLotListContract {
      * 사용자 액션을 나타내는 Intent
      */
     sealed class ParkingLotListIntent {
-        // 초기화
-        object LoadParkingLots : ParkingLotListIntent()
-        
         // 네비게이션
         object NavigateToAddParkingLot : ParkingLotListIntent()
         data class NavigateToEditParkingLot(val zoneId: String) : ParkingLotListIntent()
@@ -37,7 +34,7 @@ object ParkingLotListContract {
         val selectedParkingLotId: String? = null,
         val isLoading: Boolean = false,
         val errorMessage: String? = null,
-        val sortOrder: SortOrder = SortOrder.FAVORITE
+        val sortOrder: SortOrder = SortOrder.RECENT // 최근 사용순으로 고정
     )
 
     /**

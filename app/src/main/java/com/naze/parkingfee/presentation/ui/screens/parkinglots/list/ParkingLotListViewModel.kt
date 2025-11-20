@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.domain.repository.ParkingRepository
-import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
-import com.naze.parkingfee.domain.usecase.DeleteParkingZoneUseCase
-import com.naze.parkingfee.domain.usecase.ToggleParkingZoneFavoriteUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.DeleteParkingZoneUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.DeleteZoneResult
+import com.naze.parkingfee.domain.usecase.parkingzone.ToggleParkingZoneFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +15,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,7 +28,6 @@ import javax.inject.Inject
 @HiltViewModel
 class ParkingLotListViewModel @Inject constructor(
     private val parkingRepository: ParkingRepository,
-    private val getParkingZonesUseCase: GetParkingZonesUseCase,
     private val deleteParkingZoneUseCase: DeleteParkingZoneUseCase,
     private val toggleParkingZoneFavoriteUseCase: ToggleParkingZoneFavoriteUseCase
 ) : ViewModel() {
@@ -37,15 +39,24 @@ class ParkingLotListViewModel @Inject constructor(
     val effect: SharedFlow<ParkingLotListContract.ParkingLotListEffect> = _effect.asSharedFlow()
     
     init {
+        // 주차장 목록 Flow 구독 (데이터베이스 변경 시 자동 업데이트)
+        viewModelScope.launch {
+            combine(
+                parkingRepository.observeParkingZones(),
+                _state.map { it.sortOrder }.distinctUntilChanged()
+            ) { parkingLots, sortOrder ->
+                sortParkingLots(parkingLots, sortOrder)
+            }.collect { sortedLots ->
+                _state.update { it.copy(parkingLots = sortedLots, isLoading = false) }
+            }
+        }
+        
         // Repository의 선택된 주차장 ID를 구독하여 State에 반영
         viewModelScope.launch {
             parkingRepository.selectedParkingZoneId.collect { selectedId ->
                 _state.update { it.copy(selectedParkingLotId = selectedId) }
             }
         }
-        
-        // 초기 데이터 자동 로드
-        loadParkingLots()
     }
 
     /**
@@ -53,9 +64,6 @@ class ParkingLotListViewModel @Inject constructor(
      */
     fun processIntent(intent: ParkingLotListContract.ParkingLotListIntent) {
         when (intent) {
-            is ParkingLotListContract.ParkingLotListIntent.LoadParkingLots -> {
-                loadParkingLots()
-            }
             is ParkingLotListContract.ParkingLotListIntent.NavigateToAddParkingLot -> {
                 viewModelScope.launch {
                     _effect.emit(ParkingLotListContract.ParkingLotListEffect.NavigateToAddParkingLot)
@@ -103,32 +111,6 @@ class ParkingLotListViewModel @Inject constructor(
         }
     }
 
-    /**
-     * 주차장 목록을 로드합니다.
-     */
-    private fun loadParkingLots() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, errorMessage = null) }
-            
-            try {
-                val parkingLots = getParkingZonesUseCase.execute()
-                val sortedLots = sortParkingLots(parkingLots, _state.value.sortOrder)
-                _state.update { 
-                    it.copy(
-                        parkingLots = sortedLots,
-                        isLoading = false
-                    )
-                }
-            } catch (e: Exception) {
-                _state.update { 
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = e.message ?: "주차장 목록을 불러오는데 실패했습니다."
-                    )
-                }
-            }
-        }
-    }
 
     /**
      * 주차장을 삭제합니다.
@@ -156,18 +138,19 @@ class ParkingLotListViewModel @Inject constructor(
      */
     fun confirmDeleteParkingLot(zoneId: String) {
         viewModelScope.launch {
-            try {
-                val success = deleteParkingZoneUseCase.invoke(zoneId)
-                if (success) {
+            when (val result = deleteParkingZoneUseCase.execute(zoneId)) {
+                is DeleteZoneResult.Success -> {
                     _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast("주차장이 삭제되었습니다."))
-                    loadParkingLots() // 목록 새로고침
-                } else {
-                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast("주차장 삭제에 실패했습니다."))
+                    // Flow가 자동으로 목록을 업데이트합니다
                 }
-            } catch (e: Exception) {
-                _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast(
-                    e.message ?: "주차장 삭제에 실패했습니다."
-                ))
+                is DeleteZoneResult.ZoneInUse -> {
+                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast("현재 주차 중인 구역은 삭제할 수 없습니다."))
+                }
+                is DeleteZoneResult.Error -> {
+                    _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast(
+                        "주차장 삭제에 실패했습니다: ${result.message}"
+                    ))
+                }
             }
         }
     }
@@ -178,9 +161,9 @@ class ParkingLotListViewModel @Inject constructor(
     private fun toggleFavorite(zoneId: String) {
         viewModelScope.launch {
             try {
-                val success = toggleParkingZoneFavoriteUseCase.invoke(zoneId)
+                val success = toggleParkingZoneFavoriteUseCase.execute(zoneId)
                 if (success) {
-                    loadParkingLots() // 목록 새로고침
+                    // Flow가 자동으로 목록을 업데이트합니다
                 } else {
                     _effect.emit(ParkingLotListContract.ParkingLotListEffect.ShowToast("즐겨찾기 설정에 실패했습니다."))
                 }
@@ -194,15 +177,10 @@ class ParkingLotListViewModel @Inject constructor(
 
     /**
      * 정렬 순서를 변경합니다.
+     * Flow가 자동으로 재정렬합니다.
      */
     private fun changeSortOrder(sortOrder: ParkingLotListContract.SortOrder) {
-        _state.update { currentState ->
-            val sortedLots = sortParkingLots(currentState.parkingLots, sortOrder)
-            currentState.copy(
-                sortOrder = sortOrder,
-                parkingLots = sortedLots
-            )
-        }
+        _state.update { it.copy(sortOrder = sortOrder) }
     }
 
     /**
@@ -228,10 +206,4 @@ class ParkingLotListViewModel @Inject constructor(
         }
     }
 
-    /**
-     * 주차장 목록을 새로고침합니다.
-     */
-    fun refreshParkingLots() {
-        loadParkingLots()
-    }
 }

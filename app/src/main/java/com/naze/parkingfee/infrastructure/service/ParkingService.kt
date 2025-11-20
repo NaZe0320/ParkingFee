@@ -8,10 +8,10 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import com.naze.parkingfee.domain.usecase.GetActiveParkingSessionUseCase
-import com.naze.parkingfee.domain.usecase.GetParkingZonesUseCase
-import com.naze.parkingfee.domain.usecase.StopParkingUseCase
-import com.naze.parkingfee.domain.usecase.GetSelectedVehicleIdUseCase
+import com.naze.parkingfee.domain.usecase.parkingsession.GetActiveParkingSessionUseCase
+import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZonesUseCase
+import com.naze.parkingfee.domain.usecase.parkingsession.StopParkingUseCase
+import com.naze.parkingfee.domain.usecase.selectedvehicle.GetSelectedVehicleIdUseCase
 import com.naze.parkingfee.domain.repository.VehicleRepository
 import com.naze.parkingfee.infrastructure.notification.ParkingNotificationManager
 import com.naze.parkingfee.utils.FeeCalculator

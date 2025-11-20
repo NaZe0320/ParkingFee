@@ -92,6 +92,10 @@ class ParkingRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getParkingZoneCount(): Int {
+        return parkingDao.getParkingZoneCount()
+    }
+
     override suspend fun startParkingSession(zoneId: String): ParkingSession {
         val sessionId = generateSessionId()
         val startTime = System.currentTimeMillis()
@@ -157,6 +161,12 @@ class ParkingRepositoryImpl @Inject constructor(
                 parkingSessionMapper.mapToDomain(entity)
             }
         }
+    }
+
+    override suspend fun updateParkingSession(session: ParkingSession): ParkingSession {
+        val entity = parkingSessionMapper.mapToEntity(session)
+        parkingDao.updateParkingSession(entity)
+        return session
     }
 
     private fun generateSessionId(): String {

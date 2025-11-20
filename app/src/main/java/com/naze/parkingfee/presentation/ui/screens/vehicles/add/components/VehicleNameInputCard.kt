@@ -39,34 +39,63 @@ fun VehicleNameInputCard(
             )
             
             // 차량 이름 입력
-            OutlinedTextField(
-                value = vehicleName,
-                onValueChange = onNameChange,
-                placeholder = {
+            Column {
+                OutlinedTextField(
+                    value = vehicleName,
+                    onValueChange = { newValue ->
+                        // 20자 제한
+                        if (newValue.length <= 20) {
+                            onNameChange(newValue)
+                        }
+                    },
+                    placeholder = {
+                        Text(
+                            text = "내 차",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                        errorBorderColor = MaterialTheme.colorScheme.error
+                    ),
+                    isError = nameError != null,
+                    singleLine = true
+                )
+                
+                // 글자수 카운터 및 에러 메시지/힌트
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // 에러 메시지 또는 힌트 텍스트
+                    if (nameError != null) {
+                        Text(
+                            text = nameError,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.weight(1f)
+                        )
+                    } else {
+                        Text(
+                            text = "비워두면 기본 이름(자동차1, 자동차2...)이 사용됩니다",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    
+                    // 글자수 카운터
                     Text(
-                        text = "내 차",
+                        text = "${vehicleName.length}/20",
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                    errorBorderColor = MaterialTheme.colorScheme.error
-                ),
-                isError = nameError != null,
-                singleLine = true
-            )
-            
-            // 에러 메시지
-            if (nameError != null) {
-                Text(
-                    text = nameError,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+                }
             }
         }
     }

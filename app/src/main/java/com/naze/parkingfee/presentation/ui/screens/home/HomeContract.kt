@@ -2,7 +2,6 @@ package com.naze.parkingfee.presentation.ui.screens.home
 
 import com.naze.parkingfee.domain.model.ParkingZone
 import com.naze.parkingfee.domain.model.ParkingSession
-import com.naze.parkingfee.presentation.ui.screens.home.components.ZoneAction
 
 /**
  * 홈 화면의 MVI Contract
@@ -22,12 +21,14 @@ object HomeContract {
         object NavigateToAddParkingLot : HomeIntent()
         data class SelectZone(val zone: ParkingZone) : HomeIntent()
         data class SelectVehicle(val vehicle: com.naze.parkingfee.domain.model.vehicle.Vehicle) : HomeIntent()
-        data class RequestZoneAction(val zone: ParkingZone, val action: ZoneAction) : HomeIntent()
-        data class DeleteZone(val zoneId: String) : HomeIntent()
         data class DeleteVehicle(val vehicle: com.naze.parkingfee.domain.model.vehicle.Vehicle) : HomeIntent()
         object ToggleStatusCard : HomeIntent()
         object ToggleVehicleSelector : HomeIntent()
         object ToggleParkingZoneSelector : HomeIntent()
+        data class AddFreeTime(val minutes: Int) : HomeIntent()
+        data class RemoveFreeTime(val minutes: Int) : HomeIntent()
+        data class AddAlarm(val targetAmount: Double, val minutesBefore: Int) : HomeIntent()
+        data class RemoveAlarm(val alarmId: String) : HomeIntent()
     }
 
     /**
@@ -47,7 +48,9 @@ object HomeContract {
         val isStatusCardExpanded: Boolean = true,
         val isVehicleSelectorExpanded: Boolean = true,
         val isParkingZoneSelectorExpanded: Boolean = true,
-        val activeZoneName: String? = null
+        val activeZoneName: String? = null,
+        val freeTimeMinutes: Int = 0,
+        val parkingAlarms: List<com.naze.parkingfee.domain.model.ParkingAlarm> = emptyList()
     )
 
     /**
@@ -56,10 +59,6 @@ object HomeContract {
     sealed class HomeEffect {
         data class ShowToast(val message: String) : HomeEffect()
         data class NavigateTo(val route: String) : HomeEffect()
-        data class NavigateToZoneDetail(val zoneId: String) : HomeEffect()
-        data class NavigateToEditZone(val zoneId: String) : HomeEffect()
-        data class ShowDialog(val title: String, val message: String) : HomeEffect()
-        data class ShowDeleteConfirmDialog(val zoneId: String, val zoneName: String) : HomeEffect()
         data class ShowParkingCompleteDialog(
             val zoneName: String,
             val duration: String,
@@ -70,5 +69,6 @@ object HomeContract {
         ) : HomeEffect()
         object RequestStartParkingService : HomeEffect()
         object RequestStopParkingService : HomeEffect()
+        object ShowAlarmScheduledToast : HomeEffect()
     }
 }

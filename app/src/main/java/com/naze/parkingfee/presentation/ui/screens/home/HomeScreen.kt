@@ -10,14 +10,16 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.screens.home.components.*
-import com.naze.parkingfee.presentation.ui.components.DeleteConfirmDialog
+import com.naze.parkingfee.presentation.ui.components.ParkingCompleteDialog
 
 /**
  * 홈 화면
@@ -30,19 +32,12 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToHistory: () -> Unit = {},
     onNavigateToAddParkingLot: () -> Unit = {},
-    onNavigateToZoneDetail: (String) -> Unit = {},
-    onNavigateToEditZone: (String) -> Unit = {},
     onNavigateToEditVehicle: (String) -> Unit = {},
     onStartParkingService: () -> Unit = {},
     onStopParkingService: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val effect by viewModel.effect.collectAsStateWithLifecycle(initialValue = null)
-
-    // 삭제 확인 다이얼로그 상태
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var pendingDeleteZoneId by remember { mutableStateOf<String?>(null) }
-    var pendingDeleteZoneName by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
     
     // 주차 완료 다이얼로그 상태
     var showParkingCompleteDialog by remember { mutableStateOf(false) }
@@ -53,12 +48,12 @@ fun HomeScreen(
         viewModel.processIntent(HomeContract.HomeIntent.RefreshParkingInfo)
     }
 
-    // Effect 처리
-    LaunchedEffect(effect) {
-        effect?.let { currentEffect ->
+    // Effect 처리 - SharedFlow를 직접 collect
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { currentEffect ->
             when (currentEffect) {
                 is HomeContract.HomeEffect.ShowToast -> {
-                    // Toast 표시 로직 (Snackbar 등)
+                    ToastManager.show(context, currentEffect.message)
                 }
                 is HomeContract.HomeEffect.NavigateTo -> {
                     when (currentEffect.route) {
@@ -66,20 +61,6 @@ fun HomeScreen(
                         "history" -> onNavigateToHistory()
                         "add_parking_lot" -> onNavigateToAddParkingLot()
                     }
-                }
-                is HomeContract.HomeEffect.NavigateToZoneDetail -> {
-                    onNavigateToZoneDetail(currentEffect.zoneId)
-                }
-                is HomeContract.HomeEffect.NavigateToEditZone -> {
-                    onNavigateToEditZone(currentEffect.zoneId)
-                }
-                is HomeContract.HomeEffect.ShowDialog -> {
-                    // Dialog 표시 로직
-                }
-                is HomeContract.HomeEffect.ShowDeleteConfirmDialog -> {
-                    pendingDeleteZoneId = currentEffect.zoneId
-                    pendingDeleteZoneName = currentEffect.zoneName
-                    showDeleteDialog = true
                 }
                 is HomeContract.HomeEffect.RequestStartParkingService -> {
                     onStartParkingService()
@@ -91,6 +72,9 @@ fun HomeScreen(
                     parkingCompleteInfo = currentEffect
                     showParkingCompleteDialog = true
                 }
+                is HomeContract.HomeEffect.ShowAlarmScheduledToast -> {
+                    ToastManager.show(context, "알람이 설정되었습니다.")
+                }
             }
         }
     }
@@ -101,8 +85,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
+                .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
         // 고정 영역 - 주차 상태 카드
@@ -125,7 +108,9 @@ fun HomeScreen(
             },
             onStopParking = { sessionId ->
                 viewModel.processIntent(HomeContract.HomeIntent.StopParking(sessionId))
-            }
+            },
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 16.dp)
         )
 
         // 스크롤 가능 영역
@@ -139,47 +124,67 @@ fun HomeScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // 차량 선택 섹션
-            item {
-                VehicleSelector(
-                    vehicles = state.vehicles,
-                    selectedVehicle = state.selectedVehicle,
-                    onVehicleSelected = { vehicle ->
-                        viewModel.processIntent(HomeContract.HomeIntent.SelectVehicle(vehicle))
-                    },
-                    onRequestVehicleAction = { vehicle, action ->
-                        when (action) {
-                            VehicleAction.Edit -> {
-                                onNavigateToEditVehicle(vehicle.id)
-                            }
-                            VehicleAction.Delete -> {
-                                viewModel.processIntent(HomeContract.HomeIntent.DeleteVehicle(vehicle))
-                            }
+            // 주차 중일 때는 차량/주차장 선택 대신 무료 시간과 알람 설정 표시
+            if (state.isParkingActive) {
+                // 무료 시간 선택 섹션
+                item {
+                    FreeTimeSelector(
+                        freeTimeMinutes = state.freeTimeMinutes,
+                        onAddFreeTime = { minutes ->
+                            viewModel.processIntent(HomeContract.HomeIntent.AddFreeTime(minutes))
+                        },
+                        onRemoveFreeTime = { minutes ->
+                            viewModel.processIntent(HomeContract.HomeIntent.RemoveFreeTime(minutes))
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+                
+                // 알람 설정 섹션
+                item {
+                    AlarmSettingSection(
+                        parkingAlarms = state.parkingAlarms,
+                        onAddAlarm = { targetAmount, minutesBefore ->
+                            viewModel.processIntent(
+                                HomeContract.HomeIntent.AddAlarm(targetAmount, minutesBefore)
+                            )
+                        },
+                        onRemoveAlarm = { alarmId ->
+                            viewModel.processIntent(HomeContract.HomeIntent.RemoveAlarm(alarmId))
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+            } else {
+                // 차량 선택 섹션 (주차 중이 아닐 때만)
+                item {
+                    VehicleSelector(
+                        vehicles = state.vehicles,
+                        selectedVehicle = state.selectedVehicle,
+                        onVehicleSelected = { vehicle ->
+                            viewModel.processIntent(HomeContract.HomeIntent.SelectVehicle(vehicle))
+                        },
+                        isExpanded = state.isVehicleSelectorExpanded,
+                        onToggleExpand = {
+                            viewModel.processIntent(HomeContract.HomeIntent.ToggleVehicleSelector)
                         }
-                    },
-                    isExpanded = state.isVehicleSelectorExpanded,
-                    onToggleExpand = {
-                        viewModel.processIntent(HomeContract.HomeIntent.ToggleVehicleSelector)
-                    }
-                )
-            }
+                    )
+                }
 
-            // 주차장 선택 섹션
-            item {
-                ParkingZoneSelector(
-                    zones = state.availableZones,
-                    selectedZone = state.currentZone,
-                    onZoneSelected = { zone ->
-                        viewModel.processIntent(HomeContract.HomeIntent.SelectZone(zone))
-                    },
-                    onRequestZoneAction = { zone, action ->
-                        viewModel.processIntent(HomeContract.HomeIntent.RequestZoneAction(zone, action))
-                    },
-                    isExpanded = state.isParkingZoneSelectorExpanded,
-                    onToggleExpand = {
-                        viewModel.processIntent(HomeContract.HomeIntent.ToggleParkingZoneSelector)
-                    }
-                )
+                // 주차장 선택 섹션 (주차 중이 아닐 때만)
+                item {
+                    ParkingZoneSelector(
+                        zones = state.availableZones,
+                        selectedZone = state.currentZone,
+                        onZoneSelected = { zone ->
+                            viewModel.processIntent(HomeContract.HomeIntent.SelectZone(zone))
+                        },
+                        isExpanded = state.isParkingZoneSelectorExpanded,
+                        onToggleExpand = {
+                            viewModel.processIntent(HomeContract.HomeIntent.ToggleParkingZoneSelector)
+                        }
+                    )
+                }
             }
 
             // 에러 메시지
@@ -189,96 +194,28 @@ fun HomeScreen(
                         message = state.errorMessage,
                         onDismiss = {
                             viewModel.processIntent(HomeContract.HomeIntent.RefreshParkingInfo)
-                        }
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
             }
         }
         }
     }
-
-    // 삭제 확인 다이얼로그
-    DeleteConfirmDialog(
-        visible = showDeleteDialog,
-        message = "정말로 ${pendingDeleteZoneName ?: "이"} 구역을 삭제하시겠습니까?",
-        onConfirm = {
-            val id = pendingDeleteZoneId
-            showDeleteDialog = false
-            pendingDeleteZoneId = null
-            pendingDeleteZoneName = null
-            if (id != null) {
-                viewModel.processIntent(HomeContract.HomeIntent.DeleteZone(id))
-            }
-        },
-        onDismiss = { showDeleteDialog = false }
-    )
     
     // 주차 완료 다이얼로그
-    if (showParkingCompleteDialog && parkingCompleteInfo != null) {
-        AlertDialog(
-            onDismissRequest = { 
+    if (parkingCompleteInfo != null) {
+        ParkingCompleteDialog(
+            visible = showParkingCompleteDialog,
+            zoneName = parkingCompleteInfo!!.zoneName,
+            duration = parkingCompleteInfo!!.duration,
+            vehicleDisplay = parkingCompleteInfo!!.vehicleDisplay,
+            finalFee = parkingCompleteInfo!!.finalFee,
+            originalFee = parkingCompleteInfo!!.originalFee,
+            hasDiscount = parkingCompleteInfo!!.hasDiscount,
+            onDismiss = {
                 showParkingCompleteDialog = false
                 parkingCompleteInfo = null
-            },
-            title = { 
-                Text(
-                    text = "주차 완료",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            },
-            text = {
-                Column {
-                    Text(
-                        text = "구역: ${parkingCompleteInfo!!.zoneName}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = "주차 시간: ${parkingCompleteInfo!!.duration}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    if (!parkingCompleteInfo!!.vehicleDisplay.isNullOrBlank()) {
-                        Text(
-                            text = "차량: ${parkingCompleteInfo!!.vehicleDisplay}",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    
-                    if (parkingCompleteInfo!!.hasDiscount && parkingCompleteInfo!!.originalFee != null) {
-                        Text(
-                            text = "요금: ${parkingCompleteInfo!!.originalFee!!.toInt()}원 → ${parkingCompleteInfo!!.finalFee.toInt()}원",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "50% 할인 적용",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        Text(
-                            text = "요금: ${parkingCompleteInfo!!.finalFee.toInt()}원",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showParkingCompleteDialog = false
-                        parkingCompleteInfo = null
-                    }
-                ) {
-                    Text("확인")
-                }
             }
         )
     }
