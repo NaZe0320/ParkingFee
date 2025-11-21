@@ -234,6 +234,13 @@ class OcrViewModel @Inject constructor(
     }
 
     /**
+     * 리소스 정리 (화면을 나갈 때 명시적으로 호출)
+     */
+    fun cleanup() {
+        ocrProcessor.close()
+    }
+
+    /**
      * ViewModel이 정리될 때 리소스 해제
      */
     override fun onCleared() {

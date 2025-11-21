@@ -18,9 +18,20 @@ class OcrProcessor @Inject constructor(
     private val context: Context
 ) {
 
-    private val recognizer = TextRecognition.getClient(
-        KoreanTextRecognizerOptions.Builder().build()
-    )
+    @Volatile
+    private var recognizer: com.google.mlkit.vision.text.TextRecognizer? = null
+    private val lock = Any()
+
+    /**
+     * Recognizer를 가져옵니다. 이미 close된 경우 새로 생성합니다.
+     */
+    private fun getRecognizer(): com.google.mlkit.vision.text.TextRecognizer {
+        return recognizer ?: synchronized(lock) {
+            recognizer ?: TextRecognition.getClient(
+                KoreanTextRecognizerOptions.Builder().build()
+            ).also { recognizer = it }
+        }
+    }
 
     /**
      * Runs text recognition on an image referenced by [imageUri].
@@ -28,7 +39,7 @@ class OcrProcessor @Inject constructor(
     suspend fun recognizeTextFromUri(imageUri: Uri): OcrResult {
         return try {
             val image = InputImage.fromFilePath(context, imageUri)
-            val result = recognizer.process(image).await()
+            val result = getRecognizer().process(image).await()
             toOcrResult(result.text, result.textBlocks.map { block ->
                 TextBlock(
                     text = block.text,
@@ -59,7 +70,7 @@ class OcrProcessor @Inject constructor(
     suspend fun recognizeTextFromBitmap(bitmap: Bitmap): OcrResult {
         return try {
             val image = InputImage.fromBitmap(bitmap, 0)
-            val result = recognizer.process(image).await()
+            val result = getRecognizer().process(image).await()
             toOcrResult(result.text, result.textBlocks.map { block ->
                 TextBlock(
                     text = block.text,
@@ -109,7 +120,10 @@ class OcrProcessor @Inject constructor(
     }
 
     fun close() {
-        recognizer.close()
+        synchronized(lock) {
+            recognizer?.close()
+            recognizer = null
+        }
     }
 
     private fun toOcrResult(
