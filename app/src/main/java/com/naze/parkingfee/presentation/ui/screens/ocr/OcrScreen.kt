@@ -119,9 +119,8 @@ fun OcrScreen(
                     }
                 }
                 is OcrContract.OcrEffect.NavigateToAddParkingLotWithResult -> {
-                    // AddParkingLotScreen으로 데이터 전달
-                    // TODO: 네비게이션 구현 시 feeRows와 dailyMaxFee 전달
-                    ToastManager.show(context, "주차장 등록 화면으로 이동합니다.")
+                    // AddParkingLotScreen으로 데이터 전달 (OcrResultManager를 통해 전달)
+                    onNavigateBack()
                 }
             }
         }

@@ -50,6 +50,7 @@ class AddParkingLotViewModel @Inject constructor(
             is AddParkingLotContract.AddParkingLotIntent.Initialize -> initialize()
             is AddParkingLotContract.AddParkingLotIntent.LoadZoneForEdit -> loadZoneForEdit(intent.zoneId)
             is AddParkingLotContract.AddParkingLotIntent.OpenOcrScreen -> openOcrScreen()
+            is AddParkingLotContract.AddParkingLotIntent.ApplyOcrResult -> applyOcrResult()
             is AddParkingLotContract.AddParkingLotIntent.UpdateParkingLotName -> updateParkingLotName(intent.name)
             is AddParkingLotContract.AddParkingLotIntent.ToggleUseDefaultName -> toggleUseDefaultName(intent.useDefault)
             is AddParkingLotContract.AddParkingLotIntent.ToggleIsPublic -> toggleIsPublic(intent.isPublic)
@@ -87,6 +88,40 @@ class AddParkingLotViewModel @Inject constructor(
     private fun openOcrScreen() {
         viewModelScope.launch {
             _effect.emit(AddParkingLotContract.AddParkingLotEffect.OpenOcrScreen)
+        }
+    }
+
+    /**
+     * OCR 결과 적용
+     */
+    private fun applyOcrResult() {
+        val ocrResult = com.naze.parkingfee.presentation.ui.screens.ocr.OcrResultManager.getResult()
+        
+        if (ocrResult != null) {
+            _state.update {
+                it.copy(
+                    // 주차장 이름 적용
+                    parkingLotName = ocrResult.parkingLotName ?: it.parkingLotName,
+                    // 고급 모드 활성화
+                    isAdvancedMode = true,
+                    // 요금 구간 적용
+                    advancedFeeRows = ocrResult.feeRows,
+                    // 일 최대 요금 적용
+                    dailyMaxFeeEnabled = ocrResult.dailyMaxFee != null,
+                    dailyMaxFeeAmount = ocrResult.dailyMaxFee ?: it.dailyMaxFeeAmount
+                )
+            }
+            
+            // 사용 완료 후 결과 정리
+            com.naze.parkingfee.presentation.ui.screens.ocr.OcrResultManager.clearResult()
+            
+            viewModelScope.launch {
+                _effect.emit(
+                    AddParkingLotContract.AddParkingLotEffect.ShowToast(
+                        "OCR 결과가 적용되었습니다. 내용을 확인해주세요."
+                    )
+                )
+            }
         }
     }
 

@@ -199,13 +199,20 @@ class OcrViewModel @Inject constructor(
     private fun useOcrResult() {
         viewModelScope.launch {
             val state = _state.value
-            val parkingLotName = state.parsedParkingLotName
-            val feeInfo = state.parsedFeeInfo
+            
+            // OcrResultManager에 결과 저장
+            OcrResultManager.saveResult(
+                OcrResultManager.OcrResult(
+                    parkingLotName = state.parsedParkingLotName,
+                    feeRows = state.feeRows,
+                    dailyMaxFee = state.dailyMaxFee
+                )
+            )
 
             _effect.emit(
                 OcrContract.OcrEffect.NavigateToAddParkingLotWithResult(
-                    parkingLotName = parkingLotName,
-                    feeInfo = feeInfo,
+                    parkingLotName = state.parsedParkingLotName,
+                    feeInfo = state.parsedFeeInfo,
                     feeRows = state.feeRows,
                     dailyMaxFee = state.dailyMaxFee
                 )

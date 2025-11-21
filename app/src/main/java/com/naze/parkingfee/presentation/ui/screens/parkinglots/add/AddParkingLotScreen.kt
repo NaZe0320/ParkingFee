@@ -44,6 +44,11 @@ fun AddParkingLotScreen(
         }
     }
 
+    // OCR 결과 자동 적용
+    LaunchedEffect(Unit) {
+        viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.ApplyOcrResult)
+    }
+
     // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
     LaunchedEffect(Unit) {
         viewModel.effect.collect { currentEffect ->

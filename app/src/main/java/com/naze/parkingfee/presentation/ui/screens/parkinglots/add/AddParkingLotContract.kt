@@ -36,6 +36,7 @@ object AddParkingLotContract {
         
         // OCR 관련
         object OpenOcrScreen : AddParkingLotIntent()
+        object ApplyOcrResult : AddParkingLotIntent()
         
         // 주차장 정보 입력
         data class UpdateParkingLotName(val name: String) : AddParkingLotIntent()
