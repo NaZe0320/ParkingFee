@@ -32,6 +32,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.naze.parkingfee.infrastructure.notification.ToastManager
+import com.naze.parkingfee.presentation.ui.screens.parkinglots.add.AddParkingLotContract
 import java.io.File
 
 /**
@@ -117,8 +118,9 @@ fun OcrScreen(
                     }
                 }
                 is OcrContract.OcrEffect.NavigateToAddParkingLotWithResult -> {
-                    // 나중에 구현: AddParkingLotScreen으로 데이터 전달
-                    ToastManager.show(context, "이 기능은 추후 구현 예정입니다.")
+                    // AddParkingLotScreen으로 데이터 전달
+                    // TODO: 네비게이션 구현 시 feeRows와 dailyMaxFee 전달
+                    ToastManager.show(context, "주차장 등록 화면으로 이동합니다.")
                 }
             }
         }
@@ -365,19 +367,96 @@ fun OcrScreen(
                     }
                 }
 
-                // 결과 사용 버튼 (추후 구현)
-                // Button(
-                //     onClick = {
-                //         viewModel.processIntent(OcrContract.OcrIntent.UseOcrResult)
-                //     },
-                //     modifier = Modifier.fillMaxWidth(),
-                //     shape = RoundedCornerShape(12.dp),
-                //     colors = ButtonDefaults.buttonColors(
-                //         containerColor = MaterialTheme.colorScheme.primary
-                //     )
-                // ) {
-                //     Text("이 결과로 주차장 등록하기")
-                // }
+                // 파싱된 요금 정보 편집 화면
+                if (state.showEditScreen && state.feeRows.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = "인식된 요금 정보",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            
+                            Text(
+                                text = "아래 정보를 확인하고 수정해주세요.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            )
+                            
+                            HorizontalDivider()
+                            
+                            // FeeRow 목록 표시
+                            state.feeRows.forEachIndexed { index, feeRow ->
+                                FeeRowEditItem(
+                                    index = index,
+                                    feeRow = feeRow,
+                                    isLastItem = index == state.feeRows.size - 1
+                                )
+                                
+                                if (index < state.feeRows.size - 1) {
+                                    HorizontalDivider()
+                                }
+                            }
+                            
+                            // 일 최대 요금 표시
+                            state.dailyMaxFee?.let { maxFee ->
+                                HorizontalDivider()
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "일 최대 요금:",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                    Text(
+                                        text = "${maxFee}원",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                }
+                            }
+                            
+                            HorizontalDivider()
+                            
+                            // 결과 사용 버튼
+                            Button(
+                                onClick = {
+                                    viewModel.processIntent(OcrContract.OcrIntent.UseOcrResult)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("이 결과로 주차장 등록하기")
+                            }
+                        }
+                    }
+                }
             }
 
             // 에러 메시지
@@ -395,6 +474,92 @@ fun OcrScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onErrorContainer
                     )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * FeeRow 편집 아이템 (읽기 전용)
+ */
+@Composable
+private fun FeeRowEditItem(
+    index: Int,
+    feeRow: AddParkingLotContract.FeeRow,
+    isLastItem: Boolean
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "구간 ${index + 1}",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // 시간 정보
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "시간",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = if (feeRow.endTime != null) {
+                            "${feeRow.startTime}분 ~ ${feeRow.endTime}분"
+                        } else {
+                            "${feeRow.startTime}분 이상"
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+            
+            // 요금 정보
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = if (feeRow.isFixedFee) "고정 요금" else "단위 요금",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = "${feeRow.unitFee}원",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    if (!feeRow.isFixedFee) {
+                        Text(
+                            text = "매 ${feeRow.unitMinutes}분",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
                 }
             }
         }

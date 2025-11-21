@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.naze.parkingfee.data.datasource.local.ocr.OcrProcessor
+import com.naze.parkingfee.data.datasource.local.ocr.ParkingFeeParser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -110,25 +111,60 @@ class OcrViewModel @Inject constructor(
                 val result = ocrProcessor.recognizeTextFromUri(imageUri)
 
                 if (result.isSuccess) {
-                    // 주차장 정보 파싱
+                    // 주차장 정보 파싱 (기존 로직)
                     val parsedInfo = ocrProcessor.parseParkingLotInfo(result)
 
-                    _state.update {
-                        it.copy(
-                            isProcessing = false,
-                            recognizedText = result.fullText,
-                            hasResult = true,
-                            parsedParkingLotName = parsedInfo.parkingLotName,
-                            parsedFeeInfo = parsedInfo.feeInfo,
-                            errorMessage = null
-                        )
-                    }
+                    // 요금표 파싱 (ParkingFeeParser 사용)
+                    val parsingResult = ParkingFeeParser.parse(
+                        text = result.fullText,
+                        textBlocks = result.textBlocks
+                    )
 
-                    // 결과가 비어있는 경우 알림
-                    if (result.fullText.isBlank()) {
-                        _effect.emit(OcrContract.OcrEffect.ShowToast("텍스트를 인식할 수 없습니다."))
+                    if (parsingResult.isSuccess && parsingResult.feeRows.isNotEmpty()) {
+                        // 파싱 성공: 편집 화면 표시
+                        _state.update {
+                            it.copy(
+                                isProcessing = false,
+                                recognizedText = result.fullText,
+                                hasResult = true,
+                                parsedParkingLotName = parsedInfo.parkingLotName,
+                                parsedFeeInfo = parsedInfo.feeInfo,
+                                feeRows = parsingResult.feeRows,
+                                dailyMaxFee = parsingResult.dailyMaxFee,
+                                showEditScreen = true,
+                                errorMessage = null
+                            )
+                        }
+                        _effect.emit(
+                            OcrContract.OcrEffect.ShowToast(
+                                "인식된 결과입니다. 정확한지 확인해주세요."
+                            )
+                        )
                     } else {
-                        _effect.emit(OcrContract.OcrEffect.ShowToast("텍스트 인식 완료"))
+                        // 파싱 실패: 인식된 텍스트만 표시
+                        _state.update {
+                            it.copy(
+                                isProcessing = false,
+                                recognizedText = result.fullText,
+                                hasResult = true,
+                                parsedParkingLotName = parsedInfo.parkingLotName,
+                                parsedFeeInfo = parsedInfo.feeInfo,
+                                feeRows = emptyList(),
+                                dailyMaxFee = null,
+                                showEditScreen = false,
+                                errorMessage = null
+                            )
+                        }
+                        
+                        if (result.fullText.isBlank()) {
+                            _effect.emit(
+                                OcrContract.OcrEffect.ShowToast("요금표를 인식하지 못했습니다.")
+                            )
+                        } else {
+                            _effect.emit(
+                                OcrContract.OcrEffect.ShowToast("요금표를 인식하지 못했습니다.")
+                            )
+                        }
                     }
                 } else {
                     _state.update {
@@ -162,13 +198,16 @@ class OcrViewModel @Inject constructor(
      */
     private fun useOcrResult() {
         viewModelScope.launch {
-            val parkingLotName = _state.value.parsedParkingLotName
-            val feeInfo = _state.value.parsedFeeInfo
+            val state = _state.value
+            val parkingLotName = state.parsedParkingLotName
+            val feeInfo = state.parsedFeeInfo
 
             _effect.emit(
                 OcrContract.OcrEffect.NavigateToAddParkingLotWithResult(
                     parkingLotName = parkingLotName,
-                    feeInfo = feeInfo
+                    feeInfo = feeInfo,
+                    feeRows = state.feeRows,
+                    dailyMaxFee = state.dailyMaxFee
                 )
             )
         }
@@ -179,7 +218,9 @@ class OcrViewModel @Inject constructor(
      */
     private fun reset() {
         _state.update {
-            OcrContract.OcrState()
+            OcrContract.OcrState(
+                showEditScreen = false
+            )
         }
     }
 

@@ -111,9 +111,6 @@ fun NavigationHost(
                     onNavigateToAddParkingLot = {
                         navController.navigate("parkinglots/add")
                     },
-                    onNavigateToEditVehicle = { vehicleId ->
-                        navController.navigate("vehicles/add?vehicleId=$vehicleId")
-                    },
                     onStartParkingService = onStartParkingService,
                     onStopParkingService = onStopParkingService
                 )

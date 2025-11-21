@@ -32,7 +32,6 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToHistory: () -> Unit = {},
     onNavigateToAddParkingLot: () -> Unit = {},
-    onNavigateToEditVehicle: (String) -> Unit = {},
     onStartParkingService: () -> Unit = {},
     onStopParkingService: () -> Unit = {}
 ) {

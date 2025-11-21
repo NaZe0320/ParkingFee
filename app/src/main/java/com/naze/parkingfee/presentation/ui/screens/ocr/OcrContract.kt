@@ -1,6 +1,7 @@
 package com.naze.parkingfee.presentation.ui.screens.ocr
 
 import android.net.Uri
+import com.naze.parkingfee.presentation.ui.screens.parkinglots.add.AddParkingLotContract
 
 /**
  * OCR 화면의 MVI Contract
@@ -52,6 +53,11 @@ object OcrContract {
         val parsedParkingLotName: String? = null,
         val parsedFeeInfo: String? = null,
         
+        // 파싱된 요금 정보
+        val feeRows: List<AddParkingLotContract.FeeRow> = emptyList(),
+        val dailyMaxFee: Int? = null,
+        val showEditScreen: Boolean = false, // 편집 화면 표시 여부
+        
         // 에러 메시지
         val errorMessage: String? = null
     )
@@ -66,7 +72,9 @@ object OcrContract {
         object OpenCamera : OcrEffect()
         data class NavigateToAddParkingLotWithResult(
             val parkingLotName: String?,
-            val feeInfo: String?
+            val feeInfo: String?,
+            val feeRows: List<AddParkingLotContract.FeeRow>,
+            val dailyMaxFee: Int?
         ) : OcrEffect()
     }
 }
