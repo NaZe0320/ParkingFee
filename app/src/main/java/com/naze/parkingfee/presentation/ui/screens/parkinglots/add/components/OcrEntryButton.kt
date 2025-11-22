@@ -28,40 +28,45 @@ fun OcrEntryButton(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // 카메라 아이콘
-            Icon(
-                imageVector = Icons.Default.CameraAlt,
-                contentDescription = "OCR 카메라",
-                tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
-                modifier = Modifier.size(48.dp)
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // 제목
-            Text(
-                text = "OCR 자동 입력",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // 설명
-            Text(
-                text = "표지판 촬영으로 빠르게 등록",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // 카메라 아이콘
+                Icon(
+                    imageVector = Icons.Default.CameraAlt,
+                    contentDescription = "OCR 카메라",
+                    tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
+                    modifier = Modifier.size(32.dp)
+                )
+                
+                Column {
+                    // 제목
+                    Text(
+                        text = "OCR 자동 입력",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    
+                    Spacer(modifier = Modifier.height(2.dp))
+                    
+                    // 설명
+                    Text(
+                        text = "표지판 촬영으로 빠르게 등록",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                    )
+                }
+            }
             
             // 카메라 실행 버튼
             Button(
@@ -70,14 +75,14 @@ fun OcrEntryButton(
                     containerColor = MaterialTheme.colorScheme.onPrimary,
                     contentColor = MaterialTheme.colorScheme.primary
                 ),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(8.dp),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
             ) {
                 Text(
-                    text = "카메라 실행",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    text = "실행",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                 )
             }
         }

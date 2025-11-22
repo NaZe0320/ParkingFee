@@ -124,13 +124,15 @@ fun AddParkingLotScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // OCR 진입 버튼
-            item {
-                OcrEntryButton(
-                    onOcrClick = {
-                        viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.OpenOcrScreen)
-                    }
-                )
+            // OCR 진입 버튼 (편집 모드가 아닐 때만 표시)
+            if (zoneId == null) {
+                item {
+                    OcrEntryButton(
+                        onOcrClick = {
+                            viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.OpenOcrScreen)
+                        }
+                    )
+                }
             }
 
             // 주차장 기본 정보
