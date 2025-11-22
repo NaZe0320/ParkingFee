@@ -52,6 +52,7 @@ object OcrContract {
         // 파싱된 데이터 (나중에 AddParkingLotScreen에 전달)
         val parsedParkingLotName: String? = null,
         val parsedFeeInfo: String? = null,
+        val parsedIsPublic: Boolean = false, // 공영 주차장 여부
         
         // 파싱된 요금 정보
         val feeRows: List<AddParkingLotContract.FeeRow> = emptyList(),

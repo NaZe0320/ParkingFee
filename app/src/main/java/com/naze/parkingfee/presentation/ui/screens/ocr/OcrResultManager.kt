@@ -14,7 +14,8 @@ object OcrResultManager {
     data class OcrResult(
         val parkingLotName: String?,
         val feeRows: List<AddParkingLotContract.FeeRow>,
-        val dailyMaxFee: Int?
+        val dailyMaxFee: Int?,
+        val isPublic: Boolean = false
     )
     
     // 임시 저장소

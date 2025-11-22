@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.naze.parkingfee.data.datasource.local.ocr.OcrProcessor
 import com.naze.parkingfee.data.datasource.local.ocr.ParkingFeeParser
+import com.naze.parkingfee.presentation.ui.screens.ocr.OcrResultManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -129,6 +130,7 @@ class OcrViewModel @Inject constructor(
                                 hasResult = true,
                                 parsedParkingLotName = parsedInfo.parkingLotName,
                                 parsedFeeInfo = parsedInfo.feeInfo,
+                                parsedIsPublic = parsedInfo.isPublic,
                                 feeRows = parsingResult.feeRows,
                                 dailyMaxFee = parsingResult.dailyMaxFee,
                                 showEditScreen = true,
@@ -149,6 +151,7 @@ class OcrViewModel @Inject constructor(
                                 hasResult = true,
                                 parsedParkingLotName = parsedInfo.parkingLotName,
                                 parsedFeeInfo = parsedInfo.feeInfo,
+                                parsedIsPublic = parsedInfo.isPublic,
                                 feeRows = emptyList(),
                                 dailyMaxFee = null,
                                 showEditScreen = false,
@@ -205,7 +208,8 @@ class OcrViewModel @Inject constructor(
                 OcrResultManager.OcrResult(
                     parkingLotName = state.parsedParkingLotName,
                     feeRows = state.feeRows,
-                    dailyMaxFee = state.dailyMaxFee
+                    dailyMaxFee = state.dailyMaxFee,
+                    isPublic = state.parsedIsPublic
                 )
             )
 

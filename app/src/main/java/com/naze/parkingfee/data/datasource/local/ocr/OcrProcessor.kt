@@ -113,9 +113,20 @@ class OcrProcessor @Inject constructor(
                     block.text.contains(hourKeyword, ignoreCase = true))
         }?.text
 
+        // 공영 여부 판단
+        val publicKeywords = listOf(
+            "공영", "공영주차", "시설", "시청", "구청", "군청", "도청", "공공"
+        )
+        val fullText = ocrResult.fullText.lowercase()
+        val isPublic = publicKeywords.any { keyword ->
+            fullText.contains(keyword.lowercase()) ||
+            parkingLotName?.lowercase()?.contains(keyword.lowercase()) == true
+        }
+
         return ParsedParkingInfo(
             parkingLotName = parkingLotName,
-            feeInfo = feeInfo
+            feeInfo = feeInfo,
+            isPublic = isPublic
         )
     }
 
@@ -151,6 +162,7 @@ class OcrProcessor @Inject constructor(
 
     data class ParsedParkingInfo(
         val parkingLotName: String?,
-        val feeInfo: String?
+        val feeInfo: String?,
+        val isPublic: Boolean = false
     )
 }

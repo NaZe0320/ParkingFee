@@ -102,6 +102,8 @@ class AddParkingLotViewModel @Inject constructor(
                 it.copy(
                     // 주차장 이름 적용
                     parkingLotName = ocrResult.parkingLotName ?: it.parkingLotName,
+                    // 공영 여부 적용
+                    isPublic = ocrResult.isPublic,
                     // 고급 모드 활성화
                     isAdvancedMode = true,
                     // 요금 구간 적용
