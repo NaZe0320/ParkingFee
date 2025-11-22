@@ -267,9 +267,13 @@ object FeeCalculator {
     private fun applyDiscount(originalFee: Double, zone: ParkingZone, vehicle: Vehicle?): Double {
         var discountedFee = originalFee
         
-        // 공영 주차장에서 경차 할인 적용
-        if (zone.isPublic && vehicle?.isCompactCar == true) {
-            discountedFee = calculateDiscountedFee(originalFee, 0.5) // 50% 할인
+        // 공영 주차장에서 경차 또는 저공해 차 할인 적용
+        if (zone.isPublic && vehicle != null) {
+            val hasDiscount = vehicle.discountEligibilities.compactCar.enabled || 
+                             vehicle.discountEligibilities.lowEmission.enabled
+            if (hasDiscount) {
+                discountedFee = calculateDiscountedFee(originalFee, 0.5) // 50% 할인
+            }
         }
         
         return discountedFee

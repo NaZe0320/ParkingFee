@@ -147,16 +147,12 @@ fun AddVehicleScreen(
         item {
             DiscountEligibilityCard(
                 compactCarEnabled = state.compactCarDiscount,
-                nationalMeritEnabled = state.nationalMeritDiscount,
-                disabledEnabled = state.disabledDiscount,
+                lowEmissionEnabled = state.lowEmissionDiscount,
                 onCompactCarChange = { enabled ->
                     viewModel.processIntent(AddVehicleContract.AddVehicleIntent.ToggleCompactCarDiscount(enabled))
                 },
-                onNationalMeritChange = { enabled ->
-                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.ToggleNationalMeritDiscount(enabled))
-                },
-                onDisabledChange = { enabled ->
-                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.ToggleDisabledDiscount(enabled))
+                onLowEmissionChange = { enabled ->
+                    viewModel.processIntent(AddVehicleContract.AddVehicleIntent.ToggleLowEmissionDiscount(enabled))
                 }
             )
         }

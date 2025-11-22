@@ -14,11 +14,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun DiscountEligibilityCard(
     compactCarEnabled: Boolean,
-    nationalMeritEnabled: Boolean,
-    disabledEnabled: Boolean,
+    lowEmissionEnabled: Boolean,
     onCompactCarChange: (Boolean) -> Unit,
-    onNationalMeritChange: (Boolean) -> Unit,
-    onDisabledChange: (Boolean) -> Unit,
+    onLowEmissionChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -75,7 +73,7 @@ fun DiscountEligibilityCard(
                 )
             }
             
-            // 국가유공자 할인
+            // 저공해 차 할인
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -85,55 +83,21 @@ fun DiscountEligibilityCard(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "국가유공자 할인",
+                        text = "저공해 차 할인",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "국가유공자는 무료 주차",
+                        text = "저공해 차는 50% 할인 적용",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 
                 Switch(
-                    checked = nationalMeritEnabled,
-                    onCheckedChange = onNationalMeritChange,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                        checkedTrackColor = MaterialTheme.colorScheme.primary,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                )
-            }
-            
-            // 장애인 할인
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = "장애인 할인",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "장애인은 무료 주차",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                
-                Switch(
-                    checked = disabledEnabled,
-                    onCheckedChange = onDisabledChange,
+                    checked = lowEmissionEnabled,
+                    onCheckedChange = onLowEmissionChange,
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
                         checkedTrackColor = MaterialTheme.colorScheme.primary,

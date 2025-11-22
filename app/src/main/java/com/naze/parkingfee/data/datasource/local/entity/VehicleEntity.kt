@@ -13,8 +13,7 @@ data class VehicleEntity(
     val name: String? = null, // 차량 이름 (선택사항)
     val plateNumber: String? = null, // 번호판 (선택사항) - "12가3456" 형태
     val isCompactCar: Boolean = false, // 경차 여부
-    val isNationalMerit: Boolean = false, // 국가유공자 여부 (향후 확장)
-    val isDisabled: Boolean = false, // 장애인 여부 (향후 확장)
+    val isLowEmission: Boolean = false, // 저공해 차 여부
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

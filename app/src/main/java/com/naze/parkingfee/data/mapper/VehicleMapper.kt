@@ -20,8 +20,7 @@ object VehicleMapper {
             plateNumber = entity.plateNumber,
             discountEligibilities = VehicleDiscountEligibilities(
                 compactCar = DiscountEligibility.CompactCar(entity.isCompactCar),
-                nationalMerit = DiscountEligibility.NationalMerit(entity.isNationalMerit),
-                disabled = DiscountEligibility.Disabled(entity.isDisabled)
+                lowEmission = DiscountEligibility.LowEmission(entity.isLowEmission)
             ),
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
@@ -37,8 +36,7 @@ object VehicleMapper {
             name = domain.name,
             plateNumber = domain.plateNumber,
             isCompactCar = domain.discountEligibilities.compactCar.enabled,
-            isNationalMerit = domain.discountEligibilities.nationalMerit.enabled,
-            isDisabled = domain.discountEligibilities.disabled.enabled,
+            isLowEmission = domain.discountEligibilities.lowEmission.enabled,
             createdAt = domain.createdAt,
             updatedAt = domain.updatedAt
         )
