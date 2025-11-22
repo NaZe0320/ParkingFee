@@ -86,16 +86,19 @@ object ParkingFeeParser {
         // 시간과 금액을 쌍으로 묶기
         val pairedData = pairTimeAndFee(extractedData)
 
+        // 하루 최대 요금 찾기 (정규표현식 + 키워드 기반)
+        val dailyMaxFee = findDailyMaxFee(lines, pairedData)
+
         // FeeRow로 변환
         val feeRows = mutableListOf<AddParkingLotContract.FeeRow>()
-        var dailyMaxFee: Int? = null
 
         pairedData.forEach { data ->
-            // 일 최대 요금 처리
-            if (data.keywords.contains("일최대") || 
-                data.keywords.contains("종일") ||
-                data.keywords.contains("일 최대")) {
-                data.fee?.let { dailyMaxFee = it }
+            // 하루 최대 요금으로 이미 처리된 데이터는 FeeRow에서 제외
+            val isDailyMaxFee = dailyMaxFee != null && data.fee == dailyMaxFee &&
+                (data.keywords.any { it in setOf("일최대", "일 최대", "종일", "하루", "1일", "24시간", "일일") } ||
+                 data.keywords.contains("최대") || data.keywords.contains("상한") || data.keywords.contains("한도"))
+            
+            if (isDailyMaxFee) {
                 return@forEach
             }
 
@@ -162,10 +165,92 @@ object ParkingFeeParser {
         if (lowerLine.contains("초과")) keywords.add("초과")
         if (lowerLine.contains("이후")) keywords.add("이후")
         if (lowerLine.contains("추가")) keywords.add("추가")
+        
+        // 하루 최대 요금 관련 키워드
         if (lowerLine.contains("일최대") || lowerLine.contains("일 최대")) keywords.add("일최대")
         if (lowerLine.contains("종일")) keywords.add("종일")
+        if (lowerLine.contains("하루")) keywords.add("하루")
+        if (lowerLine.contains("1일")) keywords.add("1일")
+        if (lowerLine.contains("24시간")) keywords.add("24시간")
+        if (lowerLine.contains("일일")) keywords.add("일일")
+        if (lowerLine.contains("최대")) keywords.add("최대")
+        if (lowerLine.contains("상한")) keywords.add("상한")
+        if (lowerLine.contains("한도")) keywords.add("한도")
 
         return keywords
+    }
+
+    /**
+     * 하루 최대 요금을 찾는 함수
+     * 정규표현식과 키워드 기반 검색을 모두 수행합니다.
+     */
+    private fun findDailyMaxFee(
+        lines: List<String>,
+        pairedData: List<PairedFeeData>
+    ): Int? {
+        // 정규표현식 패턴과 해당 패턴에서 금액이 있는 그룹 인덱스
+        val patternsWithFeeGroup = listOf(
+            // "하루 최대 10,000원", "1일 최대 15,000원" 등 - 그룹 3이 금액
+            Pair(Regex("""(하루|1일|일일|일)\s*(최대|상한|한도)?\s*(\d{1,3}(?:,\d{3})*)\s*원""", RegexOption.IGNORE_CASE), 3),
+            // "10,000원 하루 최대", "15,000원 1일 최대" 등 - 그룹 1이 금액
+            Pair(Regex("""(\d{1,3}(?:,\d{3})*)\s*원\s*(하루|1일|일일|일)\s*(최대|상한|한도)?""", RegexOption.IGNORE_CASE), 1),
+            // "하루 최대 요금 10,000원" 등 - 그룹 3이 금액
+            Pair(Regex("""(하루|1일|일일|일)\s*(최대|상한|한도)?\s*요금\s*(\d{1,3}(?:,\d{3})*)\s*원""", RegexOption.IGNORE_CASE), 3),
+            // "24시간 최대 12,000원" 등 - 그룹 2가 금액
+            Pair(Regex("""24\s*시간\s*(최대|상한|한도)?\s*(\d{1,3}(?:,\d{3})*)\s*원""", RegexOption.IGNORE_CASE), 2)
+        )
+
+        // 정규표현식으로 먼저 검색
+        for (line in lines) {
+            for ((pattern, feeGroupIndex) in patternsWithFeeGroup) {
+                val match = pattern.find(line)
+                if (match != null && match.groupValues.size > feeGroupIndex) {
+                    val feeText = match.groupValues[feeGroupIndex].replace(",", "").trim()
+                    val fee = feeText.toIntOrNull()
+                    if (fee != null && fee > 0) {
+                        return fee
+                    }
+                }
+            }
+        }
+
+        // 키워드 기반 검색 (기존 로직 개선)
+        val dailyMaxFeeKeywords = setOf(
+            "일최대", "일 최대", "종일", "하루", "1일", "24시간", "일일"
+        )
+        val maxFeeKeywords = setOf("최대", "상한", "한도")
+
+        for (data in pairedData) {
+            val hasDailyKeyword = data.keywords.any { it in dailyMaxFeeKeywords }
+            val hasMaxKeyword = data.keywords.any { it in maxFeeKeywords }
+            
+            // 하루 관련 키워드와 최대 관련 키워드가 모두 있거나, 
+            // 하루 관련 키워드만 있어도 하루 최대 요금으로 간주
+            if (hasDailyKeyword && data.fee != null) {
+                // 최대 관련 키워드가 있으면 더 확실함
+                if (hasMaxKeyword) {
+                    return data.fee
+                }
+                // 최대 관련 키워드가 없어도 하루/1일/24시간 등이 있으면 후보로 고려
+                // 하지만 다른 조건도 확인 (예: 시간 정보가 없거나 큰 금액인 경우)
+                if (data.minutes == null || data.minutes >= 1440) { // 24시간 이상
+                    return data.fee
+                }
+            }
+        }
+
+        // 키워드만으로 찾기 (더 관대한 검색)
+        for (data in pairedData) {
+            if (data.keywords.contains("일최대") || 
+                data.keywords.contains("종일") ||
+                data.keywords.contains("일 최대") ||
+                (data.keywords.contains("하루") && data.keywords.contains("최대")) ||
+                (data.keywords.contains("1일") && data.keywords.contains("최대"))) {
+                data.fee?.let { return it }
+            }
+        }
+
+        return null
     }
 
     /**
