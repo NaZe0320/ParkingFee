@@ -26,6 +26,7 @@ import com.naze.parkingfee.presentation.ui.screens.settings.parkinglots.list.Par
 import com.naze.parkingfee.presentation.ui.screens.zonedetail.ZoneDetailScreen
 import com.naze.parkingfee.presentation.ui.screens.vehicledetail.VehicleDetailScreen
 import com.naze.parkingfee.presentation.ui.screens.history.HistoryScreen
+import com.naze.parkingfee.presentation.ui.screens.ocr.OcrScreen
 
 /**
  * 앱의 네비게이션 호스트
@@ -110,9 +111,6 @@ fun NavigationHost(
                     onNavigateToAddParkingLot = {
                         navController.navigate("parkinglots/add")
                     },
-                    onNavigateToEditVehicle = { vehicleId ->
-                        navController.navigate("vehicles/add?vehicleId=$vehicleId")
-                    },
                     onStartParkingService = onStartParkingService,
                     onStopParkingService = onStopParkingService
                 )
@@ -141,9 +139,9 @@ fun NavigationHost(
                 )
             }
             
-            composable(route = "parkinglots/add?zoneId={zoneId}",  // 이 부분 추가
+            composable(route = "parkinglots/add?zoneId={zoneId}",
                 arguments = listOf(
-                    navArgument("zoneId") { nullable = true }  // 이 부분 추가
+                    navArgument("zoneId") { nullable = true }
                 )
             ) { backStackEntry ->
                 val zoneId = backStackEntry.arguments?.getString("zoneId")
@@ -153,7 +151,16 @@ fun NavigationHost(
                         navController.popBackStack()
                     },
                     onNavigateToOcr = {
-                        // OCR 화면으로 이동 (추후 구현)
+                        navController.navigate("ocr")
+                    }
+                )
+            }
+            
+            // OCR 화면
+            composable("ocr") {
+                OcrScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
                     }
                 )
             }
@@ -215,7 +222,7 @@ fun NavigationHost(
                         navController.popBackStack()
                     },
                     onNavigateToOcr = {
-                        // OCR 화면으로 이동 (추후 구현)
+                        navController.navigate("ocr")
                     }
                 )
             }

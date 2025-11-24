@@ -2,6 +2,7 @@ package com.naze.parkingfee.presentation.ui.screens.settings.vehicles.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.naze.parkingfee.domain.usecase.vehicle.DeleteVehicleResult
 import com.naze.parkingfee.domain.usecase.vehicle.DeleteVehicleUseCase
 import com.naze.parkingfee.domain.usecase.vehicle.GetVehiclesUseCase
 import com.naze.parkingfee.domain.usecase.selectedvehicle.GetSelectedVehicleIdUseCase
@@ -121,16 +122,17 @@ class VehicleListViewModel @Inject constructor(
     
     fun confirmDeleteVehicle(vehicleId: String) {
         viewModelScope.launch {
-            try {
-                val result = deleteVehicleUseCase.execute(vehicleId)
-                if (result.isSuccess) {
+            when (val result = deleteVehicleUseCase.execute(vehicleId)) {
+                is DeleteVehicleResult.Success -> {
                     _effect.emit(VehicleListContract.VehicleListEffect.ShowToast("차량이 삭제되었습니다."))
                     loadVehicles() // 목록 새로고침
-                } else {
-                    _effect.emit(VehicleListContract.VehicleListEffect.ShowToast("차량 삭제에 실패했습니다."))
                 }
-            } catch (e: Exception) {
-                _effect.emit(VehicleListContract.VehicleListEffect.ShowToast("차량 삭제 중 오류가 발생했습니다: ${e.message}"))
+                is DeleteVehicleResult.VehicleInUse -> {
+                    _effect.emit(VehicleListContract.VehicleListEffect.ShowToast("주차가 진행 중인 차량은 삭제할 수 없습니다."))
+                }
+                is DeleteVehicleResult.Error -> {
+                    _effect.emit(VehicleListContract.VehicleListEffect.ShowToast("삭제 중 오류가 발생했습니다: ${result.message}"))
+                }
             }
         }
     }

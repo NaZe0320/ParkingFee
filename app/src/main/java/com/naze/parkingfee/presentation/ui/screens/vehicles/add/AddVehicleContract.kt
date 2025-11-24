@@ -14,8 +14,7 @@ object AddVehicleContract {
         data class UpdateVehicleName(val name: String) : AddVehicleIntent()
         data class UpdatePlateNumber(val plateNumber: String) : AddVehicleIntent()
         data class ToggleCompactCarDiscount(val enabled: Boolean) : AddVehicleIntent()
-        data class ToggleNationalMeritDiscount(val enabled: Boolean) : AddVehicleIntent()
-        data class ToggleDisabledDiscount(val enabled: Boolean) : AddVehicleIntent()
+        data class ToggleLowEmissionDiscount(val enabled: Boolean) : AddVehicleIntent()
         object OpenOcrScreen : AddVehicleIntent()
         object SaveVehicle : AddVehicleIntent()
         object NavigateBack : AddVehicleIntent()
@@ -30,8 +29,7 @@ object AddVehicleContract {
         val vehicleName: String = "",
         val plateNumber: String = "",
         val compactCarDiscount: Boolean = false,
-        val nationalMeritDiscount: Boolean = false,
-        val disabledDiscount: Boolean = false,
+        val lowEmissionDiscount: Boolean = false,
         val validationErrors: Map<String, String> = emptyMap(),
         val errorMessage: String? = null
     )

@@ -27,7 +27,7 @@ import com.naze.parkingfee.data.datasource.local.entity.ParkingAlarmEntity
         VehicleEntity::class,
         ParkingAlarmEntity::class
     ],
-    version = 2, // 알람 테이블 추가 및 무료 시간 필드 추가
+    version = 3, // 차량 할인 자격 변경 (저공해 차 추가, 국가유공자/장애인 제거)
     exportSchema = false
 )
 abstract class ParkingDatabase : RoomDatabase() {

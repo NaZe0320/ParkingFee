@@ -174,14 +174,9 @@ fun VehicleDetailScreen(
                                         DiscountChip("경차")
                                     }
                                     
-                                    // 국가유공자 할인
-                                    if (vehicle.discountEligibilities.nationalMerit.enabled) {
-                                        DiscountChip("국가유공자")
-                                    }
-                                    
-                                    // 장애인 할인
-                                    if (vehicle.discountEligibilities.disabled.enabled) {
-                                        DiscountChip("장애인")
+                                    // 저공해 차 할인
+                                    if (vehicle.discountEligibilities.lowEmission.enabled) {
+                                        DiscountChip("저공해 차")
                                     }
                                 }
                             }

@@ -47,8 +47,7 @@ class AddVehicleViewModel @Inject constructor(
             is AddVehicleContract.AddVehicleIntent.UpdateVehicleName -> updateVehicleName(intent.name)
             is AddVehicleContract.AddVehicleIntent.UpdatePlateNumber -> updatePlateNumber(intent.plateNumber)
             is AddVehicleContract.AddVehicleIntent.ToggleCompactCarDiscount -> toggleCompactCarDiscount(intent.enabled)
-            is AddVehicleContract.AddVehicleIntent.ToggleNationalMeritDiscount -> toggleNationalMeritDiscount(intent.enabled)
-            is AddVehicleContract.AddVehicleIntent.ToggleDisabledDiscount -> toggleDisabledDiscount(intent.enabled)
+            is AddVehicleContract.AddVehicleIntent.ToggleLowEmissionDiscount -> toggleLowEmissionDiscount(intent.enabled)
             is AddVehicleContract.AddVehicleIntent.OpenOcrScreen -> openOcrScreen()
             is AddVehicleContract.AddVehicleIntent.SaveVehicle -> saveVehicle()
             is AddVehicleContract.AddVehicleIntent.NavigateBack -> navigateBack()
@@ -72,12 +71,8 @@ class AddVehicleViewModel @Inject constructor(
         _state.update { it.copy(compactCarDiscount = enabled) }
     }
     
-    private fun toggleNationalMeritDiscount(enabled: Boolean) {
-        _state.update { it.copy(nationalMeritDiscount = enabled) }
-    }
-    
-    private fun toggleDisabledDiscount(enabled: Boolean) {
-        _state.update { it.copy(disabledDiscount = enabled) }
+    private fun toggleLowEmissionDiscount(enabled: Boolean) {
+        _state.update { it.copy(lowEmissionDiscount = enabled) }
     }
     
     private fun openOcrScreen() {
@@ -163,8 +158,7 @@ class AddVehicleViewModel @Inject constructor(
                             vehicleName = vehicle.name ?: "",
                             plateNumber = vehicle.plateNumber ?: "",
                             compactCarDiscount = vehicle.discountEligibilities.compactCar.enabled,
-                            nationalMeritDiscount = vehicle.discountEligibilities.nationalMerit.enabled,
-                            disabledDiscount = vehicle.discountEligibilities.disabled.enabled
+                            lowEmissionDiscount = vehicle.discountEligibilities.lowEmission.enabled
                         )
                     }
                 } else {
@@ -244,8 +238,7 @@ class AddVehicleViewModel @Inject constructor(
             plateNumber = currentState.plateNumber.takeIf { it.isNotBlank() },
             discountEligibilities = VehicleDiscountEligibilities(
                 compactCar = DiscountEligibility.CompactCar(currentState.compactCarDiscount),
-                nationalMerit = DiscountEligibility.NationalMerit(currentState.nationalMeritDiscount),
-                disabled = DiscountEligibility.Disabled(currentState.disabledDiscount)
+                lowEmission = DiscountEligibility.LowEmission(currentState.lowEmissionDiscount)
             ),
             createdAt = existingVehicle?.createdAt ?: System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()

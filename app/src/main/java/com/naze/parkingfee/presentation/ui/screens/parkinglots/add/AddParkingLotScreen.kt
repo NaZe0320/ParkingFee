@@ -44,6 +44,11 @@ fun AddParkingLotScreen(
         }
     }
 
+    // OCR 결과 자동 적용
+    LaunchedEffect(Unit) {
+        viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.ApplyOcrResult)
+    }
+
     // Effect 처리 - SharedFlow를 직접 collect하여 모든 Effect를 순차적으로 처리
     LaunchedEffect(Unit) {
         viewModel.effect.collect { currentEffect ->
@@ -119,16 +124,18 @@ fun AddParkingLotScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-        // OCR 진입 버튼
-        // item {
-        //     OcrEntryButton(
-        //         onOcrClick = {
-        //             viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.OpenOcrScreen)
-        //         }
-        //     )
-        // }
+            // OCR 진입 버튼 (편집 모드가 아닐 때만 표시)
+            if (zoneId == null) {
+                item {
+                    OcrEntryButton(
+                        onOcrClick = {
+                            viewModel.processIntent(AddParkingLotContract.AddParkingLotIntent.OpenOcrScreen)
+                        }
+                    )
+                }
+            }
 
-        // 주차장 기본 정보
+            // 주차장 기본 정보
         item {
             ParkingLotBasicInfoCard(
                 parkingLotName = state.parkingLotName,

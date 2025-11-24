@@ -1,6 +1,8 @@
 package com.naze.parkingfee.di
 
 import com.naze.parkingfee.data.repository.VehicleRepositoryImpl
+import com.naze.parkingfee.domain.repository.ParkingRepository
+import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
 import com.naze.parkingfee.domain.repository.VehicleRepository
 import com.naze.parkingfee.domain.usecase.vehicle.*
 import dagger.Module
@@ -40,7 +42,11 @@ object VehicleModule {
     }
     
     @Provides
-    fun provideDeleteVehicleUseCase(vehicleRepository: VehicleRepository): DeleteVehicleUseCase {
-        return DeleteVehicleUseCase(vehicleRepository)
+    fun provideDeleteVehicleUseCase(
+        vehicleRepository: VehicleRepository,
+        parkingRepository: ParkingRepository,
+        selectedVehicleRepository: SelectedVehicleRepository
+    ): DeleteVehicleUseCase {
+        return DeleteVehicleUseCase(vehicleRepository, parkingRepository, selectedVehicleRepository)
     }
 }
