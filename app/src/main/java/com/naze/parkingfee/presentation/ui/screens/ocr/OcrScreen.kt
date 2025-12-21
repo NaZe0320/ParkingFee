@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,7 +17,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,6 +35,7 @@ import androidx.compose.runtime.DisposableEffect
 import coil.compose.rememberAsyncImagePainter
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.naze.parkingfee.data.datasource.local.ocr.OcrProcessor
 import com.naze.parkingfee.infrastructure.notification.ToastManager
 import com.naze.parkingfee.presentation.ui.screens.parkinglots.add.AddParkingLotContract
 import java.io.File
@@ -287,32 +291,116 @@ fun OcrScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text = "인식 결과",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        // 제목과 토글 버튼
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "인식 결과",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            
+                            // 토글 버튼
+                            Row(
+                                modifier = Modifier,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                FilterChip(
+                                    selected = !state.showMetadata,
+                                    onClick = {
+                                        if (state.showMetadata) {
+                                            viewModel.processIntent(OcrContract.OcrIntent.ToggleDisplayMode)
+                                        }
+                                    },
+                                    label = {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                Icons.Default.TextFields,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Text("전체 텍스트")
+                                        }
+                                    }
+                                )
+                                FilterChip(
+                                    selected = state.showMetadata,
+                                    onClick = {
+                                        if (!state.showMetadata) {
+                                            viewModel.processIntent(OcrContract.OcrIntent.ToggleDisplayMode)
+                                        }
+                                    },
+                                    label = {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Info,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Text("메타데이터")
+                                        }
+                                    }
+                                )
+                            }
+                        }
 
                         HorizontalDivider()
 
-                        // 전체 텍스트
-                        Text(
-                            text = "전체 텍스트:",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.surface
-                        ) {
+                        // 전체 텍스트 또는 메타데이터 표시
+                        if (state.showMetadata) {
+                            // 메타데이터 표시
+                            if (state.textBlocks.isNotEmpty()) {
+                                Text(
+                                    text = "OCR 메타데이터:",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                state.textBlocks.forEachIndexed { index, textBlock ->
+                                    MetadataBlockItem(
+                                        index = index,
+                                        textBlock = textBlock
+                                    )
+                                    if (index < state.textBlocks.size - 1) {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                    }
+                                }
+                            } else {
+                                Text(
+                                    text = "메타데이터가 없습니다.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        } else {
+                            // 전체 텍스트 표시
                             Text(
-                                text = state.recognizedText ?: "",
-                                modifier = Modifier.padding(12.dp),
+                                text = "전체 텍스트:",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.surface
+                            ) {
+                                Text(
+                                    text = state.recognizedText ?: "",
+                                    modifier = Modifier.padding(12.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
 
                         // 파싱된 정보 (있을 경우)
@@ -474,6 +562,97 @@ fun OcrScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onErrorContainer
                     )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * OCR 메타데이터 블록 아이템
+ */
+@Composable
+private fun MetadataBlockItem(
+    index: Int,
+    textBlock: OcrProcessor.TextBlock
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // 블록 번호와 텍스트
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Text(
+                    text = "블록 ${index + 1}",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                textBlock.boundingBox?.let { rect ->
+                    Text(
+                        text = "[${rect.left}, ${rect.top}, ${rect.right}, ${rect.bottom}]",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            }
+            
+            // 블록 텍스트
+            Surface(
+                shape = RoundedCornerShape(4.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Text(
+                    text = textBlock.text,
+                    modifier = Modifier.padding(8.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            // 라인별 텍스트
+            if (textBlock.lines.isNotEmpty()) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "라인별 텍스트:",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    textBlock.lines.forEachIndexed { lineIndex, line ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "${lineIndex + 1}.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                modifier = Modifier.width(24.dp)
+                            )
+                            Text(
+                                text = line,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
                 }
             }
         }
