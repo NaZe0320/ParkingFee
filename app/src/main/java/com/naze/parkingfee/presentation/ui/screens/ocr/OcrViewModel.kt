@@ -43,6 +43,7 @@ class OcrViewModel @Inject constructor(
             is OcrContract.OcrIntent.CaptureImageFromCamera -> captureImageFromCamera()
             is OcrContract.OcrIntent.ImageSelected -> onImageSelected(intent.uri)
             is OcrContract.OcrIntent.ProcessOcr -> processOcr()
+            is OcrContract.OcrIntent.ToggleDisplayMode -> toggleDisplayMode()
             is OcrContract.OcrIntent.UseOcrResult -> useOcrResult()
             is OcrContract.OcrIntent.Reset -> reset()
             is OcrContract.OcrIntent.NavigateBack -> navigateBack()
@@ -127,6 +128,7 @@ class OcrViewModel @Inject constructor(
                             it.copy(
                                 isProcessing = false,
                                 recognizedText = result.fullText,
+                                textBlocks = result.textBlocks,
                                 hasResult = true,
                                 parsedParkingLotName = parsedInfo.parkingLotName,
                                 parsedFeeInfo = parsedInfo.feeInfo,
@@ -148,6 +150,7 @@ class OcrViewModel @Inject constructor(
                             it.copy(
                                 isProcessing = false,
                                 recognizedText = result.fullText,
+                                textBlocks = result.textBlocks,
                                 hasResult = true,
                                 parsedParkingLotName = parsedInfo.parkingLotName,
                                 parsedFeeInfo = parsedInfo.feeInfo,
@@ -197,6 +200,15 @@ class OcrViewModel @Inject constructor(
     }
 
     /**
+     * 표시 모드 토글 (전체 텍스트 / 메타데이터)
+     */
+    private fun toggleDisplayMode() {
+        _state.update {
+            it.copy(showMetadata = !it.showMetadata)
+        }
+    }
+
+    /**
      * OCR 결과 사용 (AddParkingLotScreen으로 전달)
      */
     private fun useOcrResult() {
@@ -230,7 +242,8 @@ class OcrViewModel @Inject constructor(
     private fun reset() {
         _state.update {
             OcrContract.OcrState(
-                showEditScreen = false
+                showEditScreen = false,
+                showMetadata = false
             )
         }
     }

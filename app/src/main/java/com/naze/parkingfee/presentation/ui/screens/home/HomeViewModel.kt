@@ -203,15 +203,35 @@ class HomeViewModel @Inject constructor(
     private fun stopParking(sessionId: String) {
         viewModelScope.launch {
             try {
+                // 1. 알람 목록 조회 (State가 아닌 DB에서 직접 조회)
+                val alarms = try {
+                    getParkingAlarmsUseCase.execute(sessionId)
+                } catch (e: Exception) {
+                    // 알람 조회 실패 시 State에서 가져오기 (fallback)
+                    _state.value.parkingAlarms
+                }
+                
+                // 2. 모든 알람 취소 (시스템 알람 취소)
+                alarms.forEach { alarm ->
+                    try {
+                        alarmScheduler.cancelAlarm(alarm.id)
+                    } catch (e: Exception) {
+                        // 개별 알람 취소 실패는 로그만 남기고 계속 진행
+                        println("Failed to cancel alarm ${alarm.id}: ${e.message}")
+                    }
+                }
+                
+                // 3. 데이터베이스에서 알람 삭제
+                try {
+                    deleteAlarmsForSessionUseCase.execute(sessionId)
+                } catch (e: Exception) {
+                    // 알람 삭제 실패는 로그만 남기고 주차 종료는 계속 진행
+                    println("Failed to delete alarms for session: ${e.message}")
+                }
+                
+                // 4. 주차 세션 종료
                 val session = stopParkingUseCase.execute(sessionId)
                 stopTicker()
-                
-                // 모든 알람 취소 및 삭제
-                val alarms = _state.value.parkingAlarms
-                alarms.forEach { alarm ->
-                    alarmScheduler.cancelAlarm(alarm.id)
-                }
-                deleteAlarmsForSessionUseCase.execute(sessionId)
                 
                 // 주차 완료 정보 수집
                 val zone = resolveZone(session.zoneId)

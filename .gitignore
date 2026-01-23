@@ -16,3 +16,6 @@ local.properties
 
 # Cursor IDE rules
 .cursor
+
+# Firebase config
+/app/google-services.json

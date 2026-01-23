@@ -1,6 +1,7 @@
 package com.naze.parkingfee.presentation.ui.screens.ocr
 
 import android.net.Uri
+import com.naze.parkingfee.data.datasource.local.ocr.OcrProcessor
 import com.naze.parkingfee.presentation.ui.screens.parkinglots.add.AddParkingLotContract
 
 /**
@@ -23,6 +24,9 @@ object OcrContract {
         
         // OCR 실행
         object ProcessOcr : OcrIntent()
+        
+        // 표시 모드 토글
+        object ToggleDisplayMode : OcrIntent()
         
         // 결과 사용
         object UseOcrResult : OcrIntent()
@@ -47,7 +51,9 @@ object OcrContract {
         
         // OCR 결과
         val recognizedText: String? = null,
+        val textBlocks: List<OcrProcessor.TextBlock> = emptyList(),
         val hasResult: Boolean = false,
+        val showMetadata: Boolean = false, // true: 메타데이터 표시, false: 전체 텍스트 표시
         
         // 파싱된 데이터 (나중에 AddParkingLotScreen에 전달)
         val parsedParkingLotName: String? = null,
