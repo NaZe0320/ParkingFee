@@ -141,7 +141,7 @@ fun NavigationHost(
             
             composable(route = "parkinglots/add?zoneId={zoneId}",
                 arguments = listOf(
-                    navArgument("zoneId") { nullable = true }
+                    
                 )
             ) { backStackEntry ->
                 val zoneId = backStackEntry.arguments?.getString("zoneId")
