@@ -1,6 +1,8 @@
 package com.naze.parkingfee.domain.usecase.parkingzone
 
+import com.naze.parkingfee.domain.repository.AuthRepository
 import com.naze.parkingfee.domain.repository.ParkingRepository
+import com.naze.parkingfee.utils.SyncLogger
 import javax.inject.Inject
 
 /**
@@ -17,6 +19,7 @@ sealed class DeleteZoneResult {
  * 활성 주차 세션에서 사용 중인 구역은 삭제할 수 없습니다.
  */
 class DeleteParkingZoneUseCase @Inject constructor(
+    private val authRepository: AuthRepository,
     private val parkingRepository: ParkingRepository
 ) {
     suspend fun execute(zoneId: String): DeleteZoneResult {
@@ -30,6 +33,21 @@ class DeleteParkingZoneUseCase @Inject constructor(
             }
             
             // 삭제 수행
+            val authResult = authRepository.ensureSignedInAnonymously()
+            if (authResult.isSuccess) {
+                SyncLogger.logSyncAttempt(
+                    entityType = "ParkingZoneDelete",
+                    entityId = zoneId,
+                    uid = authRepository.getCurrentUid()
+                )
+            } else {
+                SyncLogger.logSyncSkipped(
+                    entityType = "ParkingZoneDelete",
+                    entityId = zoneId,
+                    reason = authResult.exceptionOrNull()?.message ?: "ensureSignedInAnonymously failed"
+                )
+            }
+
             val success = parkingRepository.deleteParkingZone(zoneId)
             if (success) {
                 DeleteZoneResult.Success

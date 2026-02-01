@@ -53,8 +53,11 @@ object UseCaseModule {
 
     @Provides
     @Singleton
-    fun provideDeleteParkingZoneUseCase(parkingRepository: ParkingRepository): DeleteParkingZoneUseCase {
-        return DeleteParkingZoneUseCase(parkingRepository)
+    fun provideDeleteParkingZoneUseCase(
+        authRepository: AuthRepository,
+        parkingRepository: ParkingRepository
+    ): DeleteParkingZoneUseCase {
+        return DeleteParkingZoneUseCase(authRepository, parkingRepository)
     }
 
     @Provides
@@ -77,8 +80,11 @@ object UseCaseModule {
 
     @Provides
     @Singleton
-    fun provideUpdateParkingZoneUseCase(parkingRepository: ParkingRepository): UpdateParkingZoneUseCase {
-        return UpdateParkingZoneUseCase(parkingRepository)
+    fun provideUpdateParkingZoneUseCase(
+        authRepository: AuthRepository,
+        parkingRepository: ParkingRepository
+    ): UpdateParkingZoneUseCase {
+        return UpdateParkingZoneUseCase(authRepository, parkingRepository)
     }
 
     @Provides
@@ -115,8 +121,11 @@ object UseCaseModule {
 
     @Provides
     @Singleton
-    fun provideDeleteParkingHistoryUseCase(historyRepository: ParkingHistoryRepository): DeleteParkingHistoryUseCase {
-        return DeleteParkingHistoryUseCase(historyRepository)
+    fun provideDeleteParkingHistoryUseCase(
+        authRepository: AuthRepository,
+        historyRepository: ParkingHistoryRepository
+    ): DeleteParkingHistoryUseCase {
+        return DeleteParkingHistoryUseCase(authRepository, historyRepository)
     }
 
     @Provides

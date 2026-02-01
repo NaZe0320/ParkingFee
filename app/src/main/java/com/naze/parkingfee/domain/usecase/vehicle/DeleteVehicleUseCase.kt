@@ -1,8 +1,10 @@
 package com.naze.parkingfee.domain.usecase.vehicle
 
+import com.naze.parkingfee.domain.repository.AuthRepository
 import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
 import com.naze.parkingfee.domain.repository.VehicleRepository
+import com.naze.parkingfee.utils.SyncLogger
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -20,6 +22,7 @@ sealed class DeleteVehicleResult {
  * 활성 주차 세션에서 사용 중인 차량은 삭제할 수 없습니다.
  */
 class DeleteVehicleUseCase @Inject constructor(
+    private val authRepository: AuthRepository,
     private val vehicleRepository: VehicleRepository,
     private val parkingRepository: ParkingRepository,
     private val selectedVehicleRepository: SelectedVehicleRepository
@@ -38,6 +41,21 @@ class DeleteVehicleUseCase @Inject constructor(
             }
             
             // 삭제 수행
+            val authResult = authRepository.ensureSignedInAnonymously()
+            if (authResult.isSuccess) {
+                SyncLogger.logSyncAttempt(
+                    entityType = "VehicleDelete",
+                    entityId = vehicleId,
+                    uid = authRepository.getCurrentUid()
+                )
+            } else {
+                SyncLogger.logSyncSkipped(
+                    entityType = "VehicleDelete",
+                    entityId = vehicleId,
+                    reason = authResult.exceptionOrNull()?.message ?: "ensureSignedInAnonymously failed"
+                )
+            }
+
             val result = vehicleRepository.deleteVehicle(vehicleId)
             if (result.isSuccess) {
                 DeleteVehicleResult.Success

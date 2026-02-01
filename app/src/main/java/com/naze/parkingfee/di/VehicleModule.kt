@@ -50,10 +50,11 @@ object VehicleModule {
     
     @Provides
     fun provideDeleteVehicleUseCase(
+        authRepository: AuthRepository,
         vehicleRepository: VehicleRepository,
         parkingRepository: ParkingRepository,
         selectedVehicleRepository: SelectedVehicleRepository
     ): DeleteVehicleUseCase {
-        return DeleteVehicleUseCase(vehicleRepository, parkingRepository, selectedVehicleRepository)
+        return DeleteVehicleUseCase(authRepository, vehicleRepository, parkingRepository, selectedVehicleRepository)
     }
 }
