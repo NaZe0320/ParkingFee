@@ -1,9 +1,11 @@
 package com.naze.parkingfee.di
 
+import com.naze.parkingfee.domain.repository.AuthRepository
 import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.domain.repository.ParkingHistoryRepository
 import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
 import com.naze.parkingfee.domain.repository.AlarmRepository
+import com.naze.parkingfee.data.repository.AuthRepositoryImpl
 import com.naze.parkingfee.data.repository.ParkingRepositoryImpl
 import com.naze.parkingfee.data.repository.ParkingHistoryRepositoryImpl
 import com.naze.parkingfee.data.repository.SelectedVehicleRepositoryImpl
@@ -20,6 +22,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        authRepositoryImpl: AuthRepositoryImpl
+    ): AuthRepository
 
     @Binds
     @Singleton
