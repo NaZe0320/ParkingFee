@@ -1,9 +1,11 @@
 package com.naze.parkingfee.data.repository
 
 import com.naze.parkingfee.data.datasource.local.dao.ParkingHistoryDao
+import com.naze.parkingfee.data.datasource.remote.firestore.ParkingHistoryRemoteDataSource
 import com.naze.parkingfee.data.mapper.ParkingHistoryMapper
 import com.naze.parkingfee.domain.model.ParkingHistory
 import com.naze.parkingfee.domain.repository.ParkingHistoryRepository
+import com.naze.parkingfee.utils.SyncLogger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -14,12 +16,25 @@ import javax.inject.Singleton
  */
 @Singleton
 class ParkingHistoryRepositoryImpl @Inject constructor(
-    private val parkingHistoryDao: ParkingHistoryDao
+    private val parkingHistoryDao: ParkingHistoryDao,
+    private val parkingHistoryRemoteDataSource: ParkingHistoryRemoteDataSource
 ) : ParkingHistoryRepository {
     
     override suspend fun saveParkingHistory(history: ParkingHistory) {
         val entity = ParkingHistoryMapper.toEntity(history)
         parkingHistoryDao.insertParkingHistory(entity)
+
+        // Firestore는 로깅/기록용. 실패해도 로컬 저장은 유지한다.
+        val remoteResult = parkingHistoryRemoteDataSource.upsertParkingHistory(history)
+        if (remoteResult.isSuccess) {
+            SyncLogger.logSyncAttempt(entityType = "ParkingHistoryFirestoreUpsert", entityId = history.id, uid = null)
+        } else {
+            SyncLogger.logSyncSkipped(
+                entityType = "ParkingHistoryFirestoreUpsert",
+                entityId = history.id,
+                reason = remoteResult.exceptionOrNull()?.message ?: "remote upsert failed"
+            )
+        }
     }
     
     override fun getAllParkingHistories(): Flow<List<ParkingHistory>> {
@@ -34,5 +49,17 @@ class ParkingHistoryRepositoryImpl @Inject constructor(
     
     override suspend fun deleteParkingHistory(id: String) {
         parkingHistoryDao.deleteParkingHistoryById(id)
+
+        // Firestore는 로깅/기록용. 실패해도 로컬 삭제는 유지한다.
+        val remoteResult = parkingHistoryRemoteDataSource.deleteParkingHistory(id)
+        if (remoteResult.isSuccess) {
+            SyncLogger.logSyncAttempt(entityType = "ParkingHistoryFirestoreDelete", entityId = id, uid = null)
+        } else {
+            SyncLogger.logSyncSkipped(
+                entityType = "ParkingHistoryFirestoreDelete",
+                entityId = id,
+                reason = remoteResult.exceptionOrNull()?.message ?: "remote delete failed"
+            )
+        }
     }
 }
