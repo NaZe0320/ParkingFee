@@ -1,6 +1,7 @@
 package com.naze.parkingfee.di
 
 import com.naze.parkingfee.data.repository.VehicleRepositoryImpl
+import com.naze.parkingfee.domain.repository.AuthRepository
 import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
 import com.naze.parkingfee.domain.repository.VehicleRepository
@@ -32,13 +33,19 @@ object VehicleModule {
     }
     
     @Provides
-    fun provideAddVehicleUseCase(vehicleRepository: VehicleRepository): AddVehicleUseCase {
-        return AddVehicleUseCase(vehicleRepository)
+    fun provideAddVehicleUseCase(
+        authRepository: AuthRepository,
+        vehicleRepository: VehicleRepository
+    ): AddVehicleUseCase {
+        return AddVehicleUseCase(authRepository, vehicleRepository)
     }
     
     @Provides
-    fun provideUpdateVehicleUseCase(vehicleRepository: VehicleRepository): UpdateVehicleUseCase {
-        return UpdateVehicleUseCase(vehicleRepository)
+    fun provideUpdateVehicleUseCase(
+        authRepository: AuthRepository,
+        vehicleRepository: VehicleRepository
+    ): UpdateVehicleUseCase {
+        return UpdateVehicleUseCase(authRepository, vehicleRepository)
     }
     
     @Provides

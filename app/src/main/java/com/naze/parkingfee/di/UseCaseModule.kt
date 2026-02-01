@@ -1,5 +1,6 @@
 package com.naze.parkingfee.di
 
+import com.naze.parkingfee.domain.repository.AuthRepository
 import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.domain.repository.ParkingHistoryRepository
 import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
@@ -37,8 +38,11 @@ object UseCaseModule {
 
     @Provides
     @Singleton
-    fun provideAddParkingZoneUseCase(parkingRepository: ParkingRepository): AddParkingZoneUseCase {
-        return AddParkingZoneUseCase(parkingRepository)
+    fun provideAddParkingZoneUseCase(
+        authRepository: AuthRepository,
+        parkingRepository: ParkingRepository
+    ): AddParkingZoneUseCase {
+        return AddParkingZoneUseCase(authRepository, parkingRepository)
     }
 
     @Provides
@@ -96,8 +100,11 @@ object UseCaseModule {
 
     @Provides
     @Singleton
-    fun provideSaveParkingHistoryUseCase(historyRepository: ParkingHistoryRepository): SaveParkingHistoryUseCase {
-        return SaveParkingHistoryUseCase(historyRepository)
+    fun provideSaveParkingHistoryUseCase(
+        authRepository: AuthRepository,
+        historyRepository: ParkingHistoryRepository
+    ): SaveParkingHistoryUseCase {
+        return SaveParkingHistoryUseCase(authRepository, historyRepository)
     }
 
     @Provides
