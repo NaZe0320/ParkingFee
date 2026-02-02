@@ -5,11 +5,13 @@ import com.naze.parkingfee.domain.repository.ParkingRepository
 import com.naze.parkingfee.domain.repository.ParkingHistoryRepository
 import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
 import com.naze.parkingfee.domain.repository.AlarmRepository
+import com.naze.parkingfee.domain.repository.AppUpdateRepository
 import com.naze.parkingfee.data.repository.AuthRepositoryImpl
 import com.naze.parkingfee.data.repository.ParkingRepositoryImpl
 import com.naze.parkingfee.data.repository.ParkingHistoryRepositoryImpl
 import com.naze.parkingfee.data.repository.SelectedVehicleRepositoryImpl
 import com.naze.parkingfee.data.repository.AlarmRepositoryImpl
+import com.naze.parkingfee.data.repository.AppUpdateRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -52,4 +54,10 @@ abstract class RepositoryModule {
     abstract fun bindAlarmRepository(
         alarmRepositoryImpl: AlarmRepositoryImpl
     ): AlarmRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAppUpdateRepository(
+        appUpdateRepositoryImpl: AppUpdateRepositoryImpl
+    ): AppUpdateRepository
 }

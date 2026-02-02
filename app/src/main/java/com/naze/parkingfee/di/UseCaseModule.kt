@@ -6,6 +6,7 @@ import com.naze.parkingfee.domain.repository.ParkingHistoryRepository
 import com.naze.parkingfee.domain.repository.SelectedVehicleRepository
 import com.naze.parkingfee.domain.repository.VehicleRepository
 import com.naze.parkingfee.domain.repository.AlarmRepository
+import com.naze.parkingfee.domain.repository.AppUpdateRepository
 import com.naze.parkingfee.domain.usecase.parkingzone.AddParkingZoneUseCase
 import com.naze.parkingfee.domain.usecase.parkingzone.DeleteParkingZoneUseCase
 import com.naze.parkingfee.domain.usecase.parkingzone.GetParkingZonesUseCase
@@ -23,6 +24,7 @@ import com.naze.parkingfee.domain.usecase.alarm.AddParkingAlarmUseCase
 import com.naze.parkingfee.domain.usecase.alarm.DeleteParkingAlarmUseCase
 import com.naze.parkingfee.domain.usecase.alarm.GetParkingAlarmsUseCase
 import com.naze.parkingfee.domain.usecase.alarm.DeleteAlarmsForSessionUseCase
+import com.naze.parkingfee.domain.usecase.appupdate.CheckAppUpdateOnLaunchUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -156,5 +158,13 @@ object UseCaseModule {
     @Singleton
     fun provideDeleteAlarmsForSessionUseCase(alarmRepository: AlarmRepository): DeleteAlarmsForSessionUseCase {
         return DeleteAlarmsForSessionUseCase(alarmRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCheckAppUpdateOnLaunchUseCase(
+        appUpdateRepository: AppUpdateRepository
+    ): CheckAppUpdateOnLaunchUseCase {
+        return CheckAppUpdateOnLaunchUseCase(appUpdateRepository)
     }
 }

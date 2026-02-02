@@ -117,7 +117,7 @@ fun NavigationHost(
             }
             
             composable("settings") {
-                SettingsScreen(
+                SettingsScreen( 
                     onNavigateBack = {
                         navController.popBackStack()
                     }
